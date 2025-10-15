@@ -1,73 +1,207 @@
-# Welcome to your Lovable project
+# TaskFlow - Sistema de Gestão de Projetos e Atividades
 
-## Project info
+Sistema completo de gestão de projetos baseado em metodologias ágeis (Kanban/Scrum), desenvolvido para equipes e pequenas empresas. Oferece controle granular de permissões, gestão de atividades e acompanhamento visual de progresso.
 
-**URL**: https://lovable.dev/projects/05e88e45-48d2-4bfc-a9e9-a23b2dc9a6d6
+## 🚀 Tecnologias
 
-## How can I edit this code?
+- **Frontend:** React 18 + TypeScript + Vite
+- **UI:** TailwindCSS + shadcn/ui
+- **Backend:** Lovable Cloud (Supabase)
+- **Autenticação:** Supabase Auth
+- **Banco de Dados:** PostgreSQL (Supabase)
+- **Formulários:** React Hook Form + Zod
+- **Roteamento:** React Router v6
+- **Gerenciamento de Estado:** React Query (TanStack Query)
 
-There are several ways of editing your application.
+## 📋 Pré-requisitos
 
-**Use Lovable**
+- Node.js 18+ e npm
+- Conta no Lovable (para deploy e backend)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/05e88e45-48d2-4bfc-a9e9-a23b2dc9a6d6) and start prompting.
+## 🛠️ Instalação Local
 
-Changes made via Lovable will be committed automatically to this repo.
+### 1. Clonar o repositório
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+```bash
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 2. Instalar dependências
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+npm install
+```
+
+### 3. Configurar variáveis de ambiente
+
+O arquivo `.env` é gerado automaticamente pelo Lovable Cloud quando você conecta o backend. 
+
+**Importante:** Você NÃO precisa criar manualmente o arquivo `.env`. Ele contém:
+
+```env
+VITE_SUPABASE_URL=<seu-projeto-url>
+VITE_SUPABASE_PUBLISHABLE_KEY=<sua-chave-publica>
+VITE_SUPABASE_PROJECT_ID=<seu-project-id>
+```
+
+### 4. Executar o projeto
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+O projeto estará disponível em `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📁 Estrutura do Projeto
 
-**Use GitHub Codespaces**
+```
+src/
+├── assets/              # Imagens e assets estáticos
+├── components/          # Componentes React
+│   ├── ui/             # Componentes shadcn/ui
+│   ├── layout/         # Layout (Sidebar, Header)
+│   └── ProtectedRoute.tsx
+├── contexts/           # Contexts React (Auth)
+├── hooks/              # Custom hooks
+├── integrations/       # Integrações (Supabase - gerado automaticamente)
+├── lib/                # Utilitários
+├── pages/              # Páginas da aplicação
+│   ├── auth/          # Login, Signup
+│   ├── Landing.tsx    # Landing page
+│   ├── Dashboard.tsx  # Dashboard principal
+│   └── Projects.tsx   # Listagem de projetos
+└── App.tsx            # Componente raiz
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+supabase/
+├── migrations/        # Migrações do banco de dados
+└── config.toml       # Configuração do Supabase (gerado automaticamente)
+```
 
-## What technologies are used for this project?
+## 🗄️ Estrutura do Banco de Dados
 
-This project is built with:
+### Tabelas Principais
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+**profiles** - Perfis de usuário
+- `id` (UUID, PK) - Referência ao auth.users
+- `full_name` (TEXT) - Nome completo
+- `avatar_url` (TEXT, nullable) - URL do avatar
+- `created_at`, `updated_at` (TIMESTAMPTZ)
 
-## How can I deploy this project?
+**user_roles** - Roles e permissões
+- `id` (UUID, PK)
+- `user_id` (UUID, FK → profiles)
+- `role` (app_role ENUM: master, admin, user)
+- `created_at` (TIMESTAMPTZ)
+- Constraint: UNIQUE(user_id, role)
 
-Simply open [Lovable](https://lovable.dev/projects/05e88e45-48d2-4bfc-a9e9-a23b2dc9a6d6) and click on Share -> Publish.
+**categories** - Categorias globais de projetos
+- `id` (UUID, PK)
+- `name` (TEXT, UNIQUE)
+- `description` (TEXT)
+- `color` (TEXT) - Classe CSS para cor
+- `icon` (TEXT, nullable)
+- `is_default` (BOOLEAN) - Se é categoria padrão do sistema
+- `created_at`, `updated_at` (TIMESTAMPTZ)
 
-## Can I connect a custom domain to my Lovable project?
+### Funções de Segurança
 
-Yes, you can!
+**has_role(_user_id, _role)** - Verifica se usuário possui determinada role (evita recursão em RLS policies)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+**handle_new_user()** - Trigger que cria automaticamente perfil e role ao registrar novo usuário
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### Row Level Security (RLS)
+
+Todas as tabelas possuem RLS habilitado com policies apropriadas:
+- **profiles:** Todos podem visualizar, apenas donos podem editar
+- **user_roles:** Todos autenticados podem visualizar
+- **categories:** Todos autenticados podem visualizar
+
+## 🔐 Sistema de Autenticação
+
+### Configuração
+
+- Auto-confirmação de email habilitada (development)
+- Suporte a email + senha
+- Sessões persistentes via localStorage
+- Redirecionamento automático após login/signup
+
+### Fluxo de Autenticação
+
+1. Usuário acessa `/signup` e cria conta
+2. Sistema cria automaticamente:
+   - Registro em `auth.users`
+   - Perfil em `profiles`
+   - Role padrão em `user_roles`
+3. Usuário é redirecionado para `/dashboard`
+4. Rotas protegidas verificam autenticação via `ProtectedRoute`
+
+### Primeiro Usuário Master
+
+O primeiro usuário deve ter sua role alterada manualmente para `master`:
+
+```sql
+-- Atualizar role do primeiro usuário para master
+UPDATE user_roles 
+SET role = 'master' 
+WHERE user_id = '<user-id>';
+```
+
+Acesse o backend pelo Lovable Cloud para executar esta query.
+
+## 📦 Scripts Disponíveis
+
+```bash
+npm run dev          # Inicia servidor de desenvolvimento
+npm run build        # Build para produção
+npm run preview      # Preview do build de produção
+npm run lint         # Executa ESLint
+```
+
+## 🚀 Deploy
+
+### Deploy via Lovable
+
+1. Acesse o projeto no [Lovable](https://lovable.dev)
+2. Clique em **Publish** no canto superior direito
+3. Seu app será publicado em `<seu-projeto>.lovable.app`
+
+### Deploy Manual (outras plataformas)
+
+O projeto é uma aplicação React + Vite padrão e pode ser hospedado em:
+
+- Vercel
+- Netlify
+- Railway
+- Render
+- Cloudflare Pages
+
+**Importante:** Configure as variáveis de ambiente do Supabase na plataforma escolhida.
+
+## 🔗 Links Úteis
+
+- **Documentação Lovable:** [https://docs.lovable.dev](https://docs.lovable.dev)
+- **shadcn/ui:** [https://ui.shadcn.com](https://ui.shadcn.com)
+- **Supabase Docs:** [https://supabase.com/docs](https://supabase.com/docs)
+- **React Router:** [https://reactrouter.com](https://reactrouter.com)
+
+## 📄 Documentação de Desenvolvimento
+
+Para histórico detalhado de todas as implementações e mudanças, consulte o arquivo [DEVELOPMENT.md](./DEVELOPMENT.md).
+
+## 🤝 Contribuindo
+
+Este é um projeto privado. Para contribuir:
+
+1. Crie uma branch feature: `git checkout -b feature/nova-funcionalidade`
+2. Commit suas mudanças: `git commit -m 'feat: adiciona nova funcionalidade'`
+3. Push para a branch: `git push origin feature/nova-funcionalidade`
+4. Abra um Pull Request
+
+## 📝 Licença
+
+Projeto proprietário. Todos os direitos reservados.
+
+---
+
+**Desenvolvido com ❤️ usando [Lovable](https://lovable.dev)**
