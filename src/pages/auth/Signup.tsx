@@ -45,7 +45,13 @@ const Signup = () => {
         toast.error("Erro ao criar conta: " + error.message);
       }
     } else {
-      toast.success("Conta criada com sucesso!");
+      toast.success("Verifique seu e-mail", {
+        description: "Enviamos um link de confirmação. Por favor, verifique sua caixa de entrada.",
+      });
+      setFullName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
     }
 
     setLoading(false);

@@ -54,11 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     });
 
-    if (!error) {
-      // Com auto-confirm habilitado, o usuário já pode fazer login
-      navigate("/dashboard");
-    }
-
+    // Não redireciona automaticamente - usuário precisa verificar e-mail
     return { error };
   };
 
