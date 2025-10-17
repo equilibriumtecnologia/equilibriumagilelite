@@ -532,23 +532,350 @@ success: "bg-success text-success-foreground"
 
 ---
 
+## FASE 2: Gestão de Projetos
+
+**Data:** 16/01/2025  
+**Status:** ✅ Concluída
+
+### 🎯 Objetivos
+
+Implementar sistema completo de gerenciamento de projetos com CRUD, membros, tarefas e categorização.
+
+### 🗄️ Estrutura do Banco de Dados
+
+#### 1. ENUM `project_status`
+
+Status possíveis para projetos:
+
+```sql
+CREATE TYPE public.project_status AS ENUM ('planning', 'active', 'on_hold', 'completed', 'cancelled');
+```
+
+**Valores:**
+- `planning` - Planejamento
+- `active` - Ativo
+- `on_hold` - Em Espera
+- `completed` - Concluído
+- `cancelled` - Cancelado
+
+#### 2. ENUM `task_status` e `task_priority`
+
+```sql
+CREATE TYPE public.task_status AS ENUM ('todo', 'in_progress', 'review', 'completed');
+CREATE TYPE public.task_priority AS ENUM ('low', 'medium', 'high', 'urgent');
+```
+
+#### 3. Tabela `projects`
+
+Tabela principal de projetos.
+
+```sql
+CREATE TABLE public.projects (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT,
+  category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
+  status public.project_status NOT NULL DEFAULT 'planning',
+  deadline DATE,
+  created_by UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+**Campos importantes:**
+- `created_by` - Referência ao criador do projeto
+- `category_id` - Categorização do projeto (opcional)
+- `deadline` - Data limite (opcional)
+- `status` - Estado atual do projeto
+
+**RLS Policies:**
+- ✅ Usuários veem projetos onde são membros ou criadores
+- ✅ Usuários autenticados podem criar projetos
+- ✅ Criadores e admins podem editar/deletar projetos
+
+#### 4. Tabela `project_members`
+
+Relacionamento many-to-many entre projetos e usuários.
+
+```sql
+CREATE TABLE public.project_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  role TEXT DEFAULT 'member',
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(project_id, user_id)
+);
+```
+
+**Roles de membros:**
+- `owner` - Criador do projeto
+- `member` - Membro regular
+
+**RLS Policies:**
+- ✅ Membros do projeto podem ver outros membros
+- ✅ Criadores e admins podem adicionar/remover membros
+
+#### 5. Tabela `tasks`
+
+Tarefas vinculadas a projetos.
+
+```sql
+CREATE TABLE public.tasks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  status public.task_status NOT NULL DEFAULT 'todo',
+  priority public.task_priority NOT NULL DEFAULT 'medium',
+  assigned_to UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  due_date DATE,
+  created_by UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+**RLS Policies:**
+- ✅ Membros do projeto podem ver/criar/editar/deletar tarefas
+
+### 🔐 Funções Adicionadas
+
+#### `add_creator_as_member()`
+
+Trigger que adiciona automaticamente o criador como membro "owner" do projeto.
+
+```sql
+CREATE OR REPLACE FUNCTION public.add_creator_as_member()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.project_members (project_id, user_id, role)
+  VALUES (NEW.id, NEW.created_by, 'owner');
+  RETURN NEW;
+END;
+$$;
+```
+
+**Por que é importante?**
+- Garante que criador sempre tem acesso ao projeto
+- Elimina necessidade de lógica adicional no frontend
+- Cria relacionamento owner automaticamente
+
+### 🎨 Componentes Implementados
+
+#### 1. Hook `useProjects`
+
+Custom hook para gerenciar estado de projetos.
+
+**Localização:** `src/hooks/useProjects.ts`
+
+**Funcionalidades:**
+- Fetch de projetos com relações (categoria, membros, tarefas)
+- Loading state
+- Realtime updates via Supabase channels
+- Refetch manual
+
+```typescript
+const { projects, loading, refetch } = useProjects();
+```
+
+**Query complexa:**
+```typescript
+.select(`
+  *,
+  category:categories(*),
+  project_members(
+    user_id,
+    role,
+    profiles(*)
+  ),
+  tasks(*)
+`)
+```
+
+#### 2. `CreateProjectDialog`
+
+Dialog para criação de novos projetos.
+
+**Localização:** `src/components/projects/CreateProjectDialog.tsx`
+
+**Campos do formulário:**
+- Nome do projeto (obrigatório, 3-100 chars)
+- Descrição (opcional, max 500 chars)
+- Categoria (obrigatório, select)
+- Status (padrão: planning)
+- Prazo (opcional, date picker)
+
+**Validação:** Schema Zod com validação client-side
+
+**Fluxo:**
+1. Usuário preenche formulário
+2. Validação client-side
+3. Insert no banco com `created_by = auth.uid()`
+4. Trigger adiciona criador como owner
+5. Toast de sucesso
+6. Realtime atualiza lista automaticamente
+
+#### 3. `ProjectCard`
+
+Card visual para exibição de projeto.
+
+**Localização:** `src/components/projects/ProjectCard.tsx`
+
+**Informações exibidas:**
+- Nome e descrição do projeto
+- Badge de categoria
+- Badge de status (com cores dinâmicas)
+- Barra de progresso (tarefas concluídas/total)
+- Número de membros
+- Prazo (formatado em pt-BR)
+- Avatares dos membros (máx 3 + contador)
+
+**Cálculo de progresso:**
+```typescript
+const completedTasks = tasks.filter(t => t.status === 'completed').length;
+const progress = (completedTasks / totalTasks) * 100;
+```
+
+#### 4. Página `Projects` Atualizada
+
+**Localização:** `src/pages/Projects.tsx`
+
+**Funcionalidades:**
+- Lista todos os projetos do usuário
+- Busca por nome (filtro client-side)
+- Botão para criar novo projeto
+- Estados de loading e empty state
+- Grid responsivo (1/2/3 colunas)
+
+### 📊 Categorias Padrão
+
+Atualizadas com categorias mais específicas:
+
+```sql
+INSERT INTO public.categories (name, description, color, icon, is_default) VALUES
+  ('Desenvolvimento', 'Projetos de desenvolvimento de software', 'bg-blue-500', 'Code', true),
+  ('Design', 'Projetos de design e UI/UX', 'bg-purple-500', 'Palette', true),
+  ('Marketing', 'Projetos de marketing e comunicação', 'bg-green-500', 'Megaphone', true),
+  ('Vendas', 'Projetos relacionados a vendas', 'bg-yellow-500', 'DollarSign', true),
+  ('Outros', 'Projetos diversos', 'bg-gray-500', 'Folder', true);
+```
+
+### 🔄 Realtime Updates
+
+Implementado sistema de atualização em tempo real:
+
+```typescript
+const channel = supabase
+  .channel("projects-changes")
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "projects",
+    },
+    () => {
+      fetchProjects();
+    }
+  )
+  .subscribe();
+```
+
+**Eventos capturados:**
+- INSERT - Novo projeto criado
+- UPDATE - Projeto modificado
+- DELETE - Projeto removido
+
+### 🔧 Como Testar a FASE 2
+
+1. **Criar projeto:**
+   - Acessar `/projects`
+   - Clicar em "Novo Projeto"
+   - Preencher formulário
+   - Verificar que aparece na lista
+
+2. **Verificar permissões:**
+   ```sql
+   -- Ver membros do projeto
+   SELECT * FROM project_members WHERE project_id = '<project-id>';
+   
+   -- Verificar role de owner
+   -- Deve aparecer o criador com role='owner'
+   ```
+
+3. **Testar realtime:**
+   - Abrir projeto em duas abas
+   - Criar projeto em uma aba
+   - Verificar atualização automática na outra
+
+### 📊 Estado Atual
+
+**Tabelas criadas:** +3 (total: 6)
+- `projects`
+- `project_members`
+- `tasks`
+
+**ENUMs criados:** +3
+- `project_status`
+- `task_status`
+- `task_priority`
+
+**Funções criadas:** +1 (total: 4)
+- `add_creator_as_member()`
+
+**Triggers criados:** +3 (total: 6)
+- `add_creator_as_member_trigger`
+- `update_projects_updated_at`
+- `update_tasks_updated_at`
+
+**Páginas atualizadas:** 1
+- Projects (agora com dados reais)
+
+**Hooks criados:** 1
+- `useProjects`
+
+**Componentes criados:** 2
+- `CreateProjectDialog`
+- `ProjectCard`
+
+### ⚠️ Avisos de Segurança
+
+**Leaked Password Protection Disabled (WARN):**
+- Aviso relacionado à configuração geral de auth
+- Não é crítico para desenvolvimento
+- Recomendado habilitar em produção
+- Link: https://supabase.com/docs/guides/auth/password-security
+
+---
+
 ## Próximas Fases
 
-### FASE 2: Gestão de Projetos
-- Tabela `projects` com foreign keys
-- CRUD completo de projetos
-- Upload de imagens (storage buckets)
-- Filtros e busca
+### FASE 3: Visualização e Edição de Projetos
+- Página de detalhes do projeto
+- Edição de informações
+- Gerenciamento de membros
 - **Previsão:** Próxima implementação
 
-### FASE 3: Sistema de Atividades/Tarefas
-- Tabela `activities`
+### FASE 4: Sistema de Atividades/Tarefas
+- CRUD de tarefas
 - Board Kanban
-- Atribuição de responsáveis
-- Comentários e histórico
+- Atribuição e filtros
+- Comentários
+- **Previsão:** A definir
+
+### FASE 5: Gestão de Equipe
+- Página de equipe
+- Gerenciamento de roles
+- Convites de usuários
 - **Previsão:** A definir
 
 ---
 
-**Última atualização:** 12/01/2025  
-**Versão:** FASE 1 completa
+**Última atualização:** 16/01/2025  
+**Versão:** FASE 2 completa

@@ -104,11 +104,43 @@ supabase/
 - `is_default` (BOOLEAN) - Se é categoria padrão do sistema
 - `created_at`, `updated_at` (TIMESTAMPTZ)
 
+**projects** - Projetos ⭐ FASE 2
+- `id` (UUID, PK)
+- `name` (TEXT) - Nome do projeto
+- `description` (TEXT, nullable)
+- `category_id` (UUID, FK → categories)
+- `status` (project_status ENUM: planning, active, on_hold, completed, cancelled)
+- `deadline` (DATE, nullable)
+- `created_by` (UUID, FK → profiles)
+- `created_at`, `updated_at` (TIMESTAMPTZ)
+
+**project_members** - Membros dos projetos ⭐ FASE 2
+- `id` (UUID, PK)
+- `project_id` (UUID, FK → projects)
+- `user_id` (UUID, FK → profiles)
+- `role` (TEXT: owner, member)
+- `joined_at` (TIMESTAMPTZ)
+- Constraint: UNIQUE(project_id, user_id)
+
+**tasks** - Tarefas dos projetos ⭐ FASE 2
+- `id` (UUID, PK)
+- `project_id` (UUID, FK → projects)
+- `title` (TEXT) - Título da tarefa
+- `description` (TEXT, nullable)
+- `status` (task_status ENUM: todo, in_progress, review, completed)
+- `priority` (task_priority ENUM: low, medium, high, urgent)
+- `assigned_to` (UUID, FK → profiles, nullable)
+- `due_date` (DATE, nullable)
+- `created_by` (UUID, FK → profiles)
+- `created_at`, `updated_at` (TIMESTAMPTZ)
+
 ### Funções de Segurança
 
 **has_role(_user_id, _role)** - Verifica se usuário possui determinada role (evita recursão em RLS policies)
 
 **handle_new_user()** - Trigger que cria automaticamente perfil e role ao registrar novo usuário
+
+**add_creator_as_member()** - Trigger que adiciona o criador como membro "owner" ao criar projeto ⭐ FASE 2
 
 ### Row Level Security (RLS)
 
@@ -116,6 +148,9 @@ Todas as tabelas possuem RLS habilitado com policies apropriadas:
 - **profiles:** Todos podem visualizar, apenas donos podem editar
 - **user_roles:** Todos autenticados podem visualizar
 - **categories:** Todos autenticados podem visualizar
+- **projects:** ⭐ Membros podem visualizar seus projetos, criadores/admins podem editar
+- **project_members:** ⭐ Membros do projeto podem visualizar, criadores/admins podem gerenciar
+- **tasks:** ⭐ Membros do projeto têm acesso completo às tarefas
 
 ## 🔐 Sistema de Autenticação
 
@@ -148,6 +183,31 @@ WHERE user_id = '<user-id>';
 ```
 
 Acesse o backend pelo Lovable Cloud para executar esta query.
+
+## ✨ Funcionalidades Implementadas
+
+### FASE 1: Fundação ✅
+- ✅ Sistema de autenticação completo (signup, login, logout)
+- ✅ Sistema de permissões (master, admin, user)
+- ✅ Layout responsivo com sidebar colapsável
+- ✅ Rotas protegidas
+- ✅ Dashboard inicial
+- ✅ Design system customizado com Tailwind
+
+### FASE 2: Gestão de Projetos ✅
+- ✅ CRUD completo de projetos
+- ✅ Categorização de projetos
+- ✅ Sistema de membros (owner, member)
+- ✅ Gerenciamento de tarefas
+- ✅ Barra de progresso baseada em tarefas
+- ✅ Atualização em tempo real (Realtime)
+- ✅ Filtros e busca de projetos
+- ✅ Visualização de prazos e membros
+
+### Próximas Fases
+- 🔄 FASE 3: Visualização e edição detalhada de projetos
+- 🔄 FASE 4: Board Kanban para tarefas
+- 🔄 FASE 5: Gestão de equipe e convites
 
 ## 📦 Scripts Disponíveis
 
