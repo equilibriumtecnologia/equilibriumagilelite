@@ -13,7 +13,7 @@ const Landing = () => {
             <div className="flex items-center gap-2">
               <LayoutDashboard className="h-6 w-6 text-primary" />
               <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                TaskFlow
+                Agile Lite Equilibrium
               </span>
             </div>
             <div className="flex items-center gap-4">
@@ -59,7 +59,7 @@ const Landing = () => {
             <div className="relative mt-16 rounded-2xl overflow-hidden shadow-2xl border border-border">
               <img 
                 src={heroImage} 
-                alt="TaskFlow Dashboard" 
+                alt="Agile Lite Equilibrium Dashboard" 
                 className="w-full h-auto"
               />
             </div>
@@ -118,7 +118,7 @@ const Landing = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center">
-              Por que escolher o TaskFlow?
+              Por que escolher o Agile Lite Equilibrium?
             </h2>
             <div className="space-y-6">
               {[
@@ -166,7 +166,7 @@ const Landing = () => {
       <footer className="border-t border-border py-8 bg-card">
         <div className="container mx-auto px-4">
           <div className="text-center text-muted-foreground">
-            <p>&copy; 2025 TaskFlow. Todos os direitos reservados.</p>
+            <p>&copy; 2025 Agile Lite Equilibrium. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>

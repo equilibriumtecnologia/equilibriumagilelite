@@ -47,7 +47,7 @@ const Login = () => {
           <div className="flex items-center justify-center gap-2 mb-4">
             <LayoutDashboard className="h-8 w-8 text-primary" />
             <span className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              TaskFlow
+              Agile Lite Equilibrium
             </span>
           </div>
           <h1 className="text-2xl font-bold mb-2">Bem-vindo de volta</h1>

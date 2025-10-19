@@ -7,7 +7,7 @@ import { ProjectCard } from "@/components/projects/ProjectCard";
 import { useProjects } from "@/hooks/useProjects";
 
 export default function Projects() {
-  const { projects, loading } = useProjects();
+  const { projects, loading, refetch } = useProjects();
   const [search, setSearch] = useState("");
 
   const filteredProjects = projects.filter((project) =>
@@ -57,7 +57,7 @@ export default function Projects() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard key={project.id} project={project} onUpdate={refetch} />
           ))}
         </div>
       )}

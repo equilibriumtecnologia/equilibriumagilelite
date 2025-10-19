@@ -1,6 +1,6 @@
-# 📚 Histórico de Desenvolvimento - TaskFlow
+# 📚 Histórico de Desenvolvimento - Agile Lite Equilibrium
 
-Este documento registra todas as implementações, mudanças e decisões técnicas do projeto TaskFlow. É atualizado continuamente conforme o projeto evolui.
+Este documento registra todas as implementações, mudanças e decisões técnicas do projeto Agile Lite Equilibrium. É atualizado continuamente conforme o projeto evolui.
 
 ---
 

@@ -1,4 +1,4 @@
-# TaskFlow - Sistema de Gestão de Projetos e Atividades
+# Agile Lite Equilibrium - Sistema de Gestão de Projetos e Atividades
 
 Sistema completo de gestão de projetos baseado em metodologias ágeis (Kanban/Scrum), desenvolvido para equipes e pequenas empresas. Oferece controle granular de permissões, gestão de atividades e acompanhamento visual de progresso.
 

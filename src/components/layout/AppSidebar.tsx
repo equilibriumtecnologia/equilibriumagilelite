@@ -46,7 +46,7 @@ export function AppSidebar() {
             <div className="flex items-center gap-2">
               <LayoutDashboard className="h-6 w-6 text-primary" />
               <span className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
-                TaskFlow
+                Agile Lite Equilibrium
               </span>
             </div>
           )}

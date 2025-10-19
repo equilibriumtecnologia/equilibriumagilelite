@@ -6,6 +6,8 @@ import { Calendar, Users } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Database } from "@/integrations/supabase/types";
+import { EditProjectDialog } from "./EditProjectDialog";
+import { DeleteProjectDialog } from "./DeleteProjectDialog";
 
 type Project = Database["public"]["Tables"]["projects"]["Row"] & {
   category: Database["public"]["Tables"]["categories"]["Row"] | null;
@@ -19,6 +21,7 @@ type Project = Database["public"]["Tables"]["projects"]["Row"] & {
 
 interface ProjectCardProps {
   project: Project;
+  onUpdate?: () => void;
 }
 
 const statusLabels: Record<string, string> = {
@@ -37,17 +40,27 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-red-500/10 text-red-500 border-red-500/20",
 };
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, onUpdate }: ProjectCardProps) {
   const completedTasks = project.tasks?.filter((t) => t.status === "completed").length || 0;
   const totalTasks = project.tasks?.length || 0;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   return (
-    <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+    <Card className="p-6 hover:shadow-lg transition-shadow">
       <div className="space-y-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1 flex-1">
-            <h3 className="font-semibold text-lg">{project.name}</h3>
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="font-semibold text-lg">{project.name}</h3>
+              <div className="flex items-center gap-1">
+                <EditProjectDialog project={project} onSuccess={onUpdate} />
+                <DeleteProjectDialog 
+                  projectId={project.id} 
+                  projectName={project.name}
+                  onSuccess={onUpdate}
+                />
+              </div>
+            </div>
             <p className="text-sm text-muted-foreground line-clamp-2">
               {project.description || "Sem descrição"}
             </p>
