@@ -11,6 +11,7 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
+import Activities from "./pages/Activities";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AppLayout>
                     <Projects />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/atividades"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Activities />
                   </AppLayout>
                 </ProtectedRoute>
               }

@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Projetos", url: "/projects", icon: FolderKanban },
-  { title: "Atividades", url: "/activities", icon: CheckSquare },
+  { title: "Atividades", url: "/atividades", icon: CheckSquare },
   { title: "Equipe", url: "/team", icon: Users },
   { title: "Configurações", url: "/settings", icon: Settings },
 ];
