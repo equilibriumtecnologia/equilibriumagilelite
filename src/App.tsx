@@ -51,7 +51,7 @@ const App = () => (
               }
             />
             <Route
-              path="/atividades"
+              path="/tasks"
               element={
                 <ProtectedRoute>
                   <AppLayout>

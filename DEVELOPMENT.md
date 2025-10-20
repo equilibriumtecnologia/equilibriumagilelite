@@ -854,20 +854,209 @@ const channel = supabase
 
 ---
 
+---
+
+## FASE 3: Edição de Projetos e Sistema de Tarefas
+
+**Data:** 19/01/2025  
+**Status:** ✅ Concluída
+
+### 🎯 Objetivos
+
+Implementar edição e exclusão de projetos, além de sistema completo de gerenciamento de tarefas.
+
+### 🎨 Componentes Implementados
+
+#### 1. `EditProjectDialog`
+
+Dialog para edição de projetos existentes.
+
+**Localização:** `src/components/projects/EditProjectDialog.tsx`
+
+**Funcionalidades:**
+- Pré-preenche formulário com dados do projeto
+- Mesmos campos do CreateProjectDialog
+- Validação Zod
+- Toast de sucesso/erro
+- Integrado no ProjectCard
+
+#### 2. `DeleteProjectDialog`
+
+Dialog de confirmação para exclusão de projetos.
+
+**Localização:** `src/components/projects/DeleteProjectDialog.tsx`
+
+**Funcionalidades:**
+- Confirmação com nome do projeto
+- Exclusão via Supabase
+- Cascata automática (deleta membros e tarefas)
+- Toast de confirmação
+- Integrado no ProjectCard
+
+#### 3. Hook `useTasks`
+
+Custom hook para gerenciar tarefas.
+
+**Localização:** `src/hooks/useTasks.ts`
+
+**Funcionalidades:**
+- Fetch de tarefas com relações (projeto, assignee, creator)
+- Filtro por project_id (opcional)
+- CRUD completo (create, update, delete)
+- Realtime updates
+- Mutations com React Query
+
+```typescript
+const { tasks, isLoading, createTask, updateTask, deleteTask } = useTasks(projectId);
+```
+
+#### 4. Página `Activities` (Tasks)
+
+Página completa de gerenciamento de tarefas.
+
+**Localização:** `src/pages/Activities.tsx`  
+**Rota:** `/tasks`
+
+**Funcionalidades:**
+- Listagem de todas as tarefas do usuário
+- Filtros por status (tabs)
+- Filtro por prioridade (select)
+- Busca por título/descrição
+- Contador de tarefas por status
+- Grid responsivo
+
+**Tabs de Status:**
+- Todas
+- A Fazer (todo)
+- Em Progresso (in_progress)
+- Revisão (review)
+- Concluídas (completed)
+
+#### 5. `TaskCard`
+
+Card visual para exibição de tarefa.
+
+**Localização:** `src/components/tasks/TaskCard.tsx`
+
+**Informações exibidas:**
+- Título e descrição
+- Badges de status e prioridade (cores dinâmicas)
+- Projeto relacionado
+- Usuário atribuído (avatar + nome)
+- Data de vencimento
+- Botões de edição e exclusão
+
+**Cores de prioridade:**
+- Baixa: Azul
+- Média: Amarelo
+- Alta: Laranja
+- Urgente: Vermelho
+
+#### 6. Dialogs de Tarefas
+
+**CreateTaskDialog** - Criar nova tarefa
+**EditTaskDialog** - Editar tarefa existente
+**DeleteTaskDialog** - Excluir tarefa
+
+Todos com validação Zod e integração completa.
+
+### 📊 Dashboard Atualizado
+
+Dashboard agora com dados reais dos projetos:
+
+**Métricas calculadas:**
+- Total de projetos ativos
+- Tarefas concluídas (soma de todos projetos)
+- Tarefas em andamento
+- Projetos com prazos próximos (7 dias)
+
+**Seções:**
+- Projetos Recentes (3 últimos)
+- Links funcionais para /projects e /tasks
+
+### 🔄 Realtime Updates
+
+Sistema de realtime implementado para tarefas:
+
+```typescript
+const channel = supabase
+  .channel("tasks-changes")
+  .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => {
+    refetch();
+  })
+  .subscribe();
+```
+
+### 🔧 Como Testar a FASE 3
+
+1. **Editar projeto:**
+   - Acessar `/projects`
+   - Clicar no ícone de edição no card
+   - Modificar informações
+   - Verificar atualização
+
+2. **Criar tarefas:**
+   - Acessar `/tasks`
+   - Clicar em "Nova Atividade"
+   - Preencher formulário
+   - Verificar na lista
+
+3. **Filtrar tarefas:**
+   - Usar tabs de status
+   - Usar select de prioridade
+   - Usar busca por texto
+
+4. **Verificar Dashboard:**
+   - Acessar `/dashboard`
+   - Verificar métricas reais
+   - Testar links para projects e tasks
+
+### 📊 Estado Atual
+
+**Páginas implementadas:** +1 (total: 6)
+- Activities (Tasks)
+
+**Hooks criados:** +1 (total: 2)
+- `useTasks`
+
+**Componentes criados:** +6 (total: 8)
+- `EditProjectDialog`
+- `DeleteProjectDialog`
+- `TaskCard`
+- `CreateTaskDialog`
+- `EditTaskDialog`
+- `DeleteTaskDialog`
+
+**Rotas configuradas:** +1
+- `/tasks` → Activities
+
+### ⚠️ Pendências para FASE 4
+
+1. **Página de detalhes do projeto**
+   - View completa com todas informações
+   - Lista de tarefas do projeto
+   - Gerenciamento de membros inline
+
+2. **Board Kanban**
+   - Visualização Kanban das tarefas
+   - Drag and drop entre colunas
+   - Filtros e busca
+
+3. **Comentários em tarefas**
+   - Thread de comentários
+   - Menções de usuários
+   - Timestamps
+
+---
+
 ## Próximas Fases
 
-### FASE 3: Visualização e Edição de Projetos
-- Página de detalhes do projeto
-- Edição de informações
-- Gerenciamento de membros
+### FASE 4: Detalhes de Projeto e Board Kanban
+- Página de detalhes completa do projeto
+- Gerenciamento de membros do projeto
+- Board Kanban para tarefas
+- Drag and drop
 - **Previsão:** Próxima implementação
-
-### FASE 4: Sistema de Atividades/Tarefas
-- CRUD de tarefas
-- Board Kanban
-- Atribuição e filtros
-- Comentários
-- **Previsão:** A definir
 
 ### FASE 5: Gestão de Equipe
 - Página de equipe
@@ -877,5 +1066,5 @@ const channel = supabase
 
 ---
 
-**Última atualização:** 16/01/2025  
-**Versão:** FASE 2 completa
+**Última atualização:** 19/01/2025  
+**Versão:** FASE 3 completa
