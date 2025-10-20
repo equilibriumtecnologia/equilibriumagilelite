@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Calendar, Users } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Link } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
 import { EditProjectDialog } from "./EditProjectDialog";
 import { DeleteProjectDialog } from "./DeleteProjectDialog";
@@ -46,13 +47,14 @@ export function ProjectCard({ project, onUpdate }: ProjectCardProps) {
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   return (
-    <Card className="p-6 hover:shadow-lg transition-shadow">
-      <div className="space-y-4">
+    <Link to={`/projects/${project.id}`}>
+      <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+        <div className="space-y-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1 flex-1">
             <div className="flex items-center justify-between gap-2">
               <h3 className="font-semibold text-lg">{project.name}</h3>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" onClick={(e) => e.preventDefault()}>
                 <EditProjectDialog project={project} onSuccess={onUpdate} />
                 <DeleteProjectDialog 
                   projectId={project.id} 
@@ -128,5 +130,6 @@ export function ProjectCard({ project, onUpdate }: ProjectCardProps) {
         </div>
       </div>
     </Card>
+    </Link>
   );
 }
