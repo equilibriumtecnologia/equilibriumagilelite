@@ -1049,22 +1049,301 @@ const channel = supabase
 
 ---
 
-## Próximas Fases
+## FASE 4: Detalhes de Projeto e Board Kanban
 
-### FASE 4: Detalhes de Projeto e Board Kanban
-- Página de detalhes completa do projeto
-- Gerenciamento de membros do projeto
-- Board Kanban para tarefas
-- Drag and drop
-- **Previsão:** Próxima implementação
+**Data:** 20/01/2025  
+**Status:** ✅ Concluída
 
-### FASE 5: Gestão de Equipe
-- Página de equipe
-- Gerenciamento de roles
-- Convites de usuários
-- **Previsão:** A definir
+### 🎯 Objetivos
+
+Implementar visualização detalhada de projetos com gerenciamento de membros e board Kanban interativo.
+
+### 🎨 Componentes Implementados
+
+#### 1. Hook `useProject`
+
+Custom hook para buscar dados completos de um projeto específico.
+
+**Localização:** `src/hooks/useProject.ts`
+
+**Funcionalidades:**
+- Fetch de projeto com todas as relações (categoria, membros, tarefas)
+- Loading state
+- Realtime updates para projeto, tarefas e membros
+- Refetch manual
+
+**Query complexa:**
+```typescript
+.select(`
+  *,
+  category:categories(*),
+  project_members(
+    user_id,
+    role,
+    profiles(*)
+  ),
+  tasks(
+    *,
+    assigned_to_profile:profiles!tasks_assigned_to_fkey(*),
+    created_by_profile:profiles!tasks_created_by_fkey(*)
+  )
+`)
+```
+
+**Realtime subscriptions múltiplas:**
+- Mudanças no projeto
+- Mudanças nas tarefas do projeto
+- Mudanças nos membros do projeto
+
+#### 2. `AddMemberDialog`
+
+Dialog para adicionar membros ao projeto.
+
+**Localização:** `src/components/projects/AddMemberDialog.tsx`
+
+**Funcionalidades:**
+- Lista todos usuários do sistema
+- Filtra membros já presentes no projeto
+- Select com busca
+- Validação de duplicatas
+- Toast de sucesso/erro
+
+**RLS:** Usa política que permite criadores e admins adicionarem membros.
+
+#### 3. `RemoveMemberDialog`
+
+Dialog de confirmação para remover membros.
+
+**Localização:** `src/components/projects/RemoveMemberDialog.tsx`
+
+**Funcionalidades:**
+- Confirmação com nome do membro
+- Não permite remover owners
+- Delete via Supabase
+- Toast de confirmação
+
+#### 4. Board Kanban Completo
+
+Sistema completo de visualização Kanban com drag-and-drop.
+
+##### `KanbanBoard`
+
+**Localização:** `src/components/kanban/KanbanBoard.tsx`
+
+**Tecnologia:** `@dnd-kit/core` para drag-and-drop
+
+**Funcionalidades:**
+- 4 colunas: A Fazer, Em Progresso, Revisão, Concluído
+- Drag and drop entre colunas
+- Atualização automática de status no banco
+- DragOverlay para feedback visual
+- Sensor de ponteiro com threshold de 8px
+
+**Fluxo de drag:**
+```typescript
+handleDragEnd -> 
+  Verifica nova coluna -> 
+  Update no banco -> 
+  Toast de sucesso -> 
+  Realtime atualiza
+```
+
+##### `KanbanColumn`
+
+**Localização:** `src/components/kanban/KanbanColumn.tsx`
+
+**Funcionalidades:**
+- Área droppable com feedback visual
+- Contador de tarefas
+- Indicador de cor por status
+- Empty state
+- Highlight quando hovering
+
+##### `KanbanTaskCard`
+
+**Localização:** `src/components/kanban/KanbanTaskCard.tsx`
+
+**Funcionalidades:**
+- Card draggable
+- Informações compactas da tarefa
+- Badge de prioridade
+- Avatar do assignee
+- Data de vencimento
+- GripVertical icon para indicar drag
+
+#### 5. Página `ProjectDetails`
+
+Página completa de detalhes do projeto.
+
+**Localização:** `src/pages/ProjectDetails.tsx`  
+**Rota:** `/projects/:id`
+
+**Seções:**
+
+**Header:**
+- Breadcrumb (voltar para projetos)
+- Nome e descrição do projeto
+- Botões de edição e exclusão
+- Botão "Nova Tarefa"
+
+**Cards de Informação (4 cards):**
+- Tarefas concluídas/total
+- Número de membros
+- Status atual
+- Prazo
+
+**Barra de Progresso:**
+- Cálculo baseado em tarefas concluídas
+- Porcentagem visual
+
+**Visualização de Tarefas (Tabs):**
+- Tab Kanban: Board completo com drag-and-drop
+- Tab Lista: Lista tradicional de TaskCards
+
+**Painel de Equipe:**
+- Lista todos membros
+- Avatar + nome + role
+- Badge owner/membro
+- Botão adicionar membro
+- Botão remover (exceto owner)
+
+**Integração com ProjectCard:**
+```typescript
+<Link to={`/projects/${project.id}`}>
+  <ProjectCard {...} />
+</Link>
+```
+
+### 🔄 Realtime Updates
+
+Sistema completo de realtime para projeto:
+
+```typescript
+const channel = supabase
+  .channel(`project-${projectId}-changes`)
+  .on('postgres_changes', { table: 'projects', filter: `id=eq.${projectId}` }, refetch)
+  .on('postgres_changes', { table: 'tasks', filter: `project_id=eq.${projectId}` }, refetch)
+  .on('postgres_changes', { table: 'project_members', filter: `project_id=eq.${projectId}` }, refetch)
+  .subscribe();
+```
+
+**Eventos capturados:**
+- Mudanças no projeto (nome, status, deadline)
+- Tarefas criadas/editadas/deletadas
+- Membros adicionados/removidos
+
+### 📦 Dependências Adicionadas
+
+```json
+{
+  "@dnd-kit/core": "^6.3.1",
+  "@dnd-kit/sortable": "^10.0.0",
+  "@dnd-kit/utilities": "^3.2.2"
+}
+```
+
+### 🔧 Como Testar a FASE 4
+
+1. **Acessar detalhes do projeto:**
+   - Ir em `/projects`
+   - Clicar em qualquer card de projeto
+   - Verificar todas informações carregadas
+
+2. **Gerenciar membros:**
+   - Clicar em "+" no painel de equipe
+   - Adicionar novo membro
+   - Verificar atualização em tempo real
+   - Tentar remover membro (não-owner)
+
+3. **Usar Kanban:**
+   - Alternar para tab Kanban
+   - Arrastar tarefa entre colunas
+   - Verificar atualização de status
+   - Verificar toast de sucesso
+
+4. **Verificar realtime:**
+   - Abrir projeto em duas abas
+   - Mover tarefa no Kanban em uma aba
+   - Verificar atualização automática na outra
+
+### 📊 Estado Atual
+
+**Páginas implementadas:** +1 (total: 7)
+- ProjectDetails
+
+**Hooks criados:** +1 (total: 3)
+- `useProject`
+
+**Componentes criados:** +5 (total: 13)
+- `AddMemberDialog`
+- `RemoveMemberDialog`
+- `KanbanBoard`
+- `KanbanColumn`
+- `KanbanTaskCard`
+
+**Rotas configuradas:** +1
+- `/projects/:id` → ProjectDetails
+
+**Dependências adicionadas:** 3
+- @dnd-kit packages
+
+### ⚠️ Observações
+
+1. **Performance do Kanban:**
+   - Usa activationConstraint para evitar drags acidentais
+   - DragOverlay melhora UX durante drag
+   - Realtime não interfere com drag em andamento
+
+2. **Segurança de membros:**
+   - Owners não podem ser removidos
+   - RLS garante que apenas criadores/admins gerenciem membros
+   - Trigger automático adiciona criador como owner
 
 ---
 
-**Última atualização:** 19/01/2025  
-**Versão:** FASE 3 completa
+## FASE 5: Gestão de Equipe
+
+**Data:** 20/01/2025  
+**Status:** 🚧 Em Desenvolvimento
+
+### 🎯 Objetivos
+
+Implementar sistema completo de gerenciamento de equipe com visualização de todos membros, atribuição de roles (admin/user) e estatísticas de participação.
+
+### 📋 Escopo
+
+1. **Página Team:**
+   - Lista todos usuários do sistema
+   - Informações de cada membro (nome, email, projetos, tarefas)
+   - Filtros e busca
+   - Estatísticas gerais
+
+2. **Gerenciamento de Roles:**
+   - Visualização de role atual (user/admin/master)
+   - Promover/rebaixar usuários (apenas admins/master)
+   - Indicadores visuais de permissões
+
+3. **Estatísticas de Participação:**
+   - Projetos por membro
+   - Tarefas atribuídas/concluídas
+   - Taxa de conclusão
+   - Atividade recente
+
+4. **Filtros e Busca:**
+   - Por role
+   - Por atividade (ativo/inativo)
+   - Por nome/email
+   - Ordenação customizável
+
+### 🚀 Próximos Passos
+
+1. Criar hook `useTeam` para buscar membros com estatísticas
+2. Criar componente `TeamMemberCard` para exibição
+3. Implementar página `/team`
+4. Adicionar dialog de gerenciamento de roles
+5. Implementar filtros e busca
+
+---
+
+**Última atualização:** 20/01/2025  
+**Versão:** FASE 4 completa, FASE 5 iniciando
