@@ -6,6 +6,7 @@ import {
   Users,
   Settings,
   LogOut,
+  Mail,
 } from "lucide-react";
 import {
   Sidebar,
@@ -27,6 +28,7 @@ const menuItems = [
   { title: "Projetos", url: "/projects", icon: FolderKanban },
   { title: "Atividades", url: "/tasks", icon: CheckSquare },
   { title: "Equipe", url: "/team", icon: Users },
+  { title: "Convites", url: "/invitations", icon: Mail },
   { title: "Configurações", url: "/settings", icon: Settings },
 ];
 

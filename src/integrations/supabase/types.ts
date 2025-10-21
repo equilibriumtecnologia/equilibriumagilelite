@@ -47,6 +47,63 @@ export type Database = {
         }
         Relationships: []
       }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          project_id: string | null
+          role: string | null
+          status: Database["public"]["Enums"]["invitation_status"]
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          invited_by: string
+          project_id?: string | null
+          role?: string | null
+          status?: Database["public"]["Enums"]["invitation_status"]
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          project_id?: string | null
+          role?: string | null
+          status?: Database["public"]["Enums"]["invitation_status"]
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -259,6 +316,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_invitation: {
+        Args: { _token: string; _user_id: string }
+        Returns: Json
+      }
+      expire_old_invitations: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -270,9 +335,14 @@ export type Database = {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
       }
+      user_has_system_access: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "master" | "admin" | "user"
+      invitation_status: "pending" | "accepted" | "expired" | "cancelled"
       project_status:
         | "planning"
         | "active"
@@ -409,6 +479,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["master", "admin", "user"],
+      invitation_status: ["pending", "accepted", "expired", "cancelled"],
       project_status: [
         "planning",
         "active",

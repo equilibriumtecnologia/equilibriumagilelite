@@ -1304,7 +1304,7 @@ const channel = supabase
 ## FASE 5: Gestão de Equipe
 
 **Data:** 20/01/2025  
-**Status:** 🚧 Em Desenvolvimento
+**Status:** ✅ Concluída
 
 ### 🎯 Objetivos
 
@@ -1335,15 +1335,314 @@ Implementar sistema completo de gerenciamento de equipe com visualização de to
    - Por nome/email
    - Ordenação customizável
 
-### 🚀 Próximos Passos
+### 🎨 Componentes Implementados
 
-1. Criar hook `useTeam` para buscar membros com estatísticas
-2. Criar componente `TeamMemberCard` para exibição
-3. Implementar página `/team`
-4. Adicionar dialog de gerenciamento de roles
-5. Implementar filtros e busca
+**Hook `useTeam`** - `src/hooks/useTeam.ts`
+- Fetch de membros com estatísticas
+- Contagem de projetos e tarefas
+- Realtime updates
+
+**Componente `TeamMemberCard`** - `src/components/team/TeamMemberCard.tsx`
+- Exibição de informações do membro
+- Estatísticas visuais
+- Ações de gerenciamento
+
+**Componente `ManageRoleDialog`** - `src/components/team/ManageRoleDialog.tsx`
+- Gerenciamento de roles
+- Apenas admins/masters podem usar
+
+**Página `Team`** - `src/pages/Team.tsx`
+- Lista completa de membros
+- Filtros e busca funcionais
+- Estatísticas gerais da equipe
+
+**Botão de convite adicionado** para facilitar adição de novos membros.
+
+---
+
+## FASE 6: Sistema de Convites e Controle de Acesso
+
+**Data:** 20/01/2025  
+**Status:** ✅ Concluída
+
+### 🎯 Objetivos
+
+Implementar sistema completo de convites para usuários externos e controle de acesso baseado em participação em projetos.
+
+### 🗄️ Estrutura do Banco de Dados
+
+#### 1. ENUM `invitation_status`
+
+```sql
+CREATE TYPE public.invitation_status AS ENUM ('pending', 'accepted', 'expired', 'cancelled');
+```
+
+**Status:**
+- `pending` - Aguardando aceitação
+- `accepted` - Convite aceito
+- `expired` - Convite expirado
+- `cancelled` - Convite cancelado
+
+#### 2. Tabela `invitations`
+
+Tabela para gerenciar convites de novos usuários.
+
+```sql
+CREATE TABLE public.invitations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL,
+  invited_by UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE,
+  role TEXT DEFAULT 'member',
+  status public.invitation_status NOT NULL DEFAULT 'pending',
+  token UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+  expires_at TIMESTAMPTZ NOT NULL,
+  accepted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+**Campos importantes:**
+- `email` - Email do usuário convidado
+- `invited_by` - Quem enviou o convite
+- `project_id` - Projeto específico (opcional)
+- `token` - Token único para validação
+- `expires_at` - Data de expiração (7 dias)
+
+**RLS Policies:**
+- ✅ Criadores e admins podem ver seus convites
+- ✅ Admins e masters podem criar convites
+- ✅ Criadores podem atualizar/deletar seus convites
+
+### 🔐 Funções de Controle de Acesso
+
+#### `user_has_system_access(_user_id)`
+
+Verifica se usuário tem permissão para acessar o sistema.
+
+```sql
+CREATE OR REPLACE FUNCTION public.user_has_system_access(_user_id UUID)
+RETURNS BOOLEAN
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_roles 
+    WHERE user_id = _user_id AND role = 'master'
+  ) OR EXISTS (
+    SELECT 1 FROM public.project_members 
+    WHERE user_id = _user_id
+  )
+$$;
+```
+
+**Regras de acesso:**
+- Master sempre tem acesso (terá assinatura no futuro)
+- Usuário precisa ser membro de pelo menos um projeto
+- Usuário sem projetos não tem acesso
+
+#### `accept_invitation(_token, _user_id)`
+
+Aceita convite e adiciona usuário ao projeto.
+
+**Fluxo:**
+1. Valida token e expiração
+2. Verifica se email corresponde
+3. Adiciona usuário ao projeto
+4. Marca convite como aceito
+
+#### `expire_old_invitations()`
+
+Função para expirar convites automaticamente (preparado para cron job futuro).
+
+### 🎨 Componentes Implementados
+
+#### 1. Hook `useInvitations`
+
+Custom hook para gerenciar convites.
+
+**Localização:** `src/hooks/useInvitations.ts`
+
+**Funcionalidades:**
+- Fetch de convites com relações (perfil convidador, projeto)
+- CRUD completo (create, cancel, resend)
+- Realtime updates
+- Validação de email e expiração
+
+```typescript
+const { 
+  invitations, 
+  loading, 
+  createInvitation, 
+  cancelInvitation, 
+  resendInvitation 
+} = useInvitations();
+```
+
+**Regras de negócio:**
+- Convites expiram em 7 dias
+- Apenas admins e masters podem convidar
+- Pode convidar para projeto específico ou geral
+
+#### 2. `InviteUserDialog`
+
+Dialog para criar novos convites.
+
+**Localização:** `src/components/invitations/InviteUserDialog.tsx`
+
+**Campos do formulário:**
+- Email (obrigatório, validação)
+- Projeto (opcional, select)
+- Permissão (member/admin)
+
+#### 3. `InvitationsList`
+
+Lista de convites com filtros e ações.
+
+**Localização:** `src/components/invitations/InvitationsList.tsx`
+
+**Informações exibidas:**
+- Email convidado
+- Projeto (se específico)
+- Status com badges coloridos
+- Datas (enviado, expira, aceito)
+- Ações (reenviar, cancelar)
+
+#### 4. Página `Invitations`
+
+Página completa de gerenciamento de convites.
+
+**Localização:** `src/pages/Invitations.tsx`  
+**Rota:** `/invitations`
+
+**Seções:**
+- Header com botão "Convidar Usuário"
+- Tabs de filtro (Todos, Pendentes, Aceitos, Expirados)
+- Lista de convites com todas informações
+
+#### 5. Página `AcceptInvitation`
+
+Página para aceitar convite via link.
+
+**Localização:** `src/pages/AcceptInvitation.tsx`  
+**Rota:** `/accept-invitation?token=<uuid>`
+
+**Fluxo:**
+1. Usuário acessa link com token
+2. Sistema valida convite (status, expiração)
+3. Mostra informações do convite
+4. Se não autenticado, redireciona para signup
+5. Se autenticado, verifica email e aceita
+6. Adiciona ao projeto automaticamente
+7. Redireciona para projeto ou dashboard
+
+### 📊 Controle de Acesso
+
+**Implementação futura (FASE 7):**
+- Verificação de `user_has_system_access()` no login
+- Bloqueio de acesso para usuários sem projetos
+- Mensagem orientando a pedir convite
+- Master sempre tem acesso (preparado para assinaturas)
+
+### 🔧 Como Testar a FASE 6
+
+1. **Criar convite:**
+   - Login como admin/master
+   - Ir em `/invitations`
+   - Clicar em "Convidar Usuário"
+   - Preencher email e projeto
+   - Verificar na lista
+
+2. **Aceitar convite:**
+   - Copiar token do convite da URL
+   - Montar URL: `/accept-invitation?token=<token>`
+   - Abrir em navegador anônimo
+   - Verificar detalhes do convite
+   - Criar conta ou fazer login
+   - Verificar que foi adicionado ao projeto
+
+3. **Gerenciar convites:**
+   - Ver lista de convites pendentes
+   - Reenviar convite (estende expiração)
+   - Cancelar convite
+   - Ver convites aceitos e expirados
+
+### 📊 Estado Atual
+
+**Tabelas criadas:** +1 (total: 7)
+- `invitations`
+
+**ENUMs criados:** +1 (total: 4)
+- `invitation_status`
+
+**Funções criadas:** +3 (total: 7)
+- `user_has_system_access()`
+- `expire_old_invitations()`
+- `accept_invitation()`
+
+**Páginas implementadas:** +2 (total: 9)
+- Invitations
+- AcceptInvitation
+
+**Hooks criados:** +1 (total: 4)
+- `useInvitations`
+
+**Componentes criados:** +2 (total: 15)
+- `InviteUserDialog`
+- `InvitationsList`
+
+**Rotas configuradas:** +2
+- `/invitations` → Invitations
+- `/accept-invitation` → AcceptInvitation
+
+### 🔐 Segurança
+
+**RLS Policies:**
+- Apenas admins/masters podem criar convites
+- Criadores veem apenas seus convites
+- Token único e não reutilizável
+- Validação de email ao aceitar
+- Expiração automática em 7 dias
+
+**Função SECURITY DEFINER:**
+- `user_has_system_access()` contorna RLS com segurança
+- `accept_invitation()` adiciona membro de forma segura
+- Validações robustas de email e token
+
+### 📝 Observações
+
+1. **Sistema de convites:**
+   - Preparado para envio de email (futuro)
+   - Por hora, compartilhamento manual do link
+   - Token único e seguro
+
+2. **Controle de acesso:**
+   - Função `user_has_system_access()` criada
+   - Implementação no login será na FASE 7
+   - Master sempre terá acesso (assinaturas futuras)
+
+3. **Integração com projetos:**
+   - Convite pode ser para projeto específico
+   - Usuário é adicionado automaticamente
+   - Role configurável (member/admin)
+
+### ⚠️ Pendências para FASE 7
+
+1. **Envio de email:**
+   - Integrar com Resend
+   - Email template profissional
+   - Link direto no email
+
+2. **Controle de acesso no login:**
+   - Verificar `user_has_system_access()`
+   - Bloquear acesso se não tem projetos
+   - Mensagem amigável
+
+3. **Sistema de assinaturas:**
+   - Stripe integration
+   - Planos de assinatura
+   - Master automático com assinatura
 
 ---
 
 **Última atualização:** 20/01/2025  
-**Versão:** FASE 4 completa, FASE 5 iniciando
+**Versão:** FASE 6 completa

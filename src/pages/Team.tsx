@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTeam } from "@/hooks/useTeam";
 import { Input } from "@/components/ui/input";
+import { InviteUserDialog } from "@/components/invitations/InviteUserDialog";
 import {
   Select,
   SelectContent,
@@ -51,11 +52,14 @@ const Team = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Equipe</h1>
-        <p className="text-muted-foreground">
-          Gerencie membros da equipe e visualize estatísticas de desempenho
-        </p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Equipe</h1>
+          <p className="text-muted-foreground">
+            Gerencie membros da equipe e visualize estatísticas de desempenho
+          </p>
+        </div>
+        <InviteUserDialog />
       </div>
 
       {/* Estatísticas Gerais */}

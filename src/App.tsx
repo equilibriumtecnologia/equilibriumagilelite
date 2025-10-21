@@ -14,6 +14,8 @@ import Projects from "./pages/Projects";
 import ProjectDetails from "./pages/ProjectDetails";
 import Activities from "./pages/Activities";
 import Team from "./pages/Team";
+import Invitations from "./pages/Invitations";
+import AcceptInvitation from "./pages/AcceptInvitation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,7 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/accept-invitation" element={<AcceptInvitation />} />
             
             {/* Protected routes with layout */}
             <Route
@@ -78,6 +81,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AppLayout>
                     <Team />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invitations"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Invitations />
                   </AppLayout>
                 </ProtectedRoute>
               }
