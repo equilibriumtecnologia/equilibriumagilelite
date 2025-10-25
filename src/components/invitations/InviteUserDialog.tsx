@@ -55,7 +55,7 @@ export function InviteUserDialog({ projectId, trigger }: InviteUserDialogProps) 
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
-      projectId: projectId || "",
+      projectId: projectId || "none",
       role: "member",
     },
   });
@@ -63,7 +63,7 @@ export function InviteUserDialog({ projectId, trigger }: InviteUserDialogProps) 
   const onSubmit = async (values: FormValues) => {
     const success = await createInvitation(
       values.email,
-      values.projectId,
+      values.projectId === "none" ? undefined : values.projectId,
       values.role
     );
     
@@ -131,7 +131,7 @@ export function InviteUserDialog({ projectId, trigger }: InviteUserDialogProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Sem projeto específico</SelectItem>
+                        <SelectItem value="none">Sem projeto específico</SelectItem>
                         {projects.map((project) => (
                           <SelectItem key={project.id} value={project.id}>
                             {project.name}
