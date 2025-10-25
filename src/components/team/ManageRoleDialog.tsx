@@ -31,7 +31,7 @@ export function ManageRoleDialog({ member, onSuccess }: ManageRoleDialogProps) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<string>(member.roles[0]?.role || "user");
   const [currentUserRole, setCurrentUserRole] = useState<string>("user");
 
   useEffect(() => {
