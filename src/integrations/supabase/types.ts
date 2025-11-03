@@ -320,10 +320,7 @@ export type Database = {
         Args: { _token: string; _user_id: string }
         Returns: Json
       }
-      expire_old_invitations: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      expire_old_invitations: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -335,10 +332,7 @@ export type Database = {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
       }
-      user_has_system_access: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      user_has_system_access: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "master" | "admin" | "user"
