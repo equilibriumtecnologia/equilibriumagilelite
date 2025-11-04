@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { CategoriesManagement } from "@/components/settings/CategoriesManagement";
+import { UsersManagement } from "@/components/settings/UsersManagement";
 
 export default function Settings() {
   const { user } = useAuth();
@@ -170,9 +172,7 @@ export default function Settings() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Funcionalidade de gerenciamento de categorias em desenvolvimento.
-                </p>
+                <CategoriesManagement />
               </CardContent>
             </Card>
           </TabsContent>
@@ -188,9 +188,7 @@ export default function Settings() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Funcionalidade de gerenciamento de usuários em desenvolvimento.
-                </p>
+                <UsersManagement />
               </CardContent>
             </Card>
           </TabsContent>
