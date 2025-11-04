@@ -16,6 +16,7 @@ import Activities from "./pages/Activities";
 import Team from "./pages/Team";
 import Invitations from "./pages/Invitations";
 import AcceptInvitation from "./pages/AcceptInvitation";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -91,6 +92,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AppLayout>
                     <Invitations />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Settings />
                   </AppLayout>
                 </ProtectedRoute>
               }
