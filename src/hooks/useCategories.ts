@@ -43,11 +43,10 @@ export function useCategories() {
 
       if (error) throw error;
       toast.success("Categoria criada com sucesso!");
-      await fetchCategories();
+      fetchCategories();
     } catch (error: any) {
       console.error("Erro ao criar categoria:", error);
       toast.error("Erro ao criar categoria: " + error.message);
-      throw error;
     }
   };
 
@@ -60,11 +59,10 @@ export function useCategories() {
 
       if (error) throw error;
       toast.success("Categoria atualizada com sucesso!");
-      await fetchCategories();
+      fetchCategories();
     } catch (error: any) {
       console.error("Erro ao atualizar categoria:", error);
       toast.error("Erro ao atualizar categoria: " + error.message);
-      throw error;
     }
   };
 
@@ -77,11 +75,10 @@ export function useCategories() {
 
       if (error) throw error;
       toast.success("Categoria removida com sucesso!");
-      await fetchCategories();
+      fetchCategories();
     } catch (error: any) {
-      console.error("Erro ao remover categoria:", error);
-      toast.error("Erro ao remover categoria: " + error.message);
-      throw error;
+      console.error("Erro ao deletar categoria:", error);
+      toast.error("Erro ao deletar categoria: " + error.message);
     }
   };
 

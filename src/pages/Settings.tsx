@@ -164,33 +164,13 @@ export default function Settings() {
 
         {canAccessSystemSettings && (
           <TabsContent value="categories">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gerenciar Categorias</CardTitle>
-                <CardDescription>
-                  Adicione ou edite categorias de projetos
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CategoriesManagement />
-              </CardContent>
-            </Card>
+            <CategoriesManagement />
           </TabsContent>
         )}
 
         {userRole === "master" && (
           <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gerenciar Usuários</CardTitle>
-                <CardDescription>
-                  Gerencie usuários e suas permissões no sistema
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UsersManagement />
-              </CardContent>
-            </Card>
+            <UsersManagement />
           </TabsContent>
         )}
       </Tabs>

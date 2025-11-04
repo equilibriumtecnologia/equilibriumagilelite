@@ -1,103 +1,57 @@
 import { useState } from "react";
-import { useCategories } from "@/hooks/useCategories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useCategories, Category } from "@/hooks/useCategories";
 import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export function CategoriesManagement() {
   const { categories, loading, createCategory, updateCategory, deleteCategory } = useCategories();
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     color: "bg-primary",
     icon: "",
   });
-  const [saving, setSaving] = useState(false);
 
   const handleCreate = async () => {
-    try {
-      setSaving(true);
-      await createCategory({
-        ...formData,
-        is_default: false,
-      });
-      setIsCreateDialogOpen(false);
-      setFormData({ name: "", description: "", color: "bg-primary", icon: "" });
-    } catch (error) {
-      // Error handled in hook
-    } finally {
-      setSaving(false);
-    }
+    await createCategory({ ...formData, is_default: false });
+    setIsCreateOpen(false);
+    setFormData({ name: "", description: "", color: "bg-primary", icon: "" });
   };
 
   const handleEdit = async () => {
-    if (!selectedCategory) return;
-    try {
-      setSaving(true);
-      await updateCategory(selectedCategory.id, formData);
-      setIsEditDialogOpen(false);
-      setSelectedCategory(null);
-      setFormData({ name: "", description: "", color: "bg-primary", icon: "" });
-    } catch (error) {
-      // Error handled in hook
-    } finally {
-      setSaving(false);
-    }
+    if (!editingCategory) return;
+    await updateCategory(editingCategory.id, formData);
+    setIsEditOpen(false);
+    setEditingCategory(null);
+    setFormData({ name: "", description: "", color: "bg-primary", icon: "" });
   };
 
   const handleDelete = async () => {
-    if (!selectedCategory) return;
-    try {
-      setSaving(true);
-      await deleteCategory(selectedCategory.id);
-      setIsDeleteDialogOpen(false);
-      setSelectedCategory(null);
-    } catch (error) {
-      // Error handled in hook
-    } finally {
-      setSaving(false);
-    }
+    if (!deleteId) return;
+    await deleteCategory(deleteId);
+    setDeleteId(null);
   };
 
-  const openEditDialog = (category: any) => {
-    setSelectedCategory(category);
+  const openEditDialog = (category: Category) => {
+    setEditingCategory(category);
     setFormData({
       name: category.name,
       description: category.description || "",
       color: category.color,
       icon: category.icon || "",
     });
-    setIsEditDialogOpen(true);
-  };
-
-  const openDeleteDialog = (category: any) => {
-    setSelectedCategory(category);
-    setIsDeleteDialogOpen(true);
+    setIsEditOpen(true);
   };
 
   if (loading) {
@@ -109,124 +63,121 @@ export function CategoriesManagement() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <p className="text-sm text-muted-foreground">
-          Gerencie as categorias de projetos disponíveis no sistema
-        </p>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Categoria
-        </Button>
-      </div>
-
-      <div className="grid gap-4">
-        {categories.map((category) => (
-          <div
-            key={category.id}
-            className="flex items-center justify-between p-4 border rounded-lg"
-          >
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-semibold">{category.name}</h4>
-                {category.is_default && (
-                  <Badge variant="secondary">Padrão</Badge>
-                )}
-              </div>
-              {category.description && (
-                <p className="text-sm text-muted-foreground">{category.description}</p>
-              )}
-              <div className="flex items-center gap-2 mt-2">
-                <div className={`w-4 h-4 rounded ${category.color}`} />
-                <span className="text-xs text-muted-foreground">{category.color}</span>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => openEditDialog(category)}
-                disabled={category.is_default}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => openDeleteDialog(category)}
-                disabled={category.is_default}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Gerenciar Categorias</CardTitle>
+            <CardDescription>Adicione ou edite categorias de projetos</CardDescription>
           </div>
-        ))}
-      </div>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Categoria
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Criar Nova Categoria</DialogTitle>
+                <DialogDescription>Adicione uma nova categoria para organizar projetos</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Ex: Marketing"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Descrição</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Descrição da categoria"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="color">Cor (classe Tailwind)</Label>
+                  <Input
+                    id="color"
+                    value={formData.color}
+                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                    placeholder="Ex: bg-blue-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="icon">Ícone</Label>
+                  <Input
+                    id="icon"
+                    value={formData.icon}
+                    onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                    placeholder="Nome do ícone Lucide"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+                <Button onClick={handleCreate}>Criar</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Cor</TableHead>
+              <TableHead>Padrão</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {categories.map((category) => (
+              <TableRow key={category.id}>
+                <TableCell className="font-medium">{category.name}</TableCell>
+                <TableCell>{category.description}</TableCell>
+                <TableCell>
+                  <div className={`w-6 h-6 rounded ${category.color}`} />
+                </TableCell>
+                <TableCell>{category.is_default ? "Sim" : "Não"}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openEditDialog(category)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeleteId(category.id)}
+                      disabled={category.is_default}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
 
-      {/* Create Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Nova Categoria</DialogTitle>
-            <DialogDescription>
-              Crie uma nova categoria de projeto
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="color">Cor (classe Tailwind)</Label>
-              <Input
-                id="color"
-                value={formData.color}
-                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                placeholder="bg-primary"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="icon">Ícone (opcional)</Label>
-              <Input
-                id="icon"
-                value={formData.icon}
-                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleCreate} disabled={saving || !formData.name}>
-              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Criar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Categoria</DialogTitle>
-            <DialogDescription>
-              Atualize as informações da categoria
-            </DialogDescription>
+            <DialogDescription>Atualize as informações da categoria</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -254,7 +205,7 @@ export function CategoriesManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-icon">Ícone (opcional)</Label>
+              <Label htmlFor="edit-icon">Ícone</Label>
               <Input
                 id="edit-icon"
                 value={formData.icon}
@@ -263,36 +214,26 @@ export function CategoriesManagement() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleEdit} disabled={saving || !formData.name}>
-              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Salvar
-            </Button>
+            <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
+            <Button onClick={handleEdit}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a categoria "{selectedCategory?.name}"?
-              Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={saving}>
-              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Excluir
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </Card>
   );
 }
