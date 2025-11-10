@@ -67,17 +67,43 @@ export function useInvitations() {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
 
-      const { error } = await supabase.from("invitations").insert({
-        email,
-        invited_by: user.id,
-        project_id: projectId || null,
-        role,
-        expires_at: expiresAt.toISOString(),
-      });
+      const { data: invitation, error } = await supabase
+        .from("invitations")
+        .insert({
+          email,
+          invited_by: user.id,
+          project_id: projectId || null,
+          role,
+          expires_at: expiresAt.toISOString(),
+        })
+        .select(`
+          *,
+          invited_by_profile:profiles!invitations_invited_by_fkey(full_name),
+          project:projects(name)
+        `)
+        .single();
 
       if (error) throw error;
 
-      toast.success("Convite enviado com sucesso!");
+      // Enviar email de convite
+      const { error: emailError } = await supabase.functions.invoke("send-invitation-email", {
+        body: {
+          email: invitation.email,
+          invitedByName: invitation.invited_by_profile?.full_name || "Um usuário",
+          projectName: invitation.project?.name,
+          role: invitation.role,
+          token: invitation.token,
+          expiresAt: invitation.expires_at,
+        },
+      });
+
+      if (emailError) {
+        console.error("Erro ao enviar email:", emailError);
+        toast.warning("Convite criado, mas o email não pôde ser enviado");
+      } else {
+        toast.success("Convite enviado com sucesso!");
+      }
+
       await fetchInvitations();
       return true;
     } catch (error: any) {
