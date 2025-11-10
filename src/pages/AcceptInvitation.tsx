@@ -6,6 +6,21 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 
+interface InvitationResponse {
+  success: boolean;
+  error?: string;
+  data?: {
+    id: string;
+    email: string;
+    project_id: string | null;
+    role: string;
+    status: string;
+    expires_at: string;
+    invited_by_name: string;
+    project_name: string | null;
+  };
+}
+
 const AcceptInvitation = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -27,33 +42,29 @@ const AcceptInvitation = () => {
 
   const loadInvitation = async () => {
     try {
-      // Buscar convite pelo token (sem autenticação)
-      const { data, error } = await supabase
-        .from("invitations")
-        .select(`
-          *,
-          invited_by_profile:profiles!invitations_invited_by_fkey(full_name),
-          project:projects(name)
-        `)
-        .eq("token", token)
-        .single();
+      // Buscar convite usando função RPC segura
+      const { data, error } = await supabase.rpc("get_invitation_by_token", {
+        _token: token,
+      });
 
       if (error) throw error;
 
-      // Verificar se convite é válido
-      if (data.status !== "pending") {
-        setError("Este convite já foi utilizado ou cancelado");
+      const response = data as unknown as InvitationResponse;
+
+      if (!response.success) {
+        setError(response.error || "Convite não encontrado ou inválido");
         setLoading(false);
         return;
       }
 
-      if (new Date(data.expires_at) < new Date()) {
-        setError("Este convite expirou");
-        setLoading(false);
-        return;
-      }
+      // Transformar dados para formato esperado
+      const invitationData = {
+        ...response.data,
+        invited_by_profile: { full_name: response.data!.invited_by_name },
+        project: response.data!.project_name ? { name: response.data!.project_name } : null,
+      };
 
-      setInvitation(data);
+      setInvitation(invitationData);
     } catch (err: any) {
       setError("Convite não encontrado ou inválido");
     } finally {
