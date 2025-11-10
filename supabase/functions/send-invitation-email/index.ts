@@ -28,7 +28,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending invitation email to:", email);
 
-    const appUrl = Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", "") || "";
+    // Use o domínio da aplicação (configurável via env ou usa o padrão lovable)
+    const appUrl = Deno.env.get("APP_URL") || "https://oteqziddtpjosoacjfwq.lovable.app";
     const invitationUrl = `${appUrl}/accept-invitation?token=${token}`;
 
     const expirationDate = new Date(expiresAt).toLocaleDateString("pt-BR", {
@@ -72,9 +73,15 @@ const handler = async (req: Request): Promise<Response> => {
                       <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                         <tr>
                           <td align="center">
-                            <a href="${invitationUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 6px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);">
-                              Aceitar Convite
-                            </a>
+                            <table cellpadding="0" cellspacing="0" border="0">
+                              <tr>
+                                <td align="center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 6px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);">
+                                  <a href="${invitationUrl}" target="_blank" style="display: inline-block; color: #ffffff; text-decoration: none; padding: 16px 40px; font-size: 16px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;">
+                                    Aceitar Convite
+                                  </a>
+                                </td>
+                              </tr>
+                            </table>
                           </td>
                         </tr>
                       </table>
