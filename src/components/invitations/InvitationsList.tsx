@@ -29,8 +29,33 @@ const statusConfig = {
   },
 };
 
-export function InvitationsList() {
-  const { invitations, loading, cancelInvitation, resendInvitation } = useInvitations();
+interface InvitationsListProps {
+  statusFilter?: "all" | "pending" | "accepted" | "expired" | "cancelled";
+}
+
+export function InvitationsList({
+  statusFilter = "all",
+}: InvitationsListProps) {
+  const { invitations, loading, cancelInvitation, resendInvitation } =
+    useInvitations();
+
+  // Filter invitations based on status
+  const filteredInvitations = invitations.filter((invitation) => {
+    if (statusFilter === "all") return true;
+
+    // Check if invitation is expired
+    const isExpired = new Date(invitation.expires_at) < new Date();
+
+    if (statusFilter === "expired") {
+      return isExpired && invitation.status === "pending";
+    }
+
+    if (statusFilter === "pending") {
+      return invitation.status === "pending" && !isExpired;
+    }
+
+    return invitation.status === statusFilter;
+  });
 
   if (loading) {
     return (
@@ -52,10 +77,23 @@ export function InvitationsList() {
     );
   }
 
+  if (filteredInvitations.length === 0) {
+    return (
+      <Card className="p-8 text-center">
+        <Mail className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">
+          Nenhum convite encontrado
+        </h3>
+        <p className="text-muted-foreground">Não há convites com esse status</p>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      {invitations.map((invitation) => {
-        const config = statusConfig[invitation.status as keyof typeof statusConfig];
+      {filteredInvitations.map((invitation) => {
+        const config =
+          statusConfig[invitation.status as keyof typeof statusConfig];
         const StatusIcon = config.icon;
         const isExpired = new Date(invitation.expires_at) < new Date();
         const isPending = invitation.status === "pending" && !isExpired;
@@ -89,22 +127,34 @@ export function InvitationsList() {
                 <div className="text-sm text-muted-foreground">
                   <p>
                     Enviado em:{" "}
-                    {format(new Date(invitation.created_at), "dd/MM/yyyy 'às' HH:mm", {
-                      locale: ptBR,
-                    })}
+                    {format(
+                      new Date(invitation.created_at),
+                      "dd/MM/yyyy 'às' HH:mm",
+                      {
+                        locale: ptBR,
+                      }
+                    )}
                   </p>
                   <p>
                     Expira em:{" "}
-                    {format(new Date(invitation.expires_at), "dd/MM/yyyy 'às' HH:mm", {
-                      locale: ptBR,
-                    })}
+                    {format(
+                      new Date(invitation.expires_at),
+                      "dd/MM/yyyy 'às' HH:mm",
+                      {
+                        locale: ptBR,
+                      }
+                    )}
                   </p>
                   {invitation.accepted_at && (
                     <p className="text-success">
                       Aceito em:{" "}
-                      {format(new Date(invitation.accepted_at), "dd/MM/yyyy 'às' HH:mm", {
-                        locale: ptBR,
-                      })}
+                      {format(
+                        new Date(invitation.accepted_at),
+                        "dd/MM/yyyy 'às' HH:mm",
+                        {
+                          locale: ptBR,
+                        }
+                      )}
                     </p>
                   )}
                 </div>

@@ -18,6 +18,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Task = Tables<"tasks"> & {
   assigned_user?: Tables<"profiles"> | null;
+  assigned_to_profile?: Tables<"profiles"> | null;
   project?: Tables<"projects"> | null;
 };
 
@@ -42,6 +43,9 @@ const priorityConfig = {
 export const TaskCard = ({ task }: TaskCardProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  // Support both assigned_user and assigned_to_profile for compatibility
+  const assignedUser = task.assigned_user || task.assigned_to_profile;
 
   return (
     <>
@@ -97,21 +101,28 @@ export const TaskCard = ({ task }: TaskCardProps) => {
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Calendar className="h-3.5 w-3.5" />
                   <span>
-                    {format(new Date(task.due_date), "dd/MM/yyyy", { locale: ptBR })}
+                    {format(new Date(task.due_date), "dd/MM/yyyy", {
+                      locale: ptBR,
+                    })}
                   </span>
                 </div>
               )}
 
-              {task.assigned_user ? (
+              {assignedUser ? (
                 <div className="flex items-center gap-1.5">
                   <Avatar className="h-6 w-6">
-                    <AvatarImage src={task.assigned_user.avatar_url || undefined} />
+                    <AvatarImage src={assignedUser.avatar_url || undefined} />
                     <AvatarFallback className="text-xs">
-                      {task.assigned_user.full_name.charAt(0)}
+                      {(() => {
+                        const names = assignedUser.full_name.split(" ");
+                        const firstName = names[0]?.[0] || "";
+                        const lastName = names[names.length - 1]?.[0] || "";
+                        return (firstName + lastName).toUpperCase();
+                      })()}
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-sm text-muted-foreground">
-                    {task.assigned_user.full_name}
+                    {assignedUser.full_name}
                   </span>
                 </div>
               ) : (

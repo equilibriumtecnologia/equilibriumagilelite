@@ -29,7 +29,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -37,6 +41,7 @@ import { cn } from "@/lib/utils";
 import { useTasks } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProject } from "@/hooks/useProject";
 
 const taskSchema = z.object({
   title: z.string().min(1, "Título é obrigatório").max(200),
@@ -55,7 +60,10 @@ interface CreateTaskDialogProps {
   projectId?: string | null;
 }
 
-export const CreateTaskDialog = ({ children, projectId }: CreateTaskDialogProps) => {
+export const CreateTaskDialog = ({
+  children,
+  projectId,
+}: CreateTaskDialogProps) => {
   const [open, setOpen] = useState(false);
   const { createTask } = useTasks();
   const { projects } = useProjects();
@@ -72,6 +80,10 @@ export const CreateTaskDialog = ({ children, projectId }: CreateTaskDialogProps)
       assigned_to: "",
     },
   });
+
+  // Get selected project ID from form to fetch members
+  const selectedProjectId = form.watch("project_id") || projectId;
+  const { project } = useProject(selectedProjectId || undefined);
 
   const onSubmit = async (data: TaskFormValues) => {
     if (!user) return;
@@ -143,7 +155,10 @@ export const CreateTaskDialog = ({ children, projectId }: CreateTaskDialogProps)
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Projeto</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione um projeto" />
@@ -169,7 +184,10 @@ export const CreateTaskDialog = ({ children, projectId }: CreateTaskDialogProps)
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -177,7 +195,9 @@ export const CreateTaskDialog = ({ children, projectId }: CreateTaskDialogProps)
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="todo">A Fazer</SelectItem>
-                        <SelectItem value="in_progress">Em Progresso</SelectItem>
+                        <SelectItem value="in_progress">
+                          Em Progresso
+                        </SelectItem>
                         <SelectItem value="review">Em Revisão</SelectItem>
                         <SelectItem value="completed">Concluída</SelectItem>
                       </SelectContent>
@@ -193,7 +213,10 @@ export const CreateTaskDialog = ({ children, projectId }: CreateTaskDialogProps)
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Prioridade</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -211,6 +234,38 @@ export const CreateTaskDialog = ({ children, projectId }: CreateTaskDialogProps)
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="assigned_to"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Atribuir para</FormLabel>
+                  <Select
+                    onValueChange={(value) =>
+                      field.onChange(value === "unassigned" ? "" : value)
+                    }
+                    value={field.value || "unassigned"}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um membro (opcional)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Não atribuído</SelectItem>
+                      {project?.project_members?.map((member) => (
+                        <SelectItem key={member.user_id} value={member.user_id}>
+                          {member.profiles.full_name} (
+                          {member.role === "owner" ? "Proprietário" : "Membro"})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

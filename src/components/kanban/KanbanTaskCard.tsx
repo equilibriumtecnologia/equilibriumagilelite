@@ -31,7 +31,10 @@ const priorityLabels: Record<string, string> = {
   urgent: "Urgente",
 };
 
-export function KanbanTaskCard({ task, isDragging = false }: KanbanTaskCardProps) {
+export function KanbanTaskCard({
+  task,
+  isDragging = false,
+}: KanbanTaskCardProps) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: task.id,
   });
@@ -75,11 +78,12 @@ export function KanbanTaskCard({ task, isDragging = false }: KanbanTaskCardProps
             <div className="flex items-center gap-2">
               <Avatar className="h-6 w-6">
                 <AvatarFallback className="text-xs">
-                  {task.assigned_to_profile.full_name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()}
+                  {(() => {
+                    const names = task.assigned_to_profile.full_name.split(" ");
+                    const firstName = names[0]?.[0] || "";
+                    const lastName = names[names.length - 1]?.[0] || "";
+                    return (firstName + lastName).toUpperCase();
+                  })()}
                 </AvatarFallback>
               </Avatar>
               <span className="text-xs text-muted-foreground">

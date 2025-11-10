@@ -23,22 +23,27 @@ const Invitations = () => {
           <TabsTrigger value="pending">Pendentes</TabsTrigger>
           <TabsTrigger value="accepted">Aceitos</TabsTrigger>
           <TabsTrigger value="expired">Expirados</TabsTrigger>
+          <TabsTrigger value="cancelled">Cancelados</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
-          <InvitationsList />
+          <InvitationsList statusFilter="all" />
         </TabsContent>
 
         <TabsContent value="pending" className="mt-6">
-          <InvitationsList />
+          <InvitationsList statusFilter="pending" />
         </TabsContent>
 
         <TabsContent value="accepted" className="mt-6">
-          <InvitationsList />
+          <InvitationsList statusFilter="accepted" />
         </TabsContent>
 
         <TabsContent value="expired" className="mt-6">
-          <InvitationsList />
+          <InvitationsList statusFilter="expired" />
+        </TabsContent>
+
+        <TabsContent value="cancelled" className="mt-6">
+          <InvitationsList statusFilter="cancelled" />
         </TabsContent>
       </Tabs>
     </div>

@@ -24,9 +24,10 @@ const roleColors: Record<string, string> = {
 };
 
 export function TeamMemberCard({ member, onUpdate }: TeamMemberCardProps) {
-  const completionRate = member.task_count > 0 
-    ? (member.completed_task_count / member.task_count) * 100 
-    : 0;
+  const completionRate =
+    member.task_count > 0
+      ? (member.completed_task_count / member.task_count) * 100
+      : 0;
 
   const primaryRole = member.roles[0]?.role || "user";
 
@@ -38,11 +39,12 @@ export function TeamMemberCard({ member, onUpdate }: TeamMemberCardProps) {
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
               <AvatarFallback className="text-lg">
-                {member.full_name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()}
+                {(() => {
+                  const names = member.full_name.split(" ");
+                  const firstName = names[0]?.[0] || "";
+                  const lastName = names[names.length - 1]?.[0] || "";
+                  return (firstName + lastName).toUpperCase();
+                })()}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -82,7 +84,9 @@ export function TeamMemberCard({ member, onUpdate }: TeamMemberCardProps) {
               <CheckCircle2 className="h-4 w-4 text-success" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{member.completed_task_count}</p>
+              <p className="text-2xl font-bold">
+                {member.completed_task_count}
+              </p>
               <p className="text-xs text-muted-foreground">Concluídas</p>
             </div>
           </div>

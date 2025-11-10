@@ -68,7 +68,8 @@ const ProjectDetails = () => {
     );
   }
 
-  const completedTasks = project.tasks?.filter((t) => t.status === "completed").length || 0;
+  const completedTasks =
+    project.tasks?.filter((t) => t.status === "completed").length || 0;
   const totalTasks = project.tasks?.length || 0;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
@@ -91,16 +92,16 @@ const ProjectDetails = () => {
               <DeleteProjectDialog
                 projectId={project.id}
                 projectName={project.name}
-                onSuccess={() => window.location.href = "/projects"}
+                onSuccess={() => (window.location.href = "/projects")}
               />
             </div>
-            <p className="text-muted-foreground">{project.description || "Sem descrição"}</p>
+            <p className="text-muted-foreground">
+              {project.description || "Sem descrição"}
+            </p>
           </div>
 
           <CreateTaskDialog projectId={project.id}>
-            <Button variant="hero">
-              Nova Tarefa
-            </Button>
+            <Button variant="hero">Nova Tarefa</Button>
           </CreateTaskDialog>
         </div>
       </div>
@@ -113,7 +114,9 @@ const ProjectDetails = () => {
               <CheckCircle2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{completedTasks}/{totalTasks}</p>
+              <p className="text-2xl font-bold">
+                {completedTasks}/{totalTasks}
+              </p>
               <p className="text-sm text-muted-foreground">Tarefas</p>
             </div>
           </div>
@@ -125,7 +128,9 @@ const ProjectDetails = () => {
               <Users className="h-5 w-5 text-accent" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{project.project_members?.length || 0}</p>
+              <p className="text-2xl font-bold">
+                {project.project_members?.length || 0}
+              </p>
               <p className="text-sm text-muted-foreground">Membros</p>
             </div>
           </div>
@@ -146,7 +151,9 @@ const ProjectDetails = () => {
             <div>
               <p className="font-semibold">
                 {project.deadline
-                  ? format(new Date(project.deadline), "dd/MM/yyyy", { locale: ptBR })
+                  ? format(new Date(project.deadline), "dd/MM/yyyy", {
+                      locale: ptBR,
+                    })
                   : "Sem prazo"}
               </p>
               <p className="text-sm text-muted-foreground">Prazo</p>
@@ -212,7 +219,9 @@ const ProjectDetails = () => {
               </h3>
               <AddMemberDialog
                 projectId={project.id}
-                currentMembers={project.project_members?.map((m) => m.user_id) || []}
+                currentMembers={
+                  project.project_members?.map((m) => m.user_id) || []
+                }
                 onSuccess={refetch}
               />
             </div>
@@ -226,11 +235,12 @@ const ProjectDetails = () => {
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarFallback>
-                        {member.profiles.full_name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()}
+                        {(() => {
+                          const names = member.profiles.full_name.split(" ");
+                          const firstName = names[0]?.[0] || "";
+                          const lastName = names[names.length - 1]?.[0] || "";
+                          return (firstName + lastName).toUpperCase();
+                        })()}
                       </AvatarFallback>
                     </Avatar>
                     <div>
