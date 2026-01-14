@@ -11,7 +11,8 @@ interface InvitationResponse {
   error?: string;
   data?: {
     id: string;
-    email: string;
+    email: string; // Masked email for display (e.g., "jo***@example.com")
+    full_email: string; // Full email for validation
     project_id: string | null;
     role: string;
     status: string;
@@ -60,6 +61,9 @@ const AcceptInvitation = () => {
       // Transformar dados para formato esperado
       const invitationData = {
         ...response.data,
+        // Use full_email for validation, masked email for display
+        displayEmail: response.data!.email, // Masked email for UI display
+        email: response.data!.full_email, // Full email for validation
         invited_by_profile: { full_name: response.data!.invited_by_name },
         project: response.data!.project_name ? { name: response.data!.project_name } : null,
       };
@@ -154,7 +158,7 @@ const AcceptInvitation = () => {
         <div className="space-y-4 mb-6">
           <div className="p-4 bg-muted rounded-lg">
             <p className="text-sm text-muted-foreground mb-1">Email convidado</p>
-            <p className="font-medium">{invitation?.email}</p>
+            <p className="font-medium">{invitation?.displayEmail}</p>
           </div>
 
           {invitation?.project && (
