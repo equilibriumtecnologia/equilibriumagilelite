@@ -321,7 +321,19 @@ export type Database = {
         Returns: Json
       }
       expire_old_invitations: { Args: never; Returns: undefined }
-      get_invitation_by_token: { Args: { _token: string }; Returns: Json }
+      get_invitation_by_token:
+        | {
+            Args: { _token: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.get_invitation_by_token(_token => text), public.get_invitation_by_token(_token => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { _token: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.get_invitation_by_token(_token => text), public.get_invitation_by_token(_token => uuid). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
