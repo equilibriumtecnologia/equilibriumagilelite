@@ -125,7 +125,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Authorization passed. Sending invitation email to:", email);
 
     // === BUILD EMAIL ===
-    const appUrl = Deno.env.get("APP_URL") || "https://oteqziddtpjosoacjfwq.lovable.app";
+    const appUrl = Deno.env.get("APP_URL") || "https://agilelite.equilibriumtecnologia.com.br";
     const invitationUrl = `${appUrl}/accept-invitation?token=${invitationToken}`;
 
     const expirationDate = new Date(expiresAt).toLocaleDateString("pt-BR", {
