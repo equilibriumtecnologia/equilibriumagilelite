@@ -6,7 +6,8 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface InvitationEmailRequest {
@@ -31,7 +32,10 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Missing or invalid Authorization header");
       return new Response(
         JSON.stringify({ error: "Unauthorized: Missing authentication" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
       );
     }
 
@@ -44,13 +48,17 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Verify the user's JWT and get claims
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    
+    const { data: claimsData, error: claimsError } =
+      await supabase.auth.getClaims(token);
+
     if (claimsError || !claimsData?.claims) {
       console.error("Failed to verify JWT:", claimsError?.message);
       return new Response(
         JSON.stringify({ error: "Unauthorized: Invalid token" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
       );
     }
 
@@ -58,14 +66,28 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Authenticated user:", userId);
 
     // === PARSE REQUEST BODY ===
-    const { email, invitedByName, projectName, role, token: invitationToken, expiresAt }: InvitationEmailRequest = await req.json();
+    const {
+      email,
+      invitedByName,
+      projectName,
+      role,
+      token: invitationToken,
+      expiresAt,
+    }: InvitationEmailRequest = await req.json();
 
     // === INPUT VALIDATION ===
     if (!email || !invitationToken || !expiresAt) {
-      console.error("Missing required fields:", { email: !!email, token: !!invitationToken, expiresAt: !!expiresAt });
+      console.error("Missing required fields:", {
+        email: !!email,
+        token: !!invitationToken,
+        expiresAt: !!expiresAt,
+      });
       return new Response(
         JSON.stringify({ error: "Bad Request: Missing required fields" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
       );
     }
 
@@ -75,7 +97,10 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Invalid email format:", email);
       return new Response(
         JSON.stringify({ error: "Bad Request: Invalid email format" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
       );
     }
 
@@ -88,28 +113,50 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (invitationError || !invitation) {
-      console.error("Invitation not found or access denied:", invitationError?.message);
+      console.error(
+        "Invitation not found or access denied:",
+        invitationError?.message
+      );
       return new Response(
-        JSON.stringify({ error: "Forbidden: Invitation not found or access denied" }),
-        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({
+          error: "Forbidden: Invitation not found or access denied",
+        }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
       );
     }
 
     // Verify the caller is the one who created the invitation
     if (invitation.invited_by !== userId) {
-      console.error("User is not the invitation creator:", { userId, invitedBy: invitation.invited_by });
+      console.error("User is not the invitation creator:", {
+        userId,
+        invitedBy: invitation.invited_by,
+      });
       return new Response(
-        JSON.stringify({ error: "Forbidden: Only the invitation creator can send emails" }),
-        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({
+          error: "Forbidden: Only the invitation creator can send emails",
+        }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
       );
     }
 
     // Verify the email matches the invitation
     if (invitation.email !== email) {
-      console.error("Email mismatch:", { requested: email, stored: invitation.email });
+      console.error("Email mismatch:", {
+        requested: email,
+        stored: invitation.email,
+      });
       return new Response(
         JSON.stringify({ error: "Forbidden: Email does not match invitation" }),
-        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
       );
     }
 
@@ -117,15 +164,21 @@ const handler = async (req: Request): Promise<Response> => {
     if (invitation.status !== "pending") {
       console.error("Invitation is not pending:", invitation.status);
       return new Response(
-        JSON.stringify({ error: "Bad Request: Invitation is not in pending status" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        JSON.stringify({
+          error: "Bad Request: Invitation is not in pending status",
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
       );
     }
 
     console.log("Authorization passed. Sending invitation email to:", email);
 
     // === BUILD EMAIL ===
-    const appUrl = Deno.env.get("APP_URL") || "https://oteqziddtpjosoacjfwq.lovable.app";
+    const appUrl =
+      Deno.env.get("APP_URL") || "https://oteqziddtpjosoacjfwq.lovable.app";
     const invitationUrl = `${appUrl}/accept-invitation?token=${invitationToken}`;
 
     const expirationDate = new Date(expiresAt).toLocaleDateString("pt-BR", {
@@ -149,7 +202,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <!-- Header -->
                   <tr>
                     <td style="background: linear-gradient(135deg, #5415FF 0%, #4C1782 100%); padding: 40px; text-align: center;">
-                      <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">
+                      <h1 style="margin: 0; color: #000000; font-size: 28px; font-weight: 600;">
                         Você foi convidado!
                       </h1>
                     </td>
@@ -162,7 +215,17 @@ const handler = async (req: Request): Promise<Response> => {
                         Olá! 👋
                       </p>
                       <p style="margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 24px;">
-                        <strong>${invitedByName}</strong> convidou você para participar ${projectName ? `do projeto <strong>${projectName}</strong>` : "da plataforma"} como <strong>${role === "admin" ? "Administrador" : role === "member" ? "Membro" : "Usuário"}</strong>.
+                        <strong>${invitedByName}</strong> convidou você para participar ${
+      projectName
+        ? `do projeto <strong>${projectName}</strong>`
+        : "da plataforma"
+    } como <strong>${
+      role === "admin"
+        ? "Administrador"
+        : role === "member"
+        ? "Membro"
+        : "Usuário"
+    }</strong>.
                       </p>
                       
                       <!-- CTA Button -->
@@ -214,8 +277,8 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "Agile Lite <no-reply@agilelite.equilibriumtecnologia.com.br>",
       to: [email],
-      subject: projectName 
-        ? `Convite para o projeto ${projectName}` 
+      subject: projectName
+        ? `Convite para o projeto ${projectName}`
         : "Convite para a plataforma Agile Lite",
       html: emailHtml,
     });
@@ -229,15 +292,17 @@ const handler = async (req: Request): Promise<Response> => {
         ...corsHeaders,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in send-invitation-email function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    const message =
+      typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message?: unknown }).message)
+        : String(error);
+
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   }
 };
 
