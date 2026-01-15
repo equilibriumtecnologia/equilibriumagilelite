@@ -31,6 +31,7 @@ CREATE TYPE public.app_role AS ENUM ('master', 'admin', 'user');
 ```
 
 **Níveis:**
+
 - `master` - Controle total, configura permissões de admins
 - `admin` - Gerencia projetos/atividades com permissões configuráveis
 - `user` - Visualiza e atualiza apenas tarefas atribuídas
@@ -50,12 +51,14 @@ CREATE TABLE public.profiles (
 ```
 
 **Decisões técnicas:**
+
 - Foreign key para `auth.users(id)` com `ON DELETE CASCADE` para limpeza automática
 - `full_name` obrigatório (NOT NULL) para identificação
 - `avatar_url` opcional para foto de perfil futura
 - Timestamps automáticos para auditoria
 
 **RLS Policies:**
+
 - ✅ Todos usuários autenticados podem **VER** todos os perfis (necessário para atribuição de tarefas)
 - ✅ Usuários só podem **EDITAR** o próprio perfil
 
@@ -74,11 +77,13 @@ CREATE TABLE public.user_roles (
 ```
 
 **Por que tabela separada?**
+
 - ⚠️ **SEGURANÇA CRÍTICA:** Roles não podem estar na tabela `profiles` pois isso permite escalonamento de privilégios
 - Um usuário pode ter múltiplas roles (ex: admin em um projeto, user em outro)
 - Constraint `UNIQUE(user_id, role)` evita duplicatas
 
 **RLS Policies:**
+
 - ✅ Todos podem **VER** roles (necessário para verificações de permissão)
 - ❌ Ninguém pode modificar diretamente (apenas via funções administrativas futuras)
 
@@ -100,10 +105,12 @@ CREATE TABLE public.categories (
 ```
 
 **Campos importantes:**
+
 - `color` - Armazena classe CSS (ex: `bg-accent`, `bg-success`) para consistência com design system
 - `is_default` - Marca categorias padrão do sistema (não podem ser deletadas)
 
 **Categorias padrão inseridas:**
+
 - 📌 Planejamento (bg-primary)
 - 🛠️ Execução (bg-accent)
 - 📝 Revisão (bg-warning)
@@ -152,6 +159,7 @@ USING (public.has_role(auth.uid(), 'admin'));
 ```
 
 **Propriedades importantes:**
+
 - `SECURITY DEFINER` - Executa com privilégios do criador (contorna RLS temporariamente)
 - `STABLE` - Otimização: resultado consistente durante a query
 - `SET search_path = public` - Evita ataques de injection via search_path
@@ -175,17 +183,18 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'full_name', 'Usuário'),
     NEW.raw_user_meta_data->>'avatar_url'
   );
-  
+
   -- Atribuir role padrão 'user'
   INSERT INTO public.user_roles (user_id, role)
   VALUES (NEW.id, 'user');
-  
+
   RETURN NEW;
 END;
 $$;
 ```
 
 **Funcionamento:**
+
 1. Usuário preenche formulário de cadastro com `full_name`
 2. Supabase Auth cria registro em `auth.users`
 3. Trigger dispara automaticamente
@@ -238,6 +247,7 @@ Context React que gerencia estado global de autenticação.
 **Localização:** `src/contexts/AuthContext.tsx`
 
 **Funcionalidades:**
+
 - Estado de `user`, `session` e `loading`
 - Listener de mudanças de autenticação (`onAuthStateChange`)
 - Recuperação de sessão persistente
@@ -248,12 +258,12 @@ Context React que gerencia estado global de autenticação.
 ```typescript
 useEffect(() => {
   // 1. Configurar listener PRIMEIRO
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    }
-  );
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((event, session) => {
+    setSession(session);
+    setUser(session?.user ?? null);
+  });
 
   // 2. DEPOIS verificar sessão existente
   supabase.auth.getSession().then(({ data: { session } }) => {
@@ -276,8 +286,8 @@ const signUp = async (email: string, password: string, fullName: string) => {
     password,
     options: {
       emailRedirectTo: `${window.location.origin}/dashboard`,
-      data: { full_name: fullName } // Vai para raw_user_meta_data
-    }
+      data: { full_name: fullName }, // Vai para raw_user_meta_data
+    },
   });
   // ...
 };
@@ -288,12 +298,14 @@ O `full_name` é capturado pelo trigger `handle_new_user()` e salvo em `profiles
 #### Páginas de Autenticação
 
 **Login** (`src/pages/auth/Login.tsx`)
+
 - Formulário com email + senha
 - Validação de erros amigável
 - Redirecionamento para `/dashboard` após sucesso
 - Link para signup
 
 **Signup** (`src/pages/auth/Signup.tsx`)
+
 - Formulário com nome completo, email, senha e confirmação
 - Validação client-side:
   - Senhas devem coincidir
@@ -347,6 +359,7 @@ Layout principal com sidebar colapsável.
 **Localização:** `src/components/layout/AppLayout.tsx`
 
 **Estrutura:**
+
 ```
 <SidebarProvider>
   <AppSidebar /> <!-- Navegação lateral -->
@@ -358,6 +371,7 @@ Layout principal com sidebar colapsável.
 ```
 
 **Características:**
+
 - Sidebar responsiva (colapsa em telas pequenas)
 - Header fixo com botão de toggle
 - Background consistente com design system
@@ -369,6 +383,7 @@ Sidebar com navegação e perfil do usuário.
 **Localização:** `src/components/layout/AppSidebar.tsx`
 
 **Menu Items:**
+
 - 📊 Dashboard (`/dashboard`)
 - 📁 Projetos (`/projects`)
 - ✅ Atividades (`/activities`)
@@ -376,6 +391,7 @@ Sidebar com navegação e perfil do usuário.
 - ⚙️ Configurações (`/settings`)
 
 **Footer:**
+
 - Exibe email do usuário
 - Botão de logout
 - Adapta ao estado collapsed/expanded
@@ -387,26 +403,30 @@ Sidebar com navegação e perfil do usuário.
 Atualizado em `src/index.css` e `tailwind.config.ts` com:
 
 **Cores:**
+
 - Primary: Azul profissional (`230 60% 45%`)
 - Accent: Ciano vibrante (`185 75% 45%`)
 - Success: Verde (`142 71% 45%`)
 - Warning: Laranja (`38 92% 50%`)
 
 **Gradientes:**
+
 - `gradient-primary` - Azul → Azul claro
 - `gradient-accent` - Ciano → Ciano claro
 - `gradient-hero` - Azul → Ciano (para CTAs)
 
 **Shadows:**
+
 - `shadow-glow` - Sombra com efeito glow para botões hero
 - `shadow-accent-glow` - Sombra colorida para elementos accent
 
 **Variantes de Botão:**
+
 ```typescript
 // Button variants adicionadas
-hero: "bg-gradient-hero text-white hover:shadow-glow"
-accent: "bg-accent text-accent-foreground hover:shadow-accent-glow"
-success: "bg-success text-success-foreground"
+hero: "bg-gradient-hero text-white hover:shadow-glow";
+accent: "bg-accent text-accent-foreground hover:shadow-accent-glow";
+success: "bg-success text-success-foreground";
 ```
 
 ### 🔄 Rotas Configuradas
@@ -423,34 +443,42 @@ success: "bg-success text-success-foreground"
 ```
 
 **Padrão de proteção:**
+
 ```typescript
-<Route path="/rota" element={
-  <ProtectedRoute>
-    <AppLayout>
-      <Component />
-    </AppLayout>
-  </ProtectedRoute>
-} />
+<Route
+  path="/rota"
+  element={
+    <ProtectedRoute>
+      <AppLayout>
+        <Component />
+      </AppLayout>
+    </ProtectedRoute>
+  }
+/>
 ```
 
 ### 📝 Decisões Técnicas Importantes
 
 1. **Separação de roles da tabela profiles**
+
    - Previne privilege escalation
    - Permite múltiplas roles por usuário
    - Facilita auditoria
 
 2. **Uso de SECURITY DEFINER functions**
+
    - Evita recursão em RLS policies
    - Centraliza lógica de verificação de permissões
    - Melhora performance de queries
 
 3. **Auto-confirmação de email em development**
+
    - Acelera testes durante desenvolvimento
    - Deve ser desabilitado em produção
    - Facilita iteração rápida
 
 4. **Trigger automático de criação de perfil**
+
    - Garante consistência de dados
    - Elimina necessidade de lógica client-side
    - Captura metadata do signup
@@ -463,6 +491,7 @@ success: "bg-success text-success-foreground"
 ### 🔧 Como Testar a FASE 1
 
 1. **Criar primeiro usuário:**
+
    ```bash
    npm run dev
    # Acessar http://localhost:8080/signup
@@ -470,13 +499,14 @@ success: "bg-success text-success-foreground"
    ```
 
 2. **Promover a Master (via Lovable Cloud):**
+
    ```sql
    -- Buscar ID do usuário
    SELECT id, email FROM auth.users;
-   
+
    -- Atualizar role
-   UPDATE user_roles 
-   SET role = 'master' 
+   UPDATE user_roles
+   SET role = 'master'
    WHERE user_id = '<user-id-do-passo-anterior>';
    ```
 
@@ -490,21 +520,25 @@ success: "bg-success text-success-foreground"
 ### 📊 Estado Atual
 
 **Tabelas criadas:** 3
+
 - `profiles`
 - `user_roles`
 - `categories`
 
 **Funções criadas:** 3
+
 - `has_role()`
 - `handle_new_user()`
 - `update_updated_at_column()`
 
 **Triggers criados:** 3
+
 - `on_auth_user_created`
 - `update_profiles_updated_at`
 - `update_categories_updated_at`
 
 **Páginas implementadas:** 5
+
 - Landing (pública)
 - Login (pública)
 - Signup (pública)
@@ -512,6 +546,7 @@ success: "bg-success text-success-foreground"
 - Projects (protegida)
 
 **Componentes de layout:** 3
+
 - `AuthContext`
 - `ProtectedRoute`
 - `AppLayout` + `AppSidebar`
@@ -519,12 +554,15 @@ success: "bg-success text-success-foreground"
 ### ⚠️ Conhecidos Issues / TODOs
 
 1. **Master inicial manual:** Primeiro usuário precisa ser promovido manualmente via SQL
+
    - **Solução futura:** Criar interface de setup inicial
 
 2. **Páginas placeholder:** `/activities`, `/team`, `/settings` ainda não implementadas
+
    - **Próxima fase:** FASE 2 e 3
 
 3. **Sem recuperação de senha:** Fluxo não implementado ainda
+
    - **Próxima fase:** Adicionar reset password
 
 4. **Categorias fixas:** Não há CRUD de categorias ainda
@@ -552,6 +590,7 @@ CREATE TYPE public.project_status AS ENUM ('planning', 'active', 'on_hold', 'com
 ```
 
 **Valores:**
+
 - `planning` - Planejamento
 - `active` - Ativo
 - `on_hold` - Em Espera
@@ -584,12 +623,14 @@ CREATE TABLE public.projects (
 ```
 
 **Campos importantes:**
+
 - `created_by` - Referência ao criador do projeto
 - `category_id` - Categorização do projeto (opcional)
 - `deadline` - Data limite (opcional)
 - `status` - Estado atual do projeto
 
 **RLS Policies:**
+
 - ✅ Usuários veem projetos onde são membros ou criadores
 - ✅ Usuários autenticados podem criar projetos
 - ✅ Criadores e admins podem editar/deletar projetos
@@ -610,10 +651,12 @@ CREATE TABLE public.project_members (
 ```
 
 **Roles de membros:**
+
 - `owner` - Criador do projeto
 - `member` - Membro regular
 
 **RLS Policies:**
+
 - ✅ Membros do projeto podem ver outros membros
 - ✅ Criadores e admins podem adicionar/remover membros
 
@@ -638,6 +681,7 @@ CREATE TABLE public.tasks (
 ```
 
 **RLS Policies:**
+
 - ✅ Membros do projeto podem ver/criar/editar/deletar tarefas
 
 ### 🔐 Funções Adicionadas
@@ -662,6 +706,7 @@ $$;
 ```
 
 **Por que é importante?**
+
 - Garante que criador sempre tem acesso ao projeto
 - Elimina necessidade de lógica adicional no frontend
 - Cria relacionamento owner automaticamente
@@ -675,6 +720,7 @@ Custom hook para gerenciar estado de projetos.
 **Localização:** `src/hooks/useProjects.ts`
 
 **Funcionalidades:**
+
 - Fetch de projetos com relações (categoria, membros, tarefas)
 - Loading state
 - Realtime updates via Supabase channels
@@ -685,6 +731,7 @@ const { projects, loading, refetch } = useProjects();
 ```
 
 **Query complexa:**
+
 ```typescript
 .select(`
   *,
@@ -705,6 +752,7 @@ Dialog para criação de novos projetos.
 **Localização:** `src/components/projects/CreateProjectDialog.tsx`
 
 **Campos do formulário:**
+
 - Nome do projeto (obrigatório, 3-100 chars)
 - Descrição (opcional, max 500 chars)
 - Categoria (obrigatório, select)
@@ -714,6 +762,7 @@ Dialog para criação de novos projetos.
 **Validação:** Schema Zod com validação client-side
 
 **Fluxo:**
+
 1. Usuário preenche formulário
 2. Validação client-side
 3. Insert no banco com `created_by = auth.uid()`
@@ -728,6 +777,7 @@ Card visual para exibição de projeto.
 **Localização:** `src/components/projects/ProjectCard.tsx`
 
 **Informações exibidas:**
+
 - Nome e descrição do projeto
 - Badge de categoria
 - Badge de status (com cores dinâmicas)
@@ -737,8 +787,9 @@ Card visual para exibição de projeto.
 - Avatares dos membros (máx 3 + contador)
 
 **Cálculo de progresso:**
+
 ```typescript
-const completedTasks = tasks.filter(t => t.status === 'completed').length;
+const completedTasks = tasks.filter((t) => t.status === "completed").length;
 const progress = (completedTasks / totalTasks) * 100;
 ```
 
@@ -747,6 +798,7 @@ const progress = (completedTasks / totalTasks) * 100;
 **Localização:** `src/pages/Projects.tsx`
 
 **Funcionalidades:**
+
 - Lista todos os projetos do usuário
 - Busca por nome (filtro client-side)
 - Botão para criar novo projeto
@@ -788,6 +840,7 @@ const channel = supabase
 ```
 
 **Eventos capturados:**
+
 - INSERT - Novo projeto criado
 - UPDATE - Projeto modificado
 - DELETE - Projeto removido
@@ -795,16 +848,18 @@ const channel = supabase
 ### 🔧 Como Testar a FASE 2
 
 1. **Criar projeto:**
+
    - Acessar `/projects`
    - Clicar em "Novo Projeto"
    - Preencher formulário
    - Verificar que aparece na lista
 
 2. **Verificar permissões:**
+
    ```sql
    -- Ver membros do projeto
    SELECT * FROM project_members WHERE project_id = '<project-id>';
-   
+
    -- Verificar role de owner
    -- Deve aparecer o criador com role='owner'
    ```
@@ -817,36 +872,44 @@ const channel = supabase
 ### 📊 Estado Atual
 
 **Tabelas criadas:** +3 (total: 6)
+
 - `projects`
 - `project_members`
 - `tasks`
 
 **ENUMs criados:** +3
+
 - `project_status`
 - `task_status`
 - `task_priority`
 
 **Funções criadas:** +1 (total: 4)
+
 - `add_creator_as_member()`
 
 **Triggers criados:** +3 (total: 6)
+
 - `add_creator_as_member_trigger`
 - `update_projects_updated_at`
 - `update_tasks_updated_at`
 
 **Páginas atualizadas:** 1
+
 - Projects (agora com dados reais)
 
 **Hooks criados:** 1
+
 - `useProjects`
 
 **Componentes criados:** 2
+
 - `CreateProjectDialog`
 - `ProjectCard`
 
 ### ⚠️ Avisos de Segurança
 
 **Leaked Password Protection Disabled (WARN):**
+
 - Aviso relacionado à configuração geral de auth
 - Não é crítico para desenvolvimento
 - Recomendado habilitar em produção
@@ -874,6 +937,7 @@ Dialog para edição de projetos existentes.
 **Localização:** `src/components/projects/EditProjectDialog.tsx`
 
 **Funcionalidades:**
+
 - Pré-preenche formulário com dados do projeto
 - Mesmos campos do CreateProjectDialog
 - Validação Zod
@@ -887,6 +951,7 @@ Dialog de confirmação para exclusão de projetos.
 **Localização:** `src/components/projects/DeleteProjectDialog.tsx`
 
 **Funcionalidades:**
+
 - Confirmação com nome do projeto
 - Exclusão via Supabase
 - Cascata automática (deleta membros e tarefas)
@@ -900,6 +965,7 @@ Custom hook para gerenciar tarefas.
 **Localização:** `src/hooks/useTasks.ts`
 
 **Funcionalidades:**
+
 - Fetch de tarefas com relações (projeto, assignee, creator)
 - Filtro por project_id (opcional)
 - CRUD completo (create, update, delete)
@@ -907,7 +973,8 @@ Custom hook para gerenciar tarefas.
 - Mutations com React Query
 
 ```typescript
-const { tasks, isLoading, createTask, updateTask, deleteTask } = useTasks(projectId);
+const { tasks, isLoading, createTask, updateTask, deleteTask } =
+  useTasks(projectId);
 ```
 
 #### 4. Página `Activities` (Tasks)
@@ -918,6 +985,7 @@ Página completa de gerenciamento de tarefas.
 **Rota:** `/tasks`
 
 **Funcionalidades:**
+
 - Listagem de todas as tarefas do usuário
 - Filtros por status (tabs)
 - Filtro por prioridade (select)
@@ -926,6 +994,7 @@ Página completa de gerenciamento de tarefas.
 - Grid responsivo
 
 **Tabs de Status:**
+
 - Todas
 - A Fazer (todo)
 - Em Progresso (in_progress)
@@ -939,6 +1008,7 @@ Card visual para exibição de tarefa.
 **Localização:** `src/components/tasks/TaskCard.tsx`
 
 **Informações exibidas:**
+
 - Título e descrição
 - Badges de status e prioridade (cores dinâmicas)
 - Projeto relacionado
@@ -947,6 +1017,7 @@ Card visual para exibição de tarefa.
 - Botões de edição e exclusão
 
 **Cores de prioridade:**
+
 - Baixa: Azul
 - Média: Amarelo
 - Alta: Laranja
@@ -965,12 +1036,14 @@ Todos com validação Zod e integração completa.
 Dashboard agora com dados reais dos projetos:
 
 **Métricas calculadas:**
+
 - Total de projetos ativos
 - Tarefas concluídas (soma de todos projetos)
 - Tarefas em andamento
 - Projetos com prazos próximos (7 dias)
 
 **Seções:**
+
 - Projetos Recentes (3 últimos)
 - Links funcionais para /projects e /tasks
 
@@ -981,27 +1054,34 @@ Sistema de realtime implementado para tarefas:
 ```typescript
 const channel = supabase
   .channel("tasks-changes")
-  .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => {
-    refetch();
-  })
+  .on(
+    "postgres_changes",
+    { event: "*", schema: "public", table: "tasks" },
+    () => {
+      refetch();
+    }
+  )
   .subscribe();
 ```
 
 ### 🔧 Como Testar a FASE 3
 
 1. **Editar projeto:**
+
    - Acessar `/projects`
    - Clicar no ícone de edição no card
    - Modificar informações
    - Verificar atualização
 
 2. **Criar tarefas:**
+
    - Acessar `/tasks`
    - Clicar em "Nova Atividade"
    - Preencher formulário
    - Verificar na lista
 
 3. **Filtrar tarefas:**
+
    - Usar tabs de status
    - Usar select de prioridade
    - Usar busca por texto
@@ -1014,12 +1094,15 @@ const channel = supabase
 ### 📊 Estado Atual
 
 **Páginas implementadas:** +1 (total: 6)
+
 - Activities (Tasks)
 
 **Hooks criados:** +1 (total: 2)
+
 - `useTasks`
 
 **Componentes criados:** +6 (total: 8)
+
 - `EditProjectDialog`
 - `DeleteProjectDialog`
 - `TaskCard`
@@ -1028,16 +1111,19 @@ const channel = supabase
 - `DeleteTaskDialog`
 
 **Rotas configuradas:** +1
+
 - `/tasks` → Activities
 
 ### ⚠️ Pendências para FASE 4
 
 1. **Página de detalhes do projeto**
+
    - View completa com todas informações
    - Lista de tarefas do projeto
    - Gerenciamento de membros inline
 
 2. **Board Kanban**
+
    - Visualização Kanban das tarefas
    - Drag and drop entre colunas
    - Filtros e busca
@@ -1067,12 +1153,14 @@ Custom hook para buscar dados completos de um projeto específico.
 **Localização:** `src/hooks/useProject.ts`
 
 **Funcionalidades:**
+
 - Fetch de projeto com todas as relações (categoria, membros, tarefas)
 - Loading state
 - Realtime updates para projeto, tarefas e membros
 - Refetch manual
 
 **Query complexa:**
+
 ```typescript
 .select(`
   *,
@@ -1091,6 +1179,7 @@ Custom hook para buscar dados completos de um projeto específico.
 ```
 
 **Realtime subscriptions múltiplas:**
+
 - Mudanças no projeto
 - Mudanças nas tarefas do projeto
 - Mudanças nos membros do projeto
@@ -1102,6 +1191,7 @@ Dialog para adicionar membros ao projeto.
 **Localização:** `src/components/projects/AddMemberDialog.tsx`
 
 **Funcionalidades:**
+
 - Lista todos usuários do sistema
 - Filtra membros já presentes no projeto
 - Select com busca
@@ -1117,6 +1207,7 @@ Dialog de confirmação para remover membros.
 **Localização:** `src/components/projects/RemoveMemberDialog.tsx`
 
 **Funcionalidades:**
+
 - Confirmação com nome do membro
 - Não permite remover owners
 - Delete via Supabase
@@ -1133,6 +1224,7 @@ Sistema completo de visualização Kanban com drag-and-drop.
 **Tecnologia:** `@dnd-kit/core` para drag-and-drop
 
 **Funcionalidades:**
+
 - 4 colunas: A Fazer, Em Progresso, Revisão, Concluído
 - Drag and drop entre colunas
 - Atualização automática de status no banco
@@ -1140,11 +1232,12 @@ Sistema completo de visualização Kanban com drag-and-drop.
 - Sensor de ponteiro com threshold de 8px
 
 **Fluxo de drag:**
+
 ```typescript
-handleDragEnd -> 
-  Verifica nova coluna -> 
-  Update no banco -> 
-  Toast de sucesso -> 
+handleDragEnd ->
+  Verifica nova coluna ->
+  Update no banco ->
+  Toast de sucesso ->
   Realtime atualiza
 ```
 
@@ -1153,6 +1246,7 @@ handleDragEnd ->
 **Localização:** `src/components/kanban/KanbanColumn.tsx`
 
 **Funcionalidades:**
+
 - Área droppable com feedback visual
 - Contador de tarefas
 - Indicador de cor por status
@@ -1164,6 +1258,7 @@ handleDragEnd ->
 **Localização:** `src/components/kanban/KanbanTaskCard.tsx`
 
 **Funcionalidades:**
+
 - Card draggable
 - Informações compactas da tarefa
 - Badge de prioridade
@@ -1181,26 +1276,31 @@ Página completa de detalhes do projeto.
 **Seções:**
 
 **Header:**
+
 - Breadcrumb (voltar para projetos)
 - Nome e descrição do projeto
 - Botões de edição e exclusão
 - Botão "Nova Tarefa"
 
 **Cards de Informação (4 cards):**
+
 - Tarefas concluídas/total
 - Número de membros
 - Status atual
 - Prazo
 
 **Barra de Progresso:**
+
 - Cálculo baseado em tarefas concluídas
 - Porcentagem visual
 
 **Visualização de Tarefas (Tabs):**
+
 - Tab Kanban: Board completo com drag-and-drop
 - Tab Lista: Lista tradicional de TaskCards
 
 **Painel de Equipe:**
+
 - Lista todos membros
 - Avatar + nome + role
 - Badge owner/membro
@@ -1208,6 +1308,7 @@ Página completa de detalhes do projeto.
 - Botão remover (exceto owner)
 
 **Integração com ProjectCard:**
+
 ```typescript
 <Link to={`/projects/${project.id}`}>
   <ProjectCard {...} />
@@ -1221,13 +1322,26 @@ Sistema completo de realtime para projeto:
 ```typescript
 const channel = supabase
   .channel(`project-${projectId}-changes`)
-  .on('postgres_changes', { table: 'projects', filter: `id=eq.${projectId}` }, refetch)
-  .on('postgres_changes', { table: 'tasks', filter: `project_id=eq.${projectId}` }, refetch)
-  .on('postgres_changes', { table: 'project_members', filter: `project_id=eq.${projectId}` }, refetch)
+  .on(
+    "postgres_changes",
+    { table: "projects", filter: `id=eq.${projectId}` },
+    refetch
+  )
+  .on(
+    "postgres_changes",
+    { table: "tasks", filter: `project_id=eq.${projectId}` },
+    refetch
+  )
+  .on(
+    "postgres_changes",
+    { table: "project_members", filter: `project_id=eq.${projectId}` },
+    refetch
+  )
   .subscribe();
 ```
 
 **Eventos capturados:**
+
 - Mudanças no projeto (nome, status, deadline)
 - Tarefas criadas/editadas/deletadas
 - Membros adicionados/removidos
@@ -1245,17 +1359,20 @@ const channel = supabase
 ### 🔧 Como Testar a FASE 4
 
 1. **Acessar detalhes do projeto:**
+
    - Ir em `/projects`
    - Clicar em qualquer card de projeto
    - Verificar todas informações carregadas
 
 2. **Gerenciar membros:**
+
    - Clicar em "+" no painel de equipe
    - Adicionar novo membro
    - Verificar atualização em tempo real
    - Tentar remover membro (não-owner)
 
 3. **Usar Kanban:**
+
    - Alternar para tab Kanban
    - Arrastar tarefa entre colunas
    - Verificar atualização de status
@@ -1269,12 +1386,15 @@ const channel = supabase
 ### 📊 Estado Atual
 
 **Páginas implementadas:** +1 (total: 7)
+
 - ProjectDetails
 
 **Hooks criados:** +1 (total: 3)
+
 - `useProject`
 
 **Componentes criados:** +5 (total: 13)
+
 - `AddMemberDialog`
 - `RemoveMemberDialog`
 - `KanbanBoard`
@@ -1282,14 +1402,17 @@ const channel = supabase
 - `KanbanTaskCard`
 
 **Rotas configuradas:** +1
+
 - `/projects/:id` → ProjectDetails
 
 **Dependências adicionadas:** 3
+
 - @dnd-kit packages
 
 ### ⚠️ Observações
 
 1. **Performance do Kanban:**
+
    - Usa activationConstraint para evitar drags acidentais
    - DragOverlay melhora UX durante drag
    - Realtime não interfere com drag em andamento
@@ -1313,17 +1436,20 @@ Implementar sistema completo de gerenciamento de equipe com visualização de to
 ### 📋 Escopo
 
 1. **Página Team:**
+
    - Lista todos usuários do sistema
    - Informações de cada membro (nome, email, projetos, tarefas)
    - Filtros e busca
    - Estatísticas gerais
 
 2. **Gerenciamento de Roles:**
+
    - Visualização de role atual (user/admin/master)
    - Promover/rebaixar usuários (apenas admins/master)
    - Indicadores visuais de permissões
 
 3. **Estatísticas de Participação:**
+
    - Projetos por membro
    - Tarefas atribuídas/concluídas
    - Taxa de conclusão
@@ -1338,20 +1464,24 @@ Implementar sistema completo de gerenciamento de equipe com visualização de to
 ### 🎨 Componentes Implementados
 
 **Hook `useTeam`** - `src/hooks/useTeam.ts`
+
 - Fetch de membros com estatísticas
 - Contagem de projetos e tarefas
 - Realtime updates
 
 **Componente `TeamMemberCard`** - `src/components/team/TeamMemberCard.tsx`
+
 - Exibição de informações do membro
 - Estatísticas visuais
 - Ações de gerenciamento
 
 **Componente `ManageRoleDialog`** - `src/components/team/ManageRoleDialog.tsx`
+
 - Gerenciamento de roles
 - Apenas admins/masters podem usar
 
 **Página `Team`** - `src/pages/Team.tsx`
+
 - Lista completa de membros
 - Filtros e busca funcionais
 - Estatísticas gerais da equipe
@@ -1378,6 +1508,7 @@ CREATE TYPE public.invitation_status AS ENUM ('pending', 'accepted', 'expired', 
 ```
 
 **Status:**
+
 - `pending` - Aguardando aceitação
 - `accepted` - Convite aceito
 - `expired` - Convite expirado
@@ -1404,6 +1535,7 @@ CREATE TABLE public.invitations (
 ```
 
 **Campos importantes:**
+
 - `email` - Email do usuário convidado
 - `invited_by` - Quem enviou o convite
 - `project_id` - Projeto específico (opcional)
@@ -1411,6 +1543,7 @@ CREATE TABLE public.invitations (
 - `expires_at` - Data de expiração (7 dias)
 
 **RLS Policies:**
+
 - ✅ Criadores e admins podem ver seus convites
 - ✅ Admins e masters podem criar convites
 - ✅ Criadores podem atualizar/deletar seus convites
@@ -1426,16 +1559,17 @@ CREATE OR REPLACE FUNCTION public.user_has_system_access(_user_id UUID)
 RETURNS BOOLEAN
 AS $$
   SELECT EXISTS (
-    SELECT 1 FROM public.user_roles 
+    SELECT 1 FROM public.user_roles
     WHERE user_id = _user_id AND role = 'master'
   ) OR EXISTS (
-    SELECT 1 FROM public.project_members 
+    SELECT 1 FROM public.project_members
     WHERE user_id = _user_id
   )
 $$;
 ```
 
 **Regras de acesso:**
+
 - Master sempre tem acesso (terá assinatura no futuro)
 - Usuário precisa ser membro de pelo menos um projeto
 - Usuário sem projetos não tem acesso
@@ -1445,6 +1579,7 @@ $$;
 Aceita convite e adiciona usuário ao projeto.
 
 **Fluxo:**
+
 1. Valida token e expiração
 2. Verifica se email corresponde
 3. Adiciona usuário ao projeto
@@ -1463,22 +1598,24 @@ Custom hook para gerenciar convites.
 **Localização:** `src/hooks/useInvitations.ts`
 
 **Funcionalidades:**
+
 - Fetch de convites com relações (perfil convidador, projeto)
 - CRUD completo (create, cancel, resend)
 - Realtime updates
 - Validação de email e expiração
 
 ```typescript
-const { 
-  invitations, 
-  loading, 
-  createInvitation, 
-  cancelInvitation, 
-  resendInvitation 
+const {
+  invitations,
+  loading,
+  createInvitation,
+  cancelInvitation,
+  resendInvitation,
 } = useInvitations();
 ```
 
 **Regras de negócio:**
+
 - Convites expiram em 7 dias
 - Apenas admins e masters podem convidar
 - Pode convidar para projeto específico ou geral
@@ -1490,6 +1627,7 @@ Dialog para criar novos convites.
 **Localização:** `src/components/invitations/InviteUserDialog.tsx`
 
 **Campos do formulário:**
+
 - Email (obrigatório, validação)
 - Projeto (opcional, select)
 - Permissão (member/admin)
@@ -1501,6 +1639,7 @@ Lista de convites com filtros e ações.
 **Localização:** `src/components/invitations/InvitationsList.tsx`
 
 **Informações exibidas:**
+
 - Email convidado
 - Projeto (se específico)
 - Status com badges coloridos
@@ -1515,6 +1654,7 @@ Página completa de gerenciamento de convites.
 **Rota:** `/invitations`
 
 **Seções:**
+
 - Header com botão "Convidar Usuário"
 - Tabs de filtro (Todos, Pendentes, Aceitos, Expirados)
 - Lista de convites com todas informações
@@ -1527,6 +1667,7 @@ Página para aceitar convite via link.
 **Rota:** `/accept-invitation?token=<uuid>`
 
 **Fluxo:**
+
 1. Usuário acessa link com token
 2. Sistema valida convite (status, expiração)
 3. Mostra informações do convite
@@ -1538,6 +1679,7 @@ Página para aceitar convite via link.
 ### 📊 Controle de Acesso
 
 **Implementação futura (FASE 7):**
+
 - Verificação de `user_has_system_access()` no login
 - Bloqueio de acesso para usuários sem projetos
 - Mensagem orientando a pedir convite
@@ -1546,6 +1688,7 @@ Página para aceitar convite via link.
 ### 🔧 Como Testar a FASE 6
 
 1. **Criar convite:**
+
    - Login como admin/master
    - Ir em `/invitations`
    - Clicar em "Convidar Usuário"
@@ -1553,6 +1696,7 @@ Página para aceitar convite via link.
    - Verificar na lista
 
 2. **Aceitar convite:**
+
    - Copiar token do convite da URL
    - Montar URL: `/accept-invitation?token=<token>`
    - Abrir em navegador anônimo
@@ -1569,34 +1713,42 @@ Página para aceitar convite via link.
 ### 📊 Estado Atual
 
 **Tabelas criadas:** +1 (total: 7)
+
 - `invitations`
 
 **ENUMs criados:** +1 (total: 4)
+
 - `invitation_status`
 
 **Funções criadas:** +3 (total: 7)
+
 - `user_has_system_access()`
 - `expire_old_invitations()`
 - `accept_invitation()`
 
 **Páginas implementadas:** +2 (total: 9)
+
 - Invitations
 - AcceptInvitation
 
 **Hooks criados:** +1 (total: 4)
+
 - `useInvitations`
 
 **Componentes criados:** +2 (total: 15)
+
 - `InviteUserDialog`
 - `InvitationsList`
 
 **Rotas configuradas:** +2
+
 - `/invitations` → Invitations
 - `/accept-invitation` → AcceptInvitation
 
 ### 🔐 Segurança
 
 **RLS Policies:**
+
 - Apenas admins/masters podem criar convites
 - Criadores veem apenas seus convites
 - Token único e não reutilizável
@@ -1604,6 +1756,7 @@ Página para aceitar convite via link.
 - Expiração automática em 7 dias
 
 **Função SECURITY DEFINER:**
+
 - `user_has_system_access()` contorna RLS com segurança
 - `accept_invitation()` adiciona membro de forma segura
 - Validações robustas de email e token
@@ -1611,11 +1764,13 @@ Página para aceitar convite via link.
 ### 📝 Observações
 
 1. **Sistema de convites:**
+
    - Preparado para envio de email (futuro)
    - Por hora, compartilhamento manual do link
    - Token único e seguro
 
 2. **Controle de acesso:**
+
    - Função `user_has_system_access()` criada
    - Implementação no login será na FASE 7
    - Master sempre terá acesso (assinaturas futuras)
@@ -1628,11 +1783,13 @@ Página para aceitar convite via link.
 ### ⚠️ Pendências para FASE 7
 
 1. **Envio de email:**
+
    - Integrar com Resend
    - Email template profissional
    - Link direto no email
 
 2. **Controle de acesso no login:**
+
    - Verificar `user_has_system_access()`
    - Bloquear acesso se não tem projetos
    - Mensagem amigável
