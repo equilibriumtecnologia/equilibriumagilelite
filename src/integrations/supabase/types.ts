@@ -333,6 +333,10 @@ export type Database = {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
       }
+      shares_project_with: {
+        Args: { _other_user_id: string; _user_id: string }
+        Returns: boolean
+      }
       user_has_system_access: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
