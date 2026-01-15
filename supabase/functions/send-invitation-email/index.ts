@@ -178,7 +178,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // === BUILD EMAIL ===
     const appUrl =
-      Deno.env.get("APP_URL") || "https://oteqziddtpjosoacjfwq.lovable.app";
+      Deno.env.get("APP_URL") ||
+      "https://agilelite.equilibriumtecnologia.com.br";
     const invitationUrl = `${appUrl}/accept-invitation?token=${invitationToken}`;
 
     const expirationDate = new Date(expiresAt).toLocaleDateString("pt-BR", {
@@ -202,7 +203,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <!-- Header -->
                   <tr>
                     <td style="background: linear-gradient(135deg, #5415FF 0%, #4C1782 100%); padding: 40px; text-align: center;">
-                      <h1 style="margin: 0; color: #000000; font-size: 28px; font-weight: 600;">
+                      <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">
                         Você foi convidado!
                       </h1>
                     </td>
@@ -292,14 +293,9 @@ const handler = async (req: Request): Promise<Response> => {
         ...corsHeaders,
       },
     });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error("Error in send-invitation-email function:", error);
-    const message =
-      typeof error === "object" && error !== null && "message" in error
-        ? String((error as { message?: unknown }).message)
-        : String(error);
-
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
