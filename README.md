@@ -35,7 +35,7 @@ npm install
 
 ### 3. Configurar variáveis de ambiente
 
-O arquivo `.env` é gerado automaticamente pelo Lovable Cloud quando você conecta o backend. 
+O arquivo `.env` é gerado automaticamente pelo Lovable Cloud quando você conecta o backend.
 
 **Importante:** Você NÃO precisa criar manualmente o arquivo `.env`. Ele contém:
 
@@ -83,12 +83,14 @@ supabase/
 ### Tabelas Principais
 
 **profiles** - Perfis de usuário
+
 - `id` (UUID, PK) - Referência ao auth.users
 - `full_name` (TEXT) - Nome completo
 - `avatar_url` (TEXT, nullable) - URL do avatar
 - `created_at`, `updated_at` (TIMESTAMPTZ)
 
 **user_roles** - Roles e permissões
+
 - `id` (UUID, PK)
 - `user_id` (UUID, FK → profiles)
 - `role` (app_role ENUM: master, admin, user)
@@ -96,6 +98,7 @@ supabase/
 - Constraint: UNIQUE(user_id, role)
 
 **categories** - Categorias globais de projetos
+
 - `id` (UUID, PK)
 - `name` (TEXT, UNIQUE)
 - `description` (TEXT)
@@ -105,6 +108,7 @@ supabase/
 - `created_at`, `updated_at` (TIMESTAMPTZ)
 
 **projects** - Projetos ⭐ FASE 2
+
 - `id` (UUID, PK)
 - `name` (TEXT) - Nome do projeto
 - `description` (TEXT, nullable)
@@ -115,6 +119,7 @@ supabase/
 - `created_at`, `updated_at` (TIMESTAMPTZ)
 
 **project_members** - Membros dos projetos ⭐ FASE 2
+
 - `id` (UUID, PK)
 - `project_id` (UUID, FK → projects)
 - `user_id` (UUID, FK → profiles)
@@ -123,6 +128,7 @@ supabase/
 - Constraint: UNIQUE(project_id, user_id)
 
 **tasks** - Tarefas dos projetos ⭐ FASE 2
+
 - `id` (UUID, PK)
 - `project_id` (UUID, FK → projects)
 - `title` (TEXT) - Título da tarefa
@@ -136,7 +142,7 @@ supabase/
 
 ### Funções de Segurança
 
-**has_role(_user_id, _role)** - Verifica se usuário possui determinada role (evita recursão em RLS policies)
+**has_role(\_user_id, \_role)** - Verifica se usuário possui determinada role (evita recursão em RLS policies)
 
 **handle_new_user()** - Trigger que cria automaticamente perfil e role ao registrar novo usuário
 
@@ -145,6 +151,7 @@ supabase/
 ### Row Level Security (RLS)
 
 Todas as tabelas possuem RLS habilitado com policies apropriadas:
+
 - **profiles:** Todos podem visualizar, apenas donos podem editar
 - **user_roles:** Todos autenticados podem visualizar
 - **categories:** Todos autenticados podem visualizar
@@ -177,8 +184,8 @@ O primeiro usuário deve ter sua role alterada manualmente para `master`:
 
 ```sql
 -- Atualizar role do primeiro usuário para master
-UPDATE user_roles 
-SET role = 'master' 
+UPDATE user_roles
+SET role = 'master'
 WHERE user_id = '<user-id>';
 ```
 
@@ -187,6 +194,7 @@ Acesse o backend pelo Lovable Cloud para executar esta query.
 ## ✨ Funcionalidades Implementadas
 
 ### FASE 1: Fundação ✅
+
 - ✅ Sistema de autenticação completo (signup, login, logout)
 - ✅ Sistema de permissões (master, admin, user)
 - ✅ Layout responsivo com sidebar colapsável
@@ -195,6 +203,7 @@ Acesse o backend pelo Lovable Cloud para executar esta query.
 - ✅ Design system customizado com Tailwind
 
 ### FASE 2: Gestão de Projetos ✅
+
 - ✅ CRUD completo de projetos
 - ✅ Categorização de projetos
 - ✅ Sistema de membros (owner, member)
@@ -205,6 +214,7 @@ Acesse o backend pelo Lovable Cloud para executar esta query.
 - ✅ Visualização de prazos e membros
 
 ### Próximas Fases
+
 - 🔄 FASE 3: Visualização e edição detalhada de projetos
 - 🔄 FASE 4: Board Kanban para tarefas
 - 🔄 FASE 5: Gestão de equipe e convites
