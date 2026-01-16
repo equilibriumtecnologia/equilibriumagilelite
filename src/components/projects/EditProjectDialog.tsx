@@ -35,7 +35,9 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import type { Database } from "@/integrations/supabase/types";
 
-type Project = Database["public"]["Tables"]["projects"]["Row"];
+type Project = Database["public"]["Tables"]["projects"]["Row"] & {
+  criticality_level?: number | null;
+};
 
 const formSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -43,6 +45,7 @@ const formSchema = z.object({
   category_id: z.string().optional(),
   status: z.enum(["planning", "active", "on_hold", "completed", "cancelled"]),
   deadline: z.string().optional(),
+  criticality_level: z.coerce.number().min(1).max(5).default(3),
 });
 
 interface EditProjectDialogProps {
@@ -74,6 +77,7 @@ export function EditProjectDialog({ project, onSuccess }: EditProjectDialogProps
       category_id: project.category_id || "",
       status: project.status,
       deadline: project.deadline || "",
+      criticality_level: project.criticality_level ?? 3,
     },
   });
 
@@ -88,6 +92,7 @@ export function EditProjectDialog({ project, onSuccess }: EditProjectDialogProps
           category_id: values.category_id || null,
           status: values.status,
           deadline: values.deadline || null,
+          criticality_level: values.criticality_level,
         })
         .eq("id", project.id);
 
@@ -210,6 +215,34 @@ export function EditProjectDialog({ project, onSuccess }: EditProjectDialogProps
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="criticality_level"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nível de Criticidade</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(Number(value))}
+                    value={String(field.value)}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o nível" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">1 - Muito Baixa</SelectItem>
+                      <SelectItem value="2">2 - Baixa</SelectItem>
+                      <SelectItem value="3">3 - Média</SelectItem>
+                      <SelectItem value="4">4 - Alta</SelectItem>
+                      <SelectItem value="5">5 - Crítica</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

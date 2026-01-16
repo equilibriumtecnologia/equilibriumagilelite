@@ -39,6 +39,7 @@ const formSchema = z.object({
   category_id: z.string().uuid("Selecione uma categoria"),
   status: z.enum(["planning", "active", "on_hold", "completed", "cancelled"]),
   deadline: z.string().optional(),
+  criticality_level: z.coerce.number().min(1).max(5).default(3),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -57,6 +58,7 @@ export function CreateProjectDialog() {
       description: "",
       status: "planning",
       deadline: "",
+      criticality_level: 3,
     },
   });
 
@@ -97,6 +99,7 @@ export function CreateProjectDialog() {
         category_id: values.category_id,
         status: values.status,
         deadline: values.deadline || null,
+        criticality_level: values.criticality_level,
         created_by: user.id,
       });
 
@@ -226,6 +229,34 @@ export function CreateProjectDialog() {
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="criticality_level"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nível de Criticidade</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(Number(value))}
+                    defaultValue={String(field.value)}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o nível" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="1">1 - Muito Baixa</SelectItem>
+                      <SelectItem value="2">2 - Baixa</SelectItem>
+                      <SelectItem value="3">3 - Média</SelectItem>
+                      <SelectItem value="4">4 - Alta</SelectItem>
+                      <SelectItem value="5">5 - Crítica</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

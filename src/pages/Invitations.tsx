@@ -1,8 +1,13 @@
 import { InviteUserDialog } from "@/components/invitations/InviteUserDialog";
 import { InvitationsList } from "@/components/invitations/InvitationsList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useUserRole } from "@/hooks/useUserRole";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ShieldAlert } from "lucide-react";
 
 const Invitations = () => {
+  const { canManageInvitations, loading: roleLoading } = useUserRole();
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
@@ -13,8 +18,17 @@ const Invitations = () => {
             Gerencie convites para novos usuários
           </p>
         </div>
-        <InviteUserDialog />
+        {!roleLoading && canManageInvitations && <InviteUserDialog />}
       </div>
+
+      {!roleLoading && !canManageInvitations && (
+        <Alert variant="destructive" className="mb-6">
+          <ShieldAlert className="h-4 w-4" />
+          <AlertDescription>
+            Apenas administradores e masters podem enviar convites.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Content */}
       <Tabs defaultValue="all" className="w-full">

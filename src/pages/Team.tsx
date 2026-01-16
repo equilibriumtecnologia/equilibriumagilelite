@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTeam } from "@/hooks/useTeam";
 import { Input } from "@/components/ui/input";
 import { InviteUserDialog } from "@/components/invitations/InviteUserDialog";
+import { useUserRole } from "@/hooks/useUserRole";
 import {
   Select,
   SelectContent,
@@ -16,6 +17,7 @@ import { TeamMemberCard } from "@/components/team/TeamMemberCard";
 
 const Team = () => {
   const { members, loading, refetch } = useTeam();
+  const { canManageInvitations } = useUserRole();
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
 
@@ -59,7 +61,7 @@ const Team = () => {
             Gerencie membros da equipe e visualize estatísticas de desempenho
           </p>
         </div>
-        <InviteUserDialog />
+        {canManageInvitations && <InviteUserDialog />}
       </div>
 
       {/* Estatísticas Gerais */}

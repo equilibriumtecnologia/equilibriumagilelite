@@ -11,6 +11,7 @@ type Project = Database["public"]["Tables"]["projects"]["Row"] & {
     profiles: Database["public"]["Tables"]["profiles"]["Row"];
   }>;
   tasks: Database["public"]["Tables"]["tasks"]["Row"][];
+  criticality_level?: number | null;
 };
 
 export function useProjects() {

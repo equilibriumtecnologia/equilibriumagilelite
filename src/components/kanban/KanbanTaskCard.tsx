@@ -73,10 +73,10 @@ export function KanbanTaskCard({
           </Badge>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t">
+        <div className="flex flex-col gap-2 pt-2 border-t">
           {task.assigned_to_profile ? (
-            <div className="flex items-center gap-2">
-              <Avatar className="h-6 w-6">
+            <div className="flex items-center gap-2 min-w-0">
+              <Avatar className="h-6 w-6 flex-shrink-0">
                 <AvatarFallback className="text-xs">
                   {(() => {
                     const names = task.assigned_to_profile.full_name.split(" ");
@@ -86,7 +86,7 @@ export function KanbanTaskCard({
                   })()}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground truncate">
                 {task.assigned_to_profile.full_name.split(" ")[0]}
               </span>
             </div>
@@ -96,8 +96,10 @@ export function KanbanTaskCard({
 
           {task.due_date && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Calendar className="h-3 w-3" />
-              {format(new Date(task.due_date), "dd/MM", { locale: ptBR })}
+              <Calendar className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate">
+                {format(new Date(task.due_date), "dd/MM/yyyy", { locale: ptBR })}
+              </span>
             </div>
           )}
         </div>
