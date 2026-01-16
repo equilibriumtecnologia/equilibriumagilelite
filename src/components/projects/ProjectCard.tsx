@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, Users } from "lucide-react";
+import { Calendar, Users, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Link } from "react-router-dom";
@@ -18,12 +18,29 @@ type Project = Database["public"]["Tables"]["projects"]["Row"] & {
     profiles: Database["public"]["Tables"]["profiles"]["Row"];
   }>;
   tasks: Database["public"]["Tables"]["tasks"]["Row"][];
+  criticality_level?: number | null;
 };
 
 interface ProjectCardProps {
   project: Project;
   onUpdate?: () => void;
 }
+
+const criticalityLabels: Record<number, string> = {
+  1: "Muito Baixa",
+  2: "Baixa",
+  3: "Média",
+  4: "Alta",
+  5: "Crítica",
+};
+
+const criticalityColors: Record<number, string> = {
+  1: "bg-slate-500/10 text-slate-500 border-slate-500/20",
+  2: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  3: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+  4: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+  5: "bg-red-500/10 text-red-500 border-red-500/20",
+};
 
 const statusLabels: Record<string, string> = {
   planning: "Planejamento",
@@ -47,6 +64,8 @@ export function ProjectCard({ project, onUpdate }: ProjectCardProps) {
   const totalTasks = project.tasks?.length || 0;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
+  const criticality = project.criticality_level ?? 3;
+
   return (
     <Link to={`/projects/${project.id}`}>
       <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
@@ -54,7 +73,12 @@ export function ProjectCard({ project, onUpdate }: ProjectCardProps) {
           <div className="flex items-start justify-between">
             <div className="space-y-1 flex-1">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="font-semibold text-lg">{project.name}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-lg">{project.name}</h3>
+                  {criticality >= 4 && (
+                    <AlertTriangle className={`h-4 w-4 ${criticality === 5 ? 'text-red-500' : 'text-orange-500'}`} />
+                  )}
+                </div>
                 <div
                   className="flex items-center gap-1"
                   onClick={(e) => e.preventDefault()}
@@ -73,7 +97,7 @@ export function ProjectCard({ project, onUpdate }: ProjectCardProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {project.category && (
               <Badge variant="outline" className="border">
                 {project.category.name}
@@ -81,6 +105,9 @@ export function ProjectCard({ project, onUpdate }: ProjectCardProps) {
             )}
             <Badge variant="outline" className={statusColors[project.status]}>
               {statusLabels[project.status]}
+            </Badge>
+            <Badge variant="outline" className={criticalityColors[criticality]}>
+              Nível {criticality}
             </Badge>
           </div>
 
