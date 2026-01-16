@@ -1,19 +1,21 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   FolderKanban, 
   CheckCircle2, 
   Clock, 
   AlertCircle,
-  TrendingUp
+  TrendingUp,
+  ChevronRight
 } from "lucide-react";
 import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
 import { useProjects } from "@/hooks/useProjects";
 
 const Dashboard = () => {
   const { projects, loading } = useProjects();
+  const navigate = useNavigate();
 
   const totalProjects = projects.length;
   const completedTasks = projects.reduce((acc, p) => 
@@ -125,7 +127,14 @@ const Dashboard = () => {
                   };
                   
                   return (
-                    <div key={project.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer">
+                    <div 
+                      key={project.id} 
+                      className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
+                      onClick={() => navigate(`/projects/${project.id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && navigate(`/projects/${project.id}`)}
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-primary" />
                         <div>
@@ -133,7 +142,10 @@ const Dashboard = () => {
                           <p className="text-sm text-muted-foreground">{statusLabels[project.status]}</p>
                         </div>
                       </div>
-                      <span className="text-sm font-medium">{completedTasks}/{totalTasks}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{completedTasks}/{totalTasks}</span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
                     </div>
                   );
                 })
