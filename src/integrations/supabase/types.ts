@@ -172,6 +172,7 @@ export type Database = {
           category_id: string | null
           created_at: string
           created_by: string
+          criticality_level: number | null
           deadline: string | null
           description: string | null
           id: string
@@ -183,6 +184,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           created_by: string
+          criticality_level?: number | null
           deadline?: string | null
           description?: string | null
           id?: string
@@ -194,6 +196,7 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           created_by?: string
+          criticality_level?: number | null
           deadline?: string | null
           description?: string | null
           id?: string

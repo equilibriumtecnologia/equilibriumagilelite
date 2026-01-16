@@ -10,7 +10,43 @@ export default function Projects() {
   const { projects, loading, refetch } = useProjects();
   const [search, setSearch] = useState("");
 
-  const filteredProjects = projects.filter((project) =>
+  // Ordenação inteligente por criticidade e data
+  const sortedProjects = [...projects].sort((a, b) => {
+    const today = new Date();
+    const aDeadline = a.deadline ? new Date(a.deadline) : null;
+    const bDeadline = b.deadline ? new Date(b.deadline) : null;
+    
+    const aCriticality = (a as any).criticality_level ?? 3;
+    const bCriticality = (b as any).criticality_level ?? 3;
+    
+    // Calcular dias até o prazo
+    const aDaysLeft = aDeadline ? Math.ceil((aDeadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : Infinity;
+    const bDaysLeft = bDeadline ? Math.ceil((bDeadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : Infinity;
+    
+    // Regra: projeto com nível inferior mas prazo < 5 dias à frente do nível superior
+    // Ex: projeto nível 4 com 3 dias < projeto nível 5 com 10 dias
+    const aIsUrgent = aDaysLeft >= 0 && aDaysLeft < 5;
+    const bIsUrgent = bDaysLeft >= 0 && bDaysLeft < 5;
+    
+    // Ajustar criticidade efetiva baseada na urgência
+    const aEffectiveCriticality = aIsUrgent ? Math.max(aCriticality, 5) : aCriticality;
+    const bEffectiveCriticality = bIsUrgent ? Math.max(bCriticality, 5) : bCriticality;
+    
+    // Se ambos são urgentes ou ambos não são, ordenar por criticidade, depois por prazo
+    if (aEffectiveCriticality !== bEffectiveCriticality) {
+      return bEffectiveCriticality - aEffectiveCriticality; // Maior criticidade primeiro
+    }
+    
+    // Mesma criticidade efetiva: ordenar por prazo (mais próximo primeiro)
+    if (aDaysLeft !== bDaysLeft) {
+      return aDaysLeft - bDaysLeft;
+    }
+    
+    // Se tudo igual, ordenar por nome
+    return a.name.localeCompare(b.name);
+  });
+
+  const filteredProjects = sortedProjects.filter((project) =>
     project.name.toLowerCase().includes(search.toLowerCase())
   );
 
