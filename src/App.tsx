@@ -18,8 +18,6 @@ import Invitations from "./pages/Invitations";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import { SpeedInsights } from "@vercel/speed-insights/react";
-import { Analytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient();
 
@@ -28,8 +26,6 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <Analytics />
-      <SpeedInsights />
       <BrowserRouter>
         <AuthProvider>
           <Routes>
@@ -38,7 +34,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/accept-invitation" element={<AcceptInvitation />} />
-
+            
             {/* Protected routes with layout */}
             <Route
               path="/dashboard"
@@ -110,7 +106,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
