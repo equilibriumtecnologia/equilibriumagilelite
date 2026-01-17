@@ -18,8 +18,8 @@ import Invitations from "./pages/Invitations";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient();
 
