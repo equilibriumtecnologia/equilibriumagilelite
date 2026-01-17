@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -33,7 +33,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -41,6 +41,7 @@ import { useTasks } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
 import type { Tables } from "@/integrations/supabase/types";
 import { useProject } from "@/hooks/useProject";
+import { Label } from "@/components/ui/label";
 
 const taskSchema = z.object({
   title: z.string().min(1, "Título é obrigatório").max(200),
@@ -50,6 +51,7 @@ const taskSchema = z.object({
   priority: z.enum(["low", "medium", "high", "urgent"]),
   due_date: z.date().optional(),
   assigned_to: z.string().optional(),
+  status_comment: z.string().optional(),
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
@@ -67,6 +69,8 @@ export const EditTaskDialog = ({
 }: EditTaskDialogProps) => {
   const { updateTask } = useTasks();
   const { projects } = useProjects();
+  const [statusChanged, setStatusChanged] = useState(false);
+  const [commentError, setCommentError] = useState("");
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
@@ -78,12 +82,23 @@ export const EditTaskDialog = ({
       priority: task.priority,
       due_date: task.due_date ? new Date(task.due_date) : undefined,
       assigned_to: task.assigned_to || "",
+      status_comment: "",
     },
   });
 
   // Get selected project to fetch members
   const selectedProjectId = form.watch("project_id");
+  const currentStatus = form.watch("status");
   const { project } = useProject(selectedProjectId || undefined);
+
+  // Track if status changed
+  useEffect(() => {
+    const hasChanged = currentStatus !== task.status;
+    setStatusChanged(hasChanged);
+    if (!hasChanged) {
+      setCommentError("");
+    }
+  }, [currentStatus, task.status]);
 
   useEffect(() => {
     if (open) {
@@ -95,17 +110,36 @@ export const EditTaskDialog = ({
         priority: task.priority,
         due_date: task.due_date ? new Date(task.due_date) : undefined,
         assigned_to: task.assigned_to || "",
+        status_comment: "",
       });
+      setStatusChanged(false);
+      setCommentError("");
     }
   }, [open, task, form]);
 
   const onSubmit = async (data: TaskFormValues) => {
+    // Validate comment if status changed
+    if (statusChanged) {
+      if (!data.status_comment?.trim()) {
+        setCommentError("Comentário é obrigatório ao alterar o status");
+        return;
+      }
+      if (data.status_comment.trim().length < 10) {
+        setCommentError("Comentário deve ter pelo menos 10 caracteres");
+        return;
+      }
+    }
+
     const updateData = {
       id: task.id,
-      ...data,
+      title: data.title,
+      description: data.description || null,
+      project_id: data.project_id,
+      status: data.status,
+      priority: data.priority,
       due_date: data.due_date ? format(data.due_date, "yyyy-MM-dd") : null,
       assigned_to: data.assigned_to || null,
-      description: data.description || null,
+      historyComment: statusChanged ? data.status_comment?.trim() : undefined,
     };
 
     await updateTask.mutateAsync(updateData);
@@ -314,6 +348,44 @@ export const EditTaskDialog = ({
                 </FormItem>
               )}
             />
+
+            {statusChanged && (
+              <div className="space-y-2 p-4 border rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-primary" />
+                  <Label htmlFor="status_comment" className="font-medium">
+                    Comentário sobre a mudança de status{" "}
+                    <span className="text-destructive">*</span>
+                  </Label>
+                </div>
+                <FormField
+                  control={form.control}
+                  name="status_comment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Textarea
+                          id="status_comment"
+                          placeholder="Ex: Tarefa concluída após revisão do cliente..."
+                          className={commentError ? "border-destructive" : ""}
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            if (commentError) setCommentError("");
+                          }}
+                        />
+                      </FormControl>
+                      {commentError && (
+                        <p className="text-sm text-destructive">{commentError}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Mínimo de 10 caracteres - obrigatório ao alterar status
+                      </p>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
             <div className="flex justify-end gap-3 pt-4">
               <Button
