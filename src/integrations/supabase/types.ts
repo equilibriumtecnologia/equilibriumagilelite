@@ -221,6 +221,47 @@ export type Database = {
           },
         ]
       }
+      task_history: {
+        Row: {
+          action: Database["public"]["Enums"]["task_action_type"]
+          comment: string | null
+          created_at: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["task_action_type"]
+          comment?: string | null
+          created_at?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["task_action_type"]
+          comment?: string | null
+          created_at?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_history_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           assigned_to: string | null
@@ -351,6 +392,17 @@ export type Database = {
         | "on_hold"
         | "completed"
         | "cancelled"
+      task_action_type:
+        | "created"
+        | "status_changed"
+        | "assigned"
+        | "unassigned"
+        | "priority_changed"
+        | "due_date_changed"
+        | "title_changed"
+        | "description_changed"
+        | "comment_added"
+        | "deleted"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "todo" | "in_progress" | "review" | "completed"
     }
@@ -488,6 +540,18 @@ export const Constants = {
         "on_hold",
         "completed",
         "cancelled",
+      ],
+      task_action_type: [
+        "created",
+        "status_changed",
+        "assigned",
+        "unassigned",
+        "priority_changed",
+        "due_date_changed",
+        "title_changed",
+        "description_changed",
+        "comment_added",
+        "deleted",
       ],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["todo", "in_progress", "review", "completed"],

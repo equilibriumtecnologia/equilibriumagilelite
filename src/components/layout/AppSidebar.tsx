@@ -21,23 +21,34 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Button } from "@/components/ui/button";
 
-const menuItems = [
+const baseMenuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Projetos", url: "/projects", icon: FolderKanban },
   { title: "Atividades", url: "/tasks", icon: CheckSquare },
   { title: "Equipe", url: "/team", icon: Users },
-  { title: "Convites", url: "/invitations", icon: Mail },
   { title: "Configurações", url: "/settings", icon: Settings },
+];
+
+const adminMenuItems = [
+  { title: "Convites", url: "/invitations", icon: Mail },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { canManageInvitations } = useUserRole();
 
   const isCollapsed = state === "collapsed";
+  
+  // Build menu items based on user permissions
+  const menuItems = [
+    ...baseMenuItems,
+    ...(canManageInvitations ? adminMenuItems : []),
+  ];
 
   return (
     <Sidebar collapsible="icon">
