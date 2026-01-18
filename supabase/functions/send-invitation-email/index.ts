@@ -141,38 +141,38 @@ const handler = async (req: Request): Promise<Response> => {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 40px 0;">
+        <body style="margin: 0; padding: 0; background-color: #000823; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #000823; padding: 40px 0;">
             <tr>
               <td align="center">
-                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #1E202C; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(84, 21, 255, 0.25);">
                   <!-- Header -->
                   <tr>
-                    <td style="background: linear-gradient(135deg, #5415FF 0%, #4C1782 100%); padding: 40px; text-align: center;">
-                      <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">
-                        Você foi convidado!
+                    <td style="background: linear-gradient(135deg, #5415FF 0%, #290880 50%, #4C1782 100%); padding: 48px 40px; text-align: center;">
+                      <h1 style="margin: 0; color: #F8F8F8; font-size: 32px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                        ✨ Você foi convidado!
                       </h1>
                     </td>
                   </tr>
                   
                   <!-- Content -->
                   <tr>
-                    <td style="padding: 40px;">
-                      <p style="margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 24px;">
+                    <td style="padding: 48px 40px; background-color: #1E202C;">
+                      <p style="margin: 0 0 24px 0; color: #F8F8F8; font-size: 18px; line-height: 28px;">
                         Olá! 👋
                       </p>
-                      <p style="margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 24px;">
-                        <strong>${invitedByName}</strong> convidou você para participar ${projectName ? `do projeto <strong>${projectName}</strong>` : "da plataforma"} como <strong>${role === "admin" ? "Administrador" : role === "member" ? "Membro" : "Usuário"}</strong>.
+                      <p style="margin: 0 0 28px 0; color: #E5E5E5; font-size: 16px; line-height: 26px;">
+                        <span style="color: #A78BFA; font-weight: 600;">${invitedByName}</span> convidou você para participar ${projectName ? `do projeto <span style="color: #A78BFA; font-weight: 600;">${projectName}</span>` : "da plataforma <span style='color: #A78BFA; font-weight: 600;'>Agile Lite</span>"} como <span style="color: #A78BFA; font-weight: 600;">${role === "admin" ? "Administrador" : role === "member" ? "Membro" : "Usuário"}</span>.
                       </p>
                       
                       <!-- CTA Button -->
-                      <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                      <table width="100%" cellpadding="0" cellspacing="0" style="margin: 36px 0;">
                         <tr>
                           <td align="center">
                             <table cellpadding="0" cellspacing="0" border="0">
                               <tr>
-                                <td align="center" style="background: linear-gradient(135deg, #5415FF 0%, #4C1782 100%); border-radius: 6px; box-shadow: 0 4px 12px rgba(84, 21, 255, 0.4);">
-                                  <a href="${invitationUrl}" target="_blank" style="display: inline-block; color: #ffffff; text-decoration: none; padding: 16px 40px; font-size: 16px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;">
+                                <td align="center" style="background: linear-gradient(135deg, #5415FF 0%, #7C3AED 100%); border-radius: 8px; box-shadow: 0 4px 20px rgba(84, 21, 255, 0.5);">
+                                  <a href="${invitationUrl}" target="_blank" style="display: inline-block; color: #F8F8F8; text-decoration: none; padding: 18px 48px; font-size: 18px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; letter-spacing: 0.5px;">
                                     Aceitar Convite
                                   </a>
                                 </td>
@@ -182,24 +182,29 @@ const handler = async (req: Request): Promise<Response> => {
                         </tr>
                       </table>
                       
-                      <p style="margin: 20px 0 0 0; color: #666666; font-size: 14px; line-height: 20px;">
+                      <p style="margin: 24px 0 12px 0; color: #A1A1AA; font-size: 14px; line-height: 22px;">
                         Ou copie e cole este link no seu navegador:
                       </p>
-                      <p style="margin: 8px 0 20px 0; padding: 12px; background-color: #f8f9fa; border-radius: 4px; word-break: break-all; font-size: 13px; color: #495057; font-family: monospace;">
+                      <p style="margin: 0 0 28px 0; padding: 16px; background-color: #000823; border-radius: 8px; border: 1px solid #3B3B4F; word-break: break-all; font-size: 13px; color: #A78BFA; font-family: monospace;">
                         ${invitationUrl}
                       </p>
                       
-                      <p style="margin: 20px 0 0 0; color: #999999; font-size: 14px; line-height: 20px;">
-                        ⏰ Este convite expira em <strong>${expirationDate}</strong>
-                      </p>
+                      <div style="padding: 16px; background: linear-gradient(135deg, rgba(84, 21, 255, 0.15) 0%, rgba(124, 58, 237, 0.1) 100%); border-radius: 8px; border-left: 4px solid #5415FF;">
+                        <p style="margin: 0; color: #E5E5E5; font-size: 14px; line-height: 22px;">
+                          ⏰ Este convite expira em <strong style="color: #A78BFA;">${expirationDate}</strong>
+                        </p>
+                      </div>
                     </td>
                   </tr>
                   
                   <!-- Footer -->
                   <tr>
-                    <td style="background-color: #f8f9fa; padding: 24px; text-align: center; border-top: 1px solid #e9ecef;">
-                      <p style="margin: 0; color: #999999; font-size: 12px; line-height: 18px;">
+                    <td style="background-color: #000823; padding: 28px 40px; text-align: center; border-top: 1px solid #3B3B4F;">
+                      <p style="margin: 0; color: #71717A; font-size: 12px; line-height: 20px;">
                         Se você não esperava este convite, pode ignorar este email com segurança.
+                      </p>
+                      <p style="margin: 12px 0 0 0; color: #52525B; font-size: 11px;">
+                        © ${new Date().getFullYear()} Agile Lite - Equilibrium Tecnologia
                       </p>
                     </td>
                   </tr>
