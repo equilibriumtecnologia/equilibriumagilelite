@@ -66,7 +66,11 @@ export const useTasks = (projectId?: string) => {
       const { data, error } = await supabase
         .from("tasks")
         .insert(task)
-        .select()
+        .select(`
+          *,
+          assigned_user:profiles!tasks_assigned_to_fkey(id, full_name, avatar_url),
+          project:projects!tasks_project_id_fkey(id, name)
+        `)
         .single();
 
       if (error) throw error;
@@ -80,6 +84,48 @@ export const useTasks = (projectId?: string) => {
           action: "created",
           new_value: task.title,
         });
+
+        // Send notification if task is assigned to someone else
+        if (task.assigned_to && task.assigned_to !== user.id) {
+          const { data: assigneeProfile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", task.assigned_to)
+            .single();
+          
+          const { data: assigneeAuth } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("id", task.assigned_to)
+            .single();
+
+          // Get assignee email from auth
+          if (assigneeProfile && assigneeAuth) {
+            const { data: changerProfile } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("id", user.id)
+              .single();
+
+            // Get email via RPC or directly - for now we'll skip email fetching
+            // and rely on the edge function to handle this
+            try {
+              await supabase.functions.invoke("send-task-notification", {
+                body: {
+                  taskId: data.id,
+                  taskTitle: data.title,
+                  projectName: (data as any).project?.name || "",
+                  notificationType: "assigned",
+                  recipientEmail: "", // Will be fetched in edge function
+                  recipientName: assigneeProfile.full_name,
+                  changedByName: changerProfile?.full_name || "Um usuário",
+                },
+              });
+            } catch (e) {
+              console.error("Failed to send notification:", e);
+            }
+          }
+        }
       }
 
       return data;
