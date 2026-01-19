@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Calendar, User, MoreVertical, Pencil, Trash2, Clock, Timer } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EditTaskDialog } from "./EditTaskDialog";
 import { DeleteTaskDialog } from "./DeleteTaskDialog";
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Tables } from "@/integrations/supabase/types";
@@ -43,9 +43,51 @@ const priorityConfig = {
 export const TaskCard = ({ task }: TaskCardProps) => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [, setTick] = useState(0);
+
+  // Update every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(t => t + 1);
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Support both assigned_user and assigned_to_profile for compatibility
   const assignedUser = task.assigned_user || task.assigned_to_profile;
+
+  // Calculate time metrics
+  const timeMetrics = useMemo(() => {
+    const now = Date.now();
+    const createdAt = new Date(task.created_at).getTime();
+    const updatedAt = new Date(task.updated_at).getTime();
+    
+    return {
+      totalTime: now - createdAt,
+      currentStepTime: now - updatedAt,
+    };
+  }, [task.created_at, task.updated_at]);
+
+  // Format duration to human readable string
+  const formatDuration = (ms: number): string => {
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) {
+      const remainingHours = hours % 24;
+      return `${days}d ${remainingHours}h`;
+    }
+    if (hours > 0) {
+      const remainingMinutes = minutes % 60;
+      return `${hours}h ${remainingMinutes}m`;
+    }
+    if (minutes > 0) {
+      return `${minutes}m`;
+    }
+    return `<1m`;
+  };
 
   return (
     <>
@@ -90,6 +132,18 @@ export const TaskCard = ({ task }: TaskCardProps) => {
               <Badge variant={priorityConfig[task.priority].variant}>
                 {priorityConfig[task.priority].label}
               </Badge>
+
+              {/* Time metrics */}
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1" title="Tempo total desde criação">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>{formatDuration(timeMetrics.totalTime)}</span>
+                </div>
+                <div className="flex items-center gap-1" title="Tempo no status atual">
+                  <Timer className="h-3.5 w-3.5" />
+                  <span>{formatDuration(timeMetrics.currentStepTime)}</span>
+                </div>
+              </div>
 
               {task.project && (
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
