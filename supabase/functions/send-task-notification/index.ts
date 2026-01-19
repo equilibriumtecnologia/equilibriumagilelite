@@ -14,7 +14,7 @@ interface TaskNotificationRequest {
   taskTitle: string;
   projectName: string;
   notificationType: "assigned" | "status_changed";
-  recipientEmail: string;
+  recipientUserId: string;
   recipientName: string;
   changedByName: string;
   oldStatus?: string;
@@ -73,7 +73,7 @@ const handler = async (req: Request): Promise<Response> => {
       taskTitle,
       projectName,
       notificationType,
-      recipientEmail,
+      recipientUserId,
       recipientName,
       changedByName,
       oldStatus,
@@ -81,10 +81,24 @@ const handler = async (req: Request): Promise<Response> => {
     }: TaskNotificationRequest = await req.json();
 
     // === INPUT VALIDATION ===
-    if (!taskId || !taskTitle || !notificationType || !recipientEmail) {
+    if (!taskId || !taskTitle || !notificationType || !recipientUserId) {
       console.error("Missing required fields");
       return new Response(
         JSON.stringify({ error: "Bad Request: Missing required fields" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Get recipient email using secure function
+    const { data: recipientEmail, error: emailError } = await supabase.rpc(
+      "get_user_email_for_notification",
+      { _user_id: recipientUserId, _caller_id: userId }
+    );
+
+    if (emailError || !recipientEmail) {
+      console.error("Could not get recipient email:", emailError?.message || "No email found");
+      return new Response(
+        JSON.stringify({ error: "Could not get recipient email" }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }

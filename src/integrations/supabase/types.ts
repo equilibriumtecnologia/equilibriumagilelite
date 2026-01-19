@@ -366,6 +366,10 @@ export type Database = {
       }
       expire_old_invitations: { Args: never; Returns: undefined }
       get_invitation_by_token: { Args: { _token: string }; Returns: Json }
+      get_user_email_for_notification: {
+        Args: { _caller_id: string; _user_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

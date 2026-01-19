@@ -92,23 +92,14 @@ export const useTasks = (projectId?: string) => {
             .select("full_name")
             .eq("id", task.assigned_to)
             .single();
-          
-          const { data: assigneeAuth } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("id", task.assigned_to)
-            .single();
 
-          // Get assignee email from auth
-          if (assigneeProfile && assigneeAuth) {
+          if (assigneeProfile) {
             const { data: changerProfile } = await supabase
               .from("profiles")
               .select("full_name")
               .eq("id", user.id)
               .single();
 
-            // Get email via RPC or directly - for now we'll skip email fetching
-            // and rely on the edge function to handle this
             try {
               await supabase.functions.invoke("send-task-notification", {
                 body: {
@@ -116,7 +107,7 @@ export const useTasks = (projectId?: string) => {
                   taskTitle: data.title,
                   projectName: (data as any).project?.name || "",
                   notificationType: "assigned",
-                  recipientEmail: "", // Will be fetched in edge function
+                  recipientUserId: task.assigned_to,
                   recipientName: assigneeProfile.full_name,
                   changedByName: changerProfile?.full_name || "Um usuário",
                 },
@@ -151,7 +142,10 @@ export const useTasks = (projectId?: string) => {
       // Get current task state for history comparison
       const { data: currentTask, error: fetchError } = await supabase
         .from("tasks")
-        .select("*")
+        .select(`
+          *,
+          project:projects!tasks_project_id_fkey(id, name)
+        `)
         .eq("id", id)
         .single();
 
@@ -181,7 +175,14 @@ export const useTasks = (projectId?: string) => {
           comment?: string | null;
         }> = [];
 
-        // Check what changed
+        // Get changer profile
+        const { data: changerProfile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+
+        // Check what changed - Status
         if (updates.status && updates.status !== currentTask.status) {
           historyEntries.push({
             task_id: id,
@@ -191,8 +192,38 @@ export const useTasks = (projectId?: string) => {
             new_value: updates.status,
             comment: historyComment,
           });
+
+          // Send notification to assigned user if they're not the one changing it
+          if (currentTask.assigned_to && currentTask.assigned_to !== user.id) {
+            const { data: assigneeProfile } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("id", currentTask.assigned_to)
+              .single();
+
+            if (assigneeProfile) {
+              try {
+                await supabase.functions.invoke("send-task-notification", {
+                  body: {
+                    taskId: id,
+                    taskTitle: currentTask.title,
+                    projectName: (currentTask as any).project?.name || "",
+                    notificationType: "status_changed",
+                    recipientUserId: currentTask.assigned_to,
+                    recipientName: assigneeProfile.full_name,
+                    changedByName: changerProfile?.full_name || "Um usuário",
+                    oldStatus: currentTask.status,
+                    newStatus: updates.status,
+                  },
+                });
+              } catch (e) {
+                console.error("Failed to send status notification:", e);
+              }
+            }
+          }
         }
 
+        // Check what changed - Priority
         if (updates.priority && updates.priority !== currentTask.priority) {
           historyEntries.push({
             task_id: id,
@@ -203,6 +234,7 @@ export const useTasks = (projectId?: string) => {
           });
         }
 
+        // Check what changed - Assignment
         if (updates.assigned_to !== undefined && updates.assigned_to !== currentTask.assigned_to) {
           historyEntries.push({
             task_id: id,
@@ -211,8 +243,36 @@ export const useTasks = (projectId?: string) => {
             old_value: currentTask.assigned_to,
             new_value: updates.assigned_to,
           });
+
+          // Send notification to newly assigned user (if they're not the one assigning)
+          if (updates.assigned_to && updates.assigned_to !== user.id) {
+            const { data: assigneeProfile } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("id", updates.assigned_to)
+              .single();
+
+            if (assigneeProfile) {
+              try {
+                await supabase.functions.invoke("send-task-notification", {
+                  body: {
+                    taskId: id,
+                    taskTitle: currentTask.title,
+                    projectName: (currentTask as any).project?.name || "",
+                    notificationType: "assigned",
+                    recipientUserId: updates.assigned_to,
+                    recipientName: assigneeProfile.full_name,
+                    changedByName: changerProfile?.full_name || "Um usuário",
+                  },
+                });
+              } catch (e) {
+                console.error("Failed to send assignment notification:", e);
+              }
+            }
+          }
         }
 
+        // Check what changed - Due Date
         if (updates.due_date !== undefined && updates.due_date !== currentTask.due_date) {
           historyEntries.push({
             task_id: id,
@@ -223,6 +283,7 @@ export const useTasks = (projectId?: string) => {
           });
         }
 
+        // Check what changed - Title
         if (updates.title && updates.title !== currentTask.title) {
           historyEntries.push({
             task_id: id,
@@ -233,6 +294,7 @@ export const useTasks = (projectId?: string) => {
           });
         }
 
+        // Check what changed - Description
         if (updates.description !== undefined && updates.description !== currentTask.description) {
           historyEntries.push({
             task_id: id,
