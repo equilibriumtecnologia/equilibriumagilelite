@@ -190,7 +190,12 @@ const ProjectDetails = () => {
             </TabsList>
 
             <TabsContent value="kanban" className="mt-6">
-              <KanbanBoard tasks={project.tasks || []} onUpdate={refetch} />
+              <KanbanBoard 
+                tasks={project.tasks || []} 
+                onUpdate={refetch} 
+                projectId={project.id}
+                members={project.project_members || []}
+              />
             </TabsContent>
 
             <TabsContent value="list" className="mt-6">

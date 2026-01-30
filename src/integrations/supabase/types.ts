@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      board_settings: {
+        Row: {
+          column_id: string
+          created_at: string
+          id: string
+          project_id: string
+          updated_at: string
+          wip_limit: number | null
+        }
+        Insert: {
+          column_id: string
+          created_at?: string
+          id?: string
+          project_id: string
+          updated_at?: string
+          wip_limit?: number | null
+        }
+        Update: {
+          column_id?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+          updated_at?: string
+          wip_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_settings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           color: string
@@ -331,6 +366,7 @@ export type Database = {
           priority: Database["public"]["Enums"]["task_priority"]
           project_id: string
           status: Database["public"]["Enums"]["task_status"]
+          story_points: number | null
           title: string
           updated_at: string
         }
@@ -344,6 +380,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id: string
           status?: Database["public"]["Enums"]["task_status"]
+          story_points?: number | null
           title: string
           updated_at?: string
         }
@@ -357,6 +394,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id?: string
           status?: Database["public"]["Enums"]["task_status"]
+          story_points?: number | null
           title?: string
           updated_at?: string
         }

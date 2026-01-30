@@ -42,6 +42,8 @@ import { useTasks } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/hooks/useProject";
+import { StoryPointsSelector } from "./StoryPointsSelector";
+import { Label } from "@/components/ui/label";
 
 const taskSchema = z.object({
   title: z.string().min(1, "Título é obrigatório").max(200),
@@ -51,6 +53,7 @@ const taskSchema = z.object({
   priority: z.enum(["low", "medium", "high", "urgent"]),
   due_date: z.date().optional(),
   assigned_to: z.string().optional(),
+  story_points: z.number().nullable().optional(),
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
@@ -78,6 +81,7 @@ export const CreateTaskDialog = ({
       status: "todo",
       priority: "medium",
       assigned_to: "",
+      story_points: null,
     },
   });
 
@@ -97,6 +101,7 @@ export const CreateTaskDialog = ({
       due_date: data.due_date ? format(data.due_date, "yyyy-MM-dd") : null,
       assigned_to: data.assigned_to || null,
       description: data.description || null,
+      story_points: data.story_points ?? null,
     };
 
     await createTask.mutateAsync(taskData);
@@ -307,6 +312,19 @@ export const CreateTaskDialog = ({
                 </FormItem>
               )}
             />
+
+            <div className="space-y-2">
+              <Label>Story Points</Label>
+              <div className="flex items-center gap-2">
+                <StoryPointsSelector
+                  value={form.watch("story_points") ?? null}
+                  onChange={(value) => form.setValue("story_points", value)}
+                />
+                <span className="text-sm text-muted-foreground">
+                  {form.watch("story_points") ? `${form.watch("story_points")} pontos` : "Não estimado"}
+                </span>
+              </div>
+            </div>
 
             <div className="flex justify-end gap-3 pt-4">
               <Button

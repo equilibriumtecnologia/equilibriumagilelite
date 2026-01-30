@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -15,6 +15,10 @@ import type { Database } from "@/integrations/supabase/types";
 import { KanbanColumn } from "./KanbanColumn";
 import { KanbanTaskCard } from "./KanbanTaskCard";
 import { StatusChangeDialog } from "./StatusChangeDialog";
+import { WIPLimitSettings } from "./WIPLimitSettings";
+import { KanbanFilters, FilterState } from "./KanbanFilters";
+import { useBoardSettings } from "@/hooks/useBoardSettings";
+import { isToday, isThisWeek, isBefore, startOfDay } from "date-fns";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"] & {
   assigned_to_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -26,6 +30,8 @@ type TaskStatus = "todo" | "in_progress" | "review" | "completed";
 interface KanbanBoardProps {
   tasks: Task[];
   onUpdate?: () => void;
+  projectId?: string;
+  members?: { user_id: string; profiles: Database["public"]["Tables"]["profiles"]["Row"] }[];
 }
 
 interface PendingStatusChange {
@@ -42,10 +48,17 @@ const columns: { id: TaskStatus; title: string; color: string }[] = [
   { id: "completed", title: "Concluído", color: "bg-green-500" },
 ];
 
-export function KanbanBoard({ tasks, onUpdate }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, onUpdate, projectId, members = [] }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [pendingChange, setPendingChange] = useState<PendingStatusChange | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    assignee: null,
+    priority: null,
+    dueDate: null,
+  });
+
+  const { getWipLimit, getWipStatus } = useBoardSettings(projectId);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -55,8 +68,43 @@ export function KanbanBoard({ tasks, onUpdate }: KanbanBoardProps) {
     })
   );
 
+  // Apply filters to tasks
+  const filteredTasks = tasks.filter((task) => {
+    // Assignee filter
+    if (filters.assignee) {
+      if (filters.assignee === "unassigned" && task.assigned_to) return false;
+      if (filters.assignee !== "unassigned" && task.assigned_to !== filters.assignee) return false;
+    }
+
+    // Priority filter
+    if (filters.priority && task.priority !== filters.priority) return false;
+
+    // Due date filter
+    if (filters.dueDate) {
+      const dueDate = task.due_date ? new Date(task.due_date) : null;
+      const today = startOfDay(new Date());
+
+      switch (filters.dueDate) {
+        case "overdue":
+          if (!dueDate || !isBefore(dueDate, today)) return false;
+          break;
+        case "today":
+          if (!dueDate || !isToday(dueDate)) return false;
+          break;
+        case "week":
+          if (!dueDate || !isThisWeek(dueDate)) return false;
+          break;
+        case "no_date":
+          if (dueDate) return false;
+          break;
+      }
+    }
+
+    return true;
+  });
+
   const tasksByStatus = columns.reduce((acc, column) => {
-    acc[column.id] = tasks.filter((task) => task.status === column.id);
+    acc[column.id] = filteredTasks.filter((task) => task.status === column.id);
     return acc;
   }, {} as Record<TaskStatus, Task[]>);
 
@@ -76,6 +124,14 @@ export function KanbanBoard({ tasks, onUpdate }: KanbanBoardProps) {
 
     const task = tasks.find((t) => t.id === taskId);
     if (!task || task.status === newStatus) return;
+
+    // Check WIP limit before allowing drop
+    const newColumnCount = tasksByStatus[newStatus].length;
+    const wipLimit = getWipLimit(newStatus);
+    if (wipLimit && newColumnCount >= wipLimit) {
+      toast.error(`Limite WIP atingido para "${columns.find(c => c.id === newStatus)?.title}"`);
+      return;
+    }
 
     // Open dialog to require comment
     setPendingChange({
@@ -132,34 +188,54 @@ export function KanbanBoard({ tasks, onUpdate }: KanbanBoardProps) {
     }
   };
 
+  const handleFiltersChange = useCallback((newFilters: FilterState) => {
+    setFilters(newFilters);
+  }, []);
+
   return (
     <>
-      <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {columns.map((column) => (
-            <KanbanColumn
-              key={column.id}
-              id={column.id}
-              title={column.title}
-              color={column.color}
-              tasks={tasksByStatus[column.id]}
-              count={tasksByStatus[column.id].length}
-            />
-          ))}
+      <div className="space-y-4">
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <KanbanFilters members={members} onFiltersChange={handleFiltersChange} />
+          {projectId && <WIPLimitSettings projectId={projectId} columns={columns} />}
         </div>
 
-        <DragOverlay>
-          {activeTask ? (
-            <Card className="p-4 cursor-grabbing opacity-50">
-              <KanbanTaskCard task={activeTask} isDragging />
-            </Card>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {columns.map((column) => {
+              const count = tasksByStatus[column.id].length;
+              const wipLimit = getWipLimit(column.id);
+              const wipStatus = getWipStatus(column.id, count);
+
+              return (
+                <KanbanColumn
+                  key={column.id}
+                  id={column.id}
+                  title={column.title}
+                  color={column.color}
+                  tasks={tasksByStatus[column.id]}
+                  count={count}
+                  wipLimit={wipLimit}
+                  wipStatus={wipStatus}
+                />
+              );
+            })}
+          </div>
+
+          <DragOverlay>
+            {activeTask ? (
+              <Card className="p-4 cursor-grabbing opacity-50">
+                <KanbanTaskCard task={activeTask} isDragging />
+              </Card>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      </div>
 
       <StatusChangeDialog
         open={!!pendingChange}
