@@ -9,6 +9,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { useMemo, useEffect, useState } from "react";
 import { TaskDetailsDialog } from "@/components/tasks/TaskDetailsDialog";
 import { useSubTasks } from "@/hooks/useSubTasks";
+import { StoryPointsBadge } from "@/components/tasks/StoryPointsBadge";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"] & {
   assigned_to_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -130,6 +131,9 @@ export function KanbanTaskCard({
             <Badge variant="outline" className={priorityColors[task.priority]}>
               {priorityLabels[task.priority]}
             </Badge>
+            
+            {/* Story Points */}
+            <StoryPointsBadge points={task.story_points} />
             
             {/* Sub-tasks progress */}
             {totalCount > 0 && (
