@@ -13,6 +13,8 @@ import AuthCallback from "./pages/auth/AuthCallback";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import ProjectDetails from "./pages/ProjectDetails";
+import Sprints from "./pages/Sprints";
+import Backlog from "./pages/Backlog";
 import Activities from "./pages/Activities";
 import Team from "./pages/Team";
 import Invitations from "./pages/Invitations";
@@ -63,6 +65,26 @@ const App = () => (
                 <ProtectedRoute>
                   <AppLayout>
                     <ProjectDetails />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects/:id/sprints"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Sprints />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects/:id/backlog"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Backlog />
                   </AppLayout>
                 </ProtectedRoute>
               }
