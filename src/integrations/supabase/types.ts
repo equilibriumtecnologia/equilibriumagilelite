@@ -256,6 +256,63 @@ export type Database = {
           },
         ]
       }
+      sprints: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          end_date: string
+          goal: string | null
+          id: string
+          name: string
+          project_id: string
+          start_date: string
+          status: Database["public"]["Enums"]["sprint_status"] | null
+          updated_at: string | null
+          velocity: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          end_date: string
+          goal?: string | null
+          id?: string
+          name: string
+          project_id: string
+          start_date: string
+          status?: Database["public"]["Enums"]["sprint_status"] | null
+          updated_at?: string | null
+          velocity?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          end_date?: string
+          goal?: string | null
+          id?: string
+          name?: string
+          project_id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["sprint_status"] | null
+          updated_at?: string | null
+          velocity?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sprints_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sprints_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sub_tasks: {
         Row: {
           completed_at: string | null
@@ -358,6 +415,7 @@ export type Database = {
       tasks: {
         Row: {
           assigned_to: string | null
+          backlog_order: number | null
           created_at: string
           created_by: string
           description: string | null
@@ -365,6 +423,7 @@ export type Database = {
           id: string
           priority: Database["public"]["Enums"]["task_priority"]
           project_id: string
+          sprint_id: string | null
           status: Database["public"]["Enums"]["task_status"]
           story_points: number | null
           title: string
@@ -372,6 +431,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          backlog_order?: number | null
           created_at?: string
           created_by: string
           description?: string | null
@@ -379,6 +439,7 @@ export type Database = {
           id?: string
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id: string
+          sprint_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           story_points?: number | null
           title: string
@@ -386,6 +447,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          backlog_order?: number | null
           created_at?: string
           created_by?: string
           description?: string | null
@@ -393,6 +455,7 @@ export type Database = {
           id?: string
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id?: string
+          sprint_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           story_points?: number | null
           title?: string
@@ -418,6 +481,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
             referencedColumns: ["id"]
           },
         ]
@@ -492,6 +562,7 @@ export type Database = {
         | "on_hold"
         | "completed"
         | "cancelled"
+      sprint_status: "planning" | "active" | "completed" | "cancelled"
       task_action_type:
         | "created"
         | "status_changed"
@@ -641,6 +712,7 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      sprint_status: ["planning", "active", "completed", "cancelled"],
       task_action_type: [
         "created",
         "status_changed",

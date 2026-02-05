@@ -13,10 +13,13 @@ import {
   Clock,
   LayoutGrid,
   List,
+  Zap,
+  ListTodo,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useProject } from "@/hooks/useProject";
+import { useSprints } from "@/hooks/useSprints";
 import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
 import { AddMemberDialog } from "@/components/projects/AddMemberDialog";
 import { RemoveMemberDialog } from "@/components/projects/RemoveMemberDialog";
@@ -24,6 +27,7 @@ import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
 import { DeleteProjectDialog } from "@/components/projects/DeleteProjectDialog";
 import { TaskCard } from "@/components/tasks/TaskCard";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
+import { SprintBoardHeader } from "@/components/sprints/SprintBoardHeader";
 
 const statusLabels: Record<string, string> = {
   planning: "Planejamento",
@@ -44,6 +48,7 @@ const statusColors: Record<string, string> = {
 const ProjectDetails = () => {
   const { id } = useParams<{ id: string }>();
   const { project, loading, refetch } = useProject(id);
+  const { activeSprint, sprints } = useSprints(id);
 
   if (loading) {
     return (
@@ -100,11 +105,41 @@ const ProjectDetails = () => {
             </p>
           </div>
 
-          <CreateTaskDialog projectId={project.id}>
-            <Button variant="hero">Nova Tarefa</Button>
-          </CreateTaskDialog>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+              <Link to={`/projects/${project.id}/sprints`}>
+                <Zap className="mr-2 h-4 w-4" />
+                Sprints
+                {sprints.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {sprints.length}
+                  </Badge>
+                )}
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to={`/projects/${project.id}/backlog`}>
+                <ListTodo className="mr-2 h-4 w-4" />
+                Backlog
+              </Link>
+            </Button>
+            <CreateTaskDialog projectId={project.id}>
+              <Button variant="hero">Nova Tarefa</Button>
+            </CreateTaskDialog>
+          </div>
         </div>
       </div>
+
+      {/* Active Sprint Header */}
+      {activeSprint && (
+        <SprintBoardHeader
+          sprint={activeSprint}
+          taskCount={project.tasks?.filter((t) => t.sprint_id === activeSprint.id).length || 0}
+          completedTaskCount={project.tasks?.filter((t) => t.sprint_id === activeSprint.id && t.status === "completed").length || 0}
+          totalPoints={project.tasks?.filter((t) => t.sprint_id === activeSprint.id).reduce((sum, t) => sum + (t.story_points || 0), 0) || 0}
+          completedPoints={project.tasks?.filter((t) => t.sprint_id === activeSprint.id && t.status === "completed").reduce((sum, t) => sum + (t.story_points || 0), 0) || 0}
+        />
+      )}
 
       {/* Project Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
