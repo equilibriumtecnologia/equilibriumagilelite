@@ -12,9 +12,11 @@ import { Filter, X } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+type Sprint = Database["public"]["Tables"]["sprints"]["Row"];
 
 interface KanbanFiltersProps {
   members: { user_id: string; profiles: Profile }[];
+  sprints?: Sprint[];
   onFiltersChange: (filters: FilterState) => void;
 }
 
@@ -22,6 +24,7 @@ export interface FilterState {
   assignee: string | null;
   priority: string | null;
   dueDate: string | null;
+  sprint: string | null;
 }
 
 const priorityLabels: Record<string, string> = {
@@ -38,11 +41,12 @@ const dueDateLabels: Record<string, string> = {
   no_date: "Sem prazo",
 };
 
-export function KanbanFilters({ members, onFiltersChange }: KanbanFiltersProps) {
+export function KanbanFilters({ members, sprints = [], onFiltersChange }: KanbanFiltersProps) {
   const [filters, setFilters] = useState<FilterState>({
     assignee: null,
     priority: null,
     dueDate: null,
+    sprint: null,
   });
 
   const activeFiltersCount = Object.values(filters).filter(Boolean).length;
@@ -59,7 +63,7 @@ export function KanbanFilters({ members, onFiltersChange }: KanbanFiltersProps) 
   };
 
   const clearFilters = () => {
-    setFilters({ assignee: null, priority: null, dueDate: null });
+    setFilters({ assignee: null, priority: null, dueDate: null, sprint: null });
   };
 
   return (
@@ -126,6 +130,26 @@ export function KanbanFilters({ members, onFiltersChange }: KanbanFiltersProps) 
             ))}
           </SelectContent>
         </Select>
+
+        {sprints.length > 0 && (
+          <Select
+            value={filters.sprint || "all"}
+            onValueChange={(v) => updateFilter("sprint", v)}
+          >
+            <SelectTrigger className="w-[180px] h-9">
+              <SelectValue placeholder="Sprint" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as sprints</SelectItem>
+              <SelectItem value="no_sprint">Sem sprint</SelectItem>
+              {sprints.map((sprint) => (
+                <SelectItem key={sprint.id} value={sprint.id}>
+                  {sprint.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {activeFiltersCount > 0 && (
