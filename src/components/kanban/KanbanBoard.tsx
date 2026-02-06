@@ -32,6 +32,7 @@ interface KanbanBoardProps {
   onUpdate?: () => void;
   projectId?: string;
   members?: { user_id: string; profiles: Database["public"]["Tables"]["profiles"]["Row"] }[];
+  sprints?: Database["public"]["Tables"]["sprints"]["Row"][];
 }
 
 interface PendingStatusChange {
@@ -48,7 +49,7 @@ const columns: { id: TaskStatus; title: string; color: string }[] = [
   { id: "completed", title: "Concluído", color: "bg-green-500" },
 ];
 
-export function KanbanBoard({ tasks, onUpdate, projectId, members = [] }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints = [] }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [pendingChange, setPendingChange] = useState<PendingStatusChange | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -56,6 +57,7 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [] }: Kanban
     assignee: null,
     priority: null,
     dueDate: null,
+    sprint: null,
   });
 
   const { getWipLimit, getWipStatus } = useBoardSettings(projectId);
@@ -98,6 +100,12 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [] }: Kanban
           if (dueDate) return false;
           break;
       }
+    }
+
+    // Sprint filter
+    if (filters.sprint) {
+      if (filters.sprint === "no_sprint" && task.sprint_id) return false;
+      if (filters.sprint !== "no_sprint" && task.sprint_id !== filters.sprint) return false;
     }
 
     return true;
@@ -197,7 +205,7 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [] }: Kanban
       <div className="space-y-4">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <KanbanFilters members={members} onFiltersChange={handleFiltersChange} />
+          <KanbanFilters members={members} sprints={sprints} onFiltersChange={handleFiltersChange} />
           {projectId && <WIPLimitSettings projectId={projectId} columns={columns} />}
         </div>
 

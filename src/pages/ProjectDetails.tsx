@@ -230,6 +230,7 @@ const ProjectDetails = () => {
                 onUpdate={refetch} 
                 projectId={project.id}
                 members={project.project_members || []}
+                sprints={sprints}
               />
             </TabsContent>
 
