@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 export interface Category {
   id: string;
@@ -9,20 +10,24 @@ export interface Category {
   color: string;
   icon: string | null;
   is_default: boolean;
+  workspace_id: string;
   created_at: string;
   updated_at: string;
 }
 
 export function useCategories() {
+  const { currentWorkspace } = useWorkspace();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchCategories = async () => {
+    if (!currentWorkspace) { setCategories([]); setLoading(false); return; }
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from("categories")
         .select("*")
+        .eq("workspace_id", currentWorkspace.id)
         .order("name");
 
       if (error) throw error;
@@ -35,11 +40,12 @@ export function useCategories() {
     }
   };
 
-  const createCategory = async (category: Omit<Category, "id" | "created_at" | "updated_at">) => {
+  const createCategory = async (category: Omit<Category, "id" | "created_at" | "updated_at" | "workspace_id">) => {
+    if (!currentWorkspace) return;
     try {
       const { error } = await supabase
         .from("categories")
-        .insert(category);
+        .insert({ ...category, workspace_id: currentWorkspace.id });
 
       if (error) throw error;
       toast.success("Categoria criada com sucesso!");
@@ -84,7 +90,7 @@ export function useCategories() {
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [currentWorkspace?.id]);
 
   return {
     categories,
