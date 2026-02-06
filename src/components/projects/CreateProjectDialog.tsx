@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 const formSchema = z.object({
   name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres").max(100),
@@ -50,6 +51,7 @@ export function CreateProjectDialog() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const { currentWorkspace } = useWorkspace();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -93,6 +95,11 @@ export function CreateProjectDialog() {
         return;
       }
 
+      if (!currentWorkspace) {
+        toast.error("Nenhum workspace selecionado");
+        return;
+      }
+
       const { error } = await supabase.from("projects").insert({
         name: values.name,
         description: values.description,
@@ -101,6 +108,7 @@ export function CreateProjectDialog() {
         deadline: values.deadline || null,
         criticality_level: values.criticality_level,
         created_by: user.id,
+        workspace_id: currentWorkspace.id,
       });
 
       if (error) throw error;

@@ -7,6 +7,8 @@ import {
   Settings,
   LogOut,
   Mail,
+  ChevronsUpDown,
+  Building2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -22,7 +24,14 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const baseMenuItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -41,10 +50,10 @@ export function AppSidebar() {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { canManageInvitations } = useUserRole();
+  const { workspaces, currentWorkspace, switchWorkspace } = useWorkspace();
 
   const isCollapsed = state === "collapsed";
   
-  // Build menu items based on user permissions
   const menuItems = [
     ...baseMenuItems,
     ...(canManageInvitations ? adminMenuItems : []),
@@ -67,6 +76,42 @@ export function AppSidebar() {
             <div className="flex justify-center">
               <LayoutDashboard className="h-6 w-6 text-primary" />
             </div>
+          )}
+        </div>
+
+        {/* Workspace Selector */}
+        <div className="p-2 border-b border-sidebar-border">
+          {workspaces.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={`w-full ${isCollapsed ? "justify-center px-2" : "justify-between"}`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    {!isCollapsed && (
+                      <span className="truncate text-sm font-medium">
+                        {currentWorkspace?.name || "Workspace"}
+                      </span>
+                    )}
+                  </div>
+                  {!isCollapsed && <ChevronsUpDown className="h-3 w-3 shrink-0 text-muted-foreground" />}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                {workspaces.map((ws) => (
+                  <DropdownMenuItem
+                    key={ws.id}
+                    onClick={() => switchWorkspace(ws.id)}
+                    className={ws.id === currentWorkspace?.id ? "bg-accent" : ""}
+                  >
+                    <Building2 className="h-4 w-4 mr-2" />
+                    <span className="truncate">{ws.name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
 

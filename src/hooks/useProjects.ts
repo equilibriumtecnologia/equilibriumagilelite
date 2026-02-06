@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 type Project = Database["public"]["Tables"]["projects"]["Row"] & {
   category: Database["public"]["Tables"]["categories"]["Row"] | null;
@@ -15,10 +16,12 @@ type Project = Database["public"]["Tables"]["projects"]["Row"] & {
 };
 
 export function useProjects() {
+  const { currentWorkspace } = useWorkspace();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchProjects = async () => {
+    if (!currentWorkspace) { setProjects([]); setLoading(false); return; }
     try {
       const { data, error } = await supabase
         .from("projects")
@@ -32,6 +35,7 @@ export function useProjects() {
           ),
           tasks(*)
         `)
+        .eq("workspace_id", currentWorkspace.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -46,26 +50,17 @@ export function useProjects() {
   useEffect(() => {
     fetchProjects();
 
-    // Realtime subscription
     const channel = supabase
       .channel("projects-changes")
       .on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "projects",
-        },
-        () => {
-          fetchProjects();
-        }
+        { event: "*", schema: "public", table: "projects" },
+        () => fetchProjects()
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+    return () => { supabase.removeChannel(channel); };
+  }, [currentWorkspace?.id]);
 
   return { projects, loading, refetch: fetchProjects };
 }

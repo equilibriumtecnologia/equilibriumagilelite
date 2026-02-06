@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type UserRole = Database["public"]["Tables"]["user_roles"]["Row"];
@@ -14,15 +15,28 @@ export type TeamMember = Profile & {
 };
 
 export function useTeam() {
+  const { currentWorkspace } = useWorkspace();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchTeam = async () => {
+    if (!currentWorkspace) { setMembers([]); setLoading(false); return; }
     try {
-      // Buscar todos os perfis
+      // Buscar membros do workspace
+      const { data: wsMembers, error: wsMembersError } = await supabase
+        .from("workspace_members")
+        .select("user_id")
+        .eq("workspace_id", currentWorkspace.id);
+
+      if (wsMembersError) throw wsMembersError;
+      const memberIds = wsMembers.map((m) => m.user_id);
+      if (memberIds.length === 0) { setMembers([]); setLoading(false); return; }
+
+      // Buscar perfis dos membros do workspace
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
+        .in("id", memberIds)
         .order("full_name");
 
       if (profilesError) throw profilesError;
@@ -99,7 +113,7 @@ export function useTeam() {
       supabase.removeChannel(profilesChannel);
       supabase.removeChannel(rolesChannel);
     };
-  }, []);
+  }, [currentWorkspace?.id]);
 
   return { members, loading, refetch: fetchTeam };
 }
