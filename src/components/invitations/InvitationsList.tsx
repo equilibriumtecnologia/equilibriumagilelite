@@ -2,9 +2,20 @@ import { useInvitations } from "@/hooks/useInvitations";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Mail, RefreshCw, X, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Mail, RefreshCw, X, Clock, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const statusConfig = {
   pending: {
@@ -36,7 +47,7 @@ interface InvitationsListProps {
 export function InvitationsList({
   statusFilter = "all",
 }: InvitationsListProps) {
-  const { invitations, loading, cancelInvitation, resendInvitation } =
+  const { invitations, loading, cancelInvitation, resendInvitation, deleteInvitation } =
     useInvitations();
 
   // Filter invitations based on status
@@ -97,6 +108,7 @@ export function InvitationsList({
         const StatusIcon = config.icon;
         const isExpired = new Date(invitation.expires_at) < new Date();
         const isPending = invitation.status === "pending" && !isExpired;
+        const canDelete = invitation.status !== "accepted";
 
         return (
           <Card key={invitation.id} className="p-4">
@@ -130,9 +142,7 @@ export function InvitationsList({
                     {format(
                       new Date(invitation.created_at),
                       "dd/MM/yyyy 'às' HH:mm",
-                      {
-                        locale: ptBR,
-                      }
+                      { locale: ptBR }
                     )}
                   </p>
                   <p>
@@ -140,9 +150,7 @@ export function InvitationsList({
                     {format(
                       new Date(invitation.expires_at),
                       "dd/MM/yyyy 'às' HH:mm",
-                      {
-                        locale: ptBR,
-                      }
+                      { locale: ptBR }
                     )}
                   </p>
                   {invitation.accepted_at && (
@@ -151,33 +159,67 @@ export function InvitationsList({
                       {format(
                         new Date(invitation.accepted_at),
                         "dd/MM/yyyy 'às' HH:mm",
-                        {
-                          locale: ptBR,
-                        }
+                        { locale: ptBR }
                       )}
                     </p>
                   )}
                 </div>
               </div>
 
-              {isPending && (
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => resendInvitation(invitation.id)}
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => cancelInvitation(invitation.id)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
+              <div className="flex gap-2">
+                {isPending && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => resendInvitation(invitation.id)}
+                      title="Reenviar convite"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => cancelInvitation(invitation.id)}
+                      title="Cancelar convite"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+                {canDelete && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-destructive hover:text-destructive"
+                        title="Excluir convite"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir convite?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          O convite para <strong>{invitation.email}</strong> será
+                          excluído permanentemente{isPending ? " e o link de aceite será invalidado" : ""}.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteInvitation(invitation.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
             </div>
           </Card>
         );
