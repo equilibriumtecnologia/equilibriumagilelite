@@ -21,6 +21,7 @@ import Team from "./pages/Team";
 import Invitations from "./pages/Invitations";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import Settings from "./pages/Settings";
+import WorkspaceSettings from "./pages/WorkspaceSettings";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -127,6 +128,17 @@ const App = () => (
                 <ProtectedRoute>
                   <AppLayout>
                     <Settings />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/workspace-settings"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <WorkspaceSettings />
                   </AppLayout>
                 </ProtectedRoute>
               }
