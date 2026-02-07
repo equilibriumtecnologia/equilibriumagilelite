@@ -38,6 +38,7 @@ const baseMenuItems = [
   { title: "Projetos", url: "/projects", icon: FolderKanban },
   { title: "Atividades", url: "/tasks", icon: CheckSquare },
   { title: "Equipe", url: "/team", icon: Users },
+  { title: "Workspace", url: "/workspace-settings", icon: Building2 },
   { title: "Configurações", url: "/settings", icon: Settings },
 ];
 
