@@ -161,12 +161,31 @@ export function useInvitations() {
     }
   };
 
+  const deleteInvitation = async (invitationId: string) => {
+    try {
+      const { error } = await supabase
+        .from("invitations")
+        .delete()
+        .eq("id", invitationId);
+
+      if (error) throw error;
+
+      toast.success("Convite excluído");
+      await fetchInvitations();
+      return true;
+    } catch (error: any) {
+      toast.error("Erro ao excluir convite: " + error.message);
+      return false;
+    }
+  };
+
   return {
     invitations,
     loading,
     createInvitation,
     cancelInvitation,
     resendInvitation,
+    deleteInvitation,
     refetch: fetchInvitations,
   };
 }
