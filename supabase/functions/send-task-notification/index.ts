@@ -53,18 +53,17 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     // Verify the user's JWT
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    const { data: userData, error: userError } = await supabase.auth.getUser();
     
-    if (claimsError || !claimsData?.claims) {
-      console.error("Failed to verify JWT:", claimsError?.message);
+    if (userError || !userData?.user) {
+      console.error("Failed to verify JWT:", userError?.message);
       return new Response(
         JSON.stringify({ error: "Unauthorized: Invalid token" }),
         { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    const userId = claimsData.claims.sub;
+    const userId = userData.user.id;
     console.log("Authenticated user:", userId);
 
     // === PARSE REQUEST BODY ===
