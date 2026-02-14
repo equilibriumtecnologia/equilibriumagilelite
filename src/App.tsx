@@ -22,6 +22,7 @@ import Invitations from "./pages/Invitations";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import Settings from "./pages/Settings";
 import WorkspaceSettings from "./pages/WorkspaceSettings";
+import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -133,6 +134,16 @@ const App = () => (
               }
             />
             
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Reports />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/workspace-settings"
               element={
