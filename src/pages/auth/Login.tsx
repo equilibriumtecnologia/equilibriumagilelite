@@ -41,17 +41,17 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8 shadow-lg border-border">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <LayoutDashboard className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Agile Lite Equilibrium
+    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center px-3 py-6 sm:p-4 safe-top safe-bottom">
+      <Card className="w-full max-w-md p-5 sm:p-8 shadow-lg border-border">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
+            <LayoutDashboard className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+            <span className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              ALE
             </span>
           </div>
-          <h1 className="text-2xl font-bold mb-2">Bem-vindo de volta</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">Bem-vindo de volta</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Entre com suas credenciais para continuar
           </p>
         </div>

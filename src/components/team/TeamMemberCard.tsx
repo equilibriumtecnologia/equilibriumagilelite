@@ -32,13 +32,13 @@ export function TeamMemberCard({ member, onUpdate }: TeamMemberCardProps) {
   const primaryRole = member.roles[0]?.role || "user";
 
   return (
-    <Card className="p-6 hover:shadow-md transition-shadow">
-      <div className="space-y-4">
+    <Card className="p-4 sm:p-6 hover:shadow-md transition-shadow">
+      <div className="space-y-3 sm:space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12">
-              <AvatarFallback className="text-lg">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
+              <AvatarFallback className="text-sm sm:text-lg">
                 {(() => {
                   const names = member.full_name.split(" ");
                   const firstName = names[0]?.[0] || "";
@@ -47,8 +47,8 @@ export function TeamMemberCard({ member, onUpdate }: TeamMemberCardProps) {
                 })()}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h3 className="font-semibold text-lg">{member.full_name}</h3>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-sm sm:text-lg truncate">{member.full_name}</h3>
               <Badge variant="outline" className={roleColors[primaryRole]}>
                 {roleLabels[primaryRole]}
               </Badge>
@@ -58,36 +58,36 @@ export function TeamMemberCard({ member, onUpdate }: TeamMemberCardProps) {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Briefcase className="h-4 w-4 text-primary" />
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Briefcase className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{member.project_count}</p>
-              <p className="text-xs text-muted-foreground">Projetos</p>
+              <p className="text-lg sm:text-2xl font-bold">{member.project_count}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Projetos</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center">
-              <ListTodo className="h-4 w-4 text-accent" />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <ListTodo className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{member.task_count}</p>
-              <p className="text-xs text-muted-foreground">Tarefas</p>
+              <p className="text-lg sm:text-2xl font-bold">{member.task_count}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Tarefas</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-success/10 rounded-lg flex items-center justify-center">
-              <CheckCircle2 className="h-4 w-4 text-success" />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-success/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-success" />
             </div>
             <div>
-              <p className="text-2xl font-bold">
+              <p className="text-lg sm:text-2xl font-bold">
                 {member.completed_task_count}
               </p>
-              <p className="text-xs text-muted-foreground">Concluídas</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Concluídas</p>
             </div>
           </div>
         </div>

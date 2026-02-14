@@ -50,16 +50,16 @@ export function BacklogItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 p-3 border rounded-lg bg-card transition-all ${
+      className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 border rounded-lg bg-card transition-all ${
         isDragging ? "opacity-50 shadow-lg" : "hover:shadow-sm"
       } ${isSelected ? "border-primary bg-primary/5" : ""}`}
     >
       <div
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground flex-shrink-0"
       >
-        <GripVertical className="h-5 w-5" />
+        <GripVertical className="h-4 w-4 sm:h-5 sm:w-5" />
       </div>
 
       <Checkbox
@@ -68,28 +68,28 @@ export function BacklogItem({
         onClick={(e) => e.stopPropagation()}
       />
 
-      <span className="text-sm text-muted-foreground w-8">#{index}</span>
+      <span className="text-xs sm:text-sm text-muted-foreground w-6 sm:w-8 flex-shrink-0">#{index}</span>
 
       <div className="flex-1 min-w-0">
-        <p className="font-medium truncate">{task.title}</p>
+        <p className="font-medium text-sm truncate">{task.title}</p>
         {task.description && (
-          <p className="text-sm text-muted-foreground truncate">
+          <p className="text-xs text-muted-foreground truncate hidden sm:block">
             {task.description}
           </p>
         )}
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {task.story_points && (
           <StoryPointsBadge points={task.story_points} />
         )}
 
-        <Badge variant="outline" className={priority.className}>
+        <Badge variant="outline" className={`${priority.className} text-[10px] sm:text-xs`}>
           {priority.label}
         </Badge>
 
         {task.due_date && (
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+          <div className="hidden sm:flex items-center gap-1 text-sm text-muted-foreground">
             <Calendar className="h-3 w-3" />
             {format(new Date(task.due_date), "dd/MM", { locale: ptBR })}
           </div>

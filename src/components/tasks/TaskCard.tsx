@@ -91,12 +91,12 @@ export const TaskCard = ({ task }: TaskCardProps) => {
 
   return (
     <>
-      <Card className="p-6 hover:shadow-md transition-shadow">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 space-y-3">
+      <Card className="p-4 sm:p-6 hover:shadow-md transition-shadow">
+        <div className="flex items-start justify-between gap-2 sm:gap-4">
+          <div className="flex-1 space-y-2 sm:space-y-3 min-w-0">
             <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-1">{task.title}</h3>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm sm:text-lg mb-1 truncate">{task.title}</h3>
                 {task.description && (
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {task.description}
@@ -125,7 +125,7 @@ export const TaskCard = ({ task }: TaskCardProps) => {
               </DropdownMenu>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-3">
               <Badge variant={statusConfig[task.status].variant}>
                 {statusConfig[task.status].label}
               </Badge>
