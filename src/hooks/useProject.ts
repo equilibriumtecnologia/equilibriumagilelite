@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 
 type Project = Database["public"]["Tables"]["projects"]["Row"] & {
@@ -19,16 +18,11 @@ type Project = Database["public"]["Tables"]["projects"]["Row"] & {
 };
 
 export function useProject(projectId: string | undefined) {
-  const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchProject = async () => {
-    if (!projectId) {
-      setLoading(false);
-      return;
-    }
-
-    try {
+  const { data: project = null, isLoading: loading } = useQuery({
+    queryKey: ["project", projectId],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
         .select(`
@@ -45,68 +39,18 @@ export function useProject(projectId: string | undefined) {
             created_by_profile:profiles!tasks_created_by_fkey(*)
           )
         `)
-        .eq("id", projectId)
+        .eq("id", projectId!)
         .single();
 
       if (error) throw error;
-      setProject(data as Project);
-    } catch (error: any) {
-      toast.error("Erro ao carregar projeto: " + error.message);
-    } finally {
-      setLoading(false);
-    }
+      return data as Project;
+    },
+    enabled: !!projectId,
+  });
+
+  return {
+    project,
+    loading,
+    refetch: () => queryClient.invalidateQueries({ queryKey: ["project", projectId] }),
   };
-
-  useEffect(() => {
-    fetchProject();
-
-    if (!projectId) return;
-
-    // Realtime subscription
-    const channel = supabase
-      .channel(`project-${projectId}-changes`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "projects",
-          filter: `id=eq.${projectId}`,
-        },
-        () => {
-          fetchProject();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "tasks",
-          filter: `project_id=eq.${projectId}`,
-        },
-        () => {
-          fetchProject();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "project_members",
-          filter: `project_id=eq.${projectId}`,
-        },
-        () => {
-          fetchProject();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [projectId]);
-
-  return { project, loading, refetch: fetchProject };
 }
