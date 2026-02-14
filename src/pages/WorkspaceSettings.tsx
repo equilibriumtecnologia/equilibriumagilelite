@@ -33,18 +33,18 @@ export default function WorkspaceSettings() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Configurações do Workspace</h1>
-        <p className="text-muted-foreground">
-          Gerencie o workspace <strong>{currentWorkspace.name}</strong>
+    <div className="px-3 sm:px-4 md:px-8 py-4 sm:py-6 max-w-4xl mx-auto">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold">Workspace</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          Gerencie <strong>{currentWorkspace.name}</strong>
         </p>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-6">
+      <Tabs defaultValue="general" className="space-y-4 sm:space-y-6">
         <TabsList>
-          <TabsTrigger value="general">Geral</TabsTrigger>
-          <TabsTrigger value="members">Membros ({members.length})</TabsTrigger>
+          <TabsTrigger value="general" className="text-xs sm:text-sm">Geral</TabsTrigger>
+          <TabsTrigger value="members" className="text-xs sm:text-sm">Membros ({members.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -52,11 +52,11 @@ export default function WorkspaceSettings() {
             <WorkspaceGeneralSettings />
           ) : (
             <Card>
-              <CardHeader>
-                <CardTitle>Informações do Workspace</CardTitle>
-                <CardDescription>Detalhes do workspace atual</CardDescription>
+              <CardHeader className="px-4 sm:px-6">
+                <CardTitle className="text-lg sm:text-xl">Informações do Workspace</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">Detalhes do workspace atual</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-2 text-sm">
+              <CardContent className="space-y-2 text-sm px-4 sm:px-6">
                 <p><strong>Nome:</strong> {currentWorkspace.name}</p>
                 <p><strong>Slug:</strong> {currentWorkspace.slug}</p>
                 {currentWorkspace.description && (
@@ -69,13 +69,11 @@ export default function WorkspaceSettings() {
 
         <TabsContent value="members">
           <Card>
-            <CardHeader>
-              <CardTitle>Membros do Workspace</CardTitle>
-              <CardDescription>
-                Gerencie os membros e seus papéis neste workspace
-              </CardDescription>
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="text-lg sm:text-xl">Membros do Workspace</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Gerencie membros e seus papéis</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6">
               <WorkspaceMembersTable />
             </CardContent>
           </Card>
