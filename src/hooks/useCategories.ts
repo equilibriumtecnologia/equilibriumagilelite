@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -17,28 +17,22 @@ export interface Category {
 
 export function useCategories() {
   const { currentWorkspace } = useWorkspace();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchCategories = async () => {
-    if (!currentWorkspace) { setCategories([]); setLoading(false); return; }
-    try {
-      setLoading(true);
+  const { data: categories = [], isLoading: loading } = useQuery({
+    queryKey: ["categories", currentWorkspace?.id],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
         .select("*")
-        .eq("workspace_id", currentWorkspace.id)
+        .eq("workspace_id", currentWorkspace!.id)
         .order("name");
 
       if (error) throw error;
-      setCategories(data || []);
-    } catch (error: any) {
-      console.error("Erro ao carregar categorias:", error);
-      toast.error("Erro ao carregar categorias");
-    } finally {
-      setLoading(false);
-    }
-  };
+      return (data || []) as Category[];
+    },
+    enabled: !!currentWorkspace?.id,
+  });
 
   const createCategory = async (category: Omit<Category, "id" | "created_at" | "updated_at" | "workspace_id">) => {
     if (!currentWorkspace) return;
@@ -46,51 +40,35 @@ export function useCategories() {
       const { error } = await supabase
         .from("categories")
         .insert({ ...category, workspace_id: currentWorkspace.id });
-
       if (error) throw error;
       toast.success("Categoria criada com sucesso!");
-      fetchCategories();
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     } catch (error: any) {
-      console.error("Erro ao criar categoria:", error);
       toast.error("Erro ao criar categoria: " + error.message);
     }
   };
 
   const updateCategory = async (id: string, updates: Partial<Category>) => {
     try {
-      const { error } = await supabase
-        .from("categories")
-        .update(updates)
-        .eq("id", id);
-
+      const { error } = await supabase.from("categories").update(updates).eq("id", id);
       if (error) throw error;
       toast.success("Categoria atualizada com sucesso!");
-      fetchCategories();
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     } catch (error: any) {
-      console.error("Erro ao atualizar categoria:", error);
       toast.error("Erro ao atualizar categoria: " + error.message);
     }
   };
 
   const deleteCategory = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("categories")
-        .delete()
-        .eq("id", id);
-
+      const { error } = await supabase.from("categories").delete().eq("id", id);
       if (error) throw error;
       toast.success("Categoria removida com sucesso!");
-      fetchCategories();
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     } catch (error: any) {
-      console.error("Erro ao deletar categoria:", error);
       toast.error("Erro ao deletar categoria: " + error.message);
     }
   };
-
-  useEffect(() => {
-    fetchCategories();
-  }, [currentWorkspace?.id]);
 
   return {
     categories,
@@ -98,6 +76,6 @@ export function useCategories() {
     createCategory,
     updateCategory,
     deleteCategory,
-    refetch: fetchCategories,
+    refetch: () => queryClient.invalidateQueries({ queryKey: ["categories", currentWorkspace?.id] }),
   };
 }

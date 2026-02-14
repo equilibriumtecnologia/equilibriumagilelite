@@ -123,6 +123,8 @@ export const useTasks = (projectId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project"] });
       toast({
         title: "Sucesso!",
         description: "Atividade criada com sucesso.",
@@ -315,6 +317,8 @@ export const useTasks = (projectId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project"] });
       toast({
         title: "Sucesso!",
         description: "Atividade atualizada com sucesso.",
@@ -340,6 +344,8 @@ export const useTasks = (projectId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project"] });
       toast({
         title: "Sucesso!",
         description: "Atividade excluída com sucesso.",
