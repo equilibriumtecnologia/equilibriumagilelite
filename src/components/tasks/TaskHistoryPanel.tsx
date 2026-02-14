@@ -1,7 +1,6 @@
 import { useTaskHistory } from "@/hooks/useTaskHistory";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { 
@@ -18,9 +17,15 @@ import {
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
+import { MentionTextarea } from "@/components/comments/MentionTextarea";
+import { useMentions, notifyMentions } from "@/hooks/useMentions";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TaskHistoryPanelProps {
   taskId: string;
+  projectId?: string;
+  taskTitle?: string;
 }
 
 const actionLabels: Record<string, string> = {
@@ -75,17 +80,42 @@ function formatDuration(ms: number): string {
   return `${seconds}s`;
 }
 
-export function TaskHistoryPanel({ taskId }: TaskHistoryPanelProps) {
+/**
+ * Render comment text with highlighted @mentions
+ */
+function renderCommentWithMentions(text: string) {
+  const parts = text.split(/(@"[^"]+"|@\S+)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("@")) {
+      return (
+        <span key={i} className="text-primary font-medium bg-primary/10 rounded px-0.5">
+          {part}
+        </span>
+      );
+    }
+    return part;
+  });
+}
+
+export function TaskHistoryPanel({ taskId, projectId, taskTitle }: TaskHistoryPanelProps) {
+  const { user } = useAuth();
   const { history, isLoading, addComment, getStatusDurations } = useTaskHistory(taskId);
+  const { mentionUsers, loadUsers } = useMentions(projectId);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAddComment = async () => {
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !user) return;
     
     setIsSubmitting(true);
     try {
       await addComment.mutateAsync({ taskId, comment: newComment });
+      
+      // Send mention notifications
+      if (mentionUsers.length > 0 && taskTitle) {
+        await notifyMentions(newComment, mentionUsers, taskId, taskTitle, user.id);
+      }
+      
       setNewComment("");
     } finally {
       setIsSubmitting(false);
@@ -129,23 +159,30 @@ export function TaskHistoryPanel({ taskId }: TaskHistoryPanelProps) {
 
       <Separator />
 
-      {/* Add comment */}
+      {/* Add comment with @mentions */}
       <div className="space-y-2">
         <h4 className="text-sm font-medium flex items-center gap-2">
           <MessageSquare className="h-4 w-4" />
           Adicionar Comentário
+          <span className="text-xs text-muted-foreground font-normal">
+            (use @ para mencionar)
+          </span>
         </h4>
         <div className="flex gap-2">
-          <Textarea
-            placeholder="Digite seu comentário..."
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            className="min-h-[60px] resize-none"
-          />
+          <div className="flex-1">
+            <MentionTextarea
+              value={newComment}
+              onChange={setNewComment}
+              placeholder="Digite seu comentário... Use @nome para mencionar"
+              users={mentionUsers}
+              onFocus={loadUsers}
+            />
+          </div>
           <Button 
             size="icon" 
             onClick={handleAddComment}
             disabled={!newComment.trim() || isSubmitting}
+            className="self-end"
           >
             {isSubmitting ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -204,10 +241,10 @@ export function TaskHistoryPanel({ taskId }: TaskHistoryPanelProps) {
                       </div>
                     )}
 
-                    {/* Show comment */}
+                    {/* Show comment with highlighted mentions */}
                     {entry.comment && (
-                      <div className="p-2 rounded-md bg-muted/50 text-sm">
-                        {entry.comment}
+                      <div className="p-2 rounded-md bg-muted/50 text-sm whitespace-pre-wrap">
+                        {renderCommentWithMentions(entry.comment)}
                       </div>
                     )}
 
