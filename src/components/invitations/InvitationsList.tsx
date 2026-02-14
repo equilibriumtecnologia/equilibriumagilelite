@@ -111,13 +111,13 @@ export function InvitationsList({
         const canDelete = invitation.status !== "accepted";
 
         return (
-          <Card key={invitation.id} className="p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 space-y-2">
-                <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
+          <Card key={invitation.id} className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+              <div className="flex-1 space-y-2 min-w-0">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
                   <div>
-                    <p className="font-medium">{invitation.email}</p>
+                    <p className="font-medium text-sm sm:text-base truncate">{invitation.email}</p>
                     {invitation.project && (
                       <p className="text-sm text-muted-foreground">
                         Projeto: {invitation.project.name}
@@ -166,7 +166,7 @@ export function InvitationsList({
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-shrink-0">
                 {isPending && (
                   <>
                     <Button

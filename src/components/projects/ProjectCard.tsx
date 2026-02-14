@@ -68,13 +68,13 @@ export function ProjectCard({ project, onUpdate }: ProjectCardProps) {
 
   return (
     <Link to={`/projects/${project.id}`}>
-      <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
-        <div className="space-y-4">
+      <Card className="p-4 sm:p-6 hover:shadow-lg transition-shadow cursor-pointer">
+        <div className="space-y-3 sm:space-y-4">
           <div className="flex items-start justify-between">
-            <div className="space-y-1 flex-1">
+            <div className="space-y-1 flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-lg">{project.name}</h3>
+                <div className="flex items-center gap-2 min-w-0">
+                  <h3 className="font-semibold text-sm sm:text-lg truncate">{project.name}</h3>
                   {criticality >= 4 && (
                     <AlertTriangle className={`h-4 w-4 ${criticality === 5 ? 'text-red-500' : 'text-orange-500'}`} />
                   )}

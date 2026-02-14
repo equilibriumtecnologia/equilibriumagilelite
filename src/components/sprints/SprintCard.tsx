@@ -93,11 +93,11 @@ export function SprintCard({
       } ${onSelect ? "cursor-pointer" : ""}`}
       onClick={onSelect}
     >
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-lg flex items-center gap-2">
-              {sprint.name}
+      <CardHeader className="pb-2 px-4 sm:px-6">
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-1 min-w-0">
+            <CardTitle className="text-sm sm:text-lg flex items-center gap-2 flex-wrap">
+              <span className="truncate">{sprint.name}</span>
               <Badge variant={statusConfig[sprint.status].variant}>
                 {statusConfig[sprint.status].label}
               </Badge>
@@ -151,7 +151,7 @@ export function SprintCard({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
         {sprint.goal && (
           <div className="flex items-start gap-2 text-sm text-muted-foreground">
             <Target className="h-4 w-4 mt-0.5 shrink-0" />

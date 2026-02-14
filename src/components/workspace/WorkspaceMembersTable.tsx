@@ -47,8 +47,8 @@ export function WorkspaceMembersTable() {
   };
 
   return (
-    <div className="space-y-4">
-      <Table>
+    <div className="space-y-4 overflow-x-auto">
+      <Table className="min-w-[400px]">
         <TableHeader>
           <TableRow>
             <TableHead>Membro</TableHead>

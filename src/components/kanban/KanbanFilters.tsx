@@ -67,10 +67,10 @@ export function KanbanFilters({ members, sprints = [], onFiltersChange }: Kanban
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/30 rounded-lg border">
+    <div className="flex flex-wrap items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-muted/30 rounded-lg border">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Filter className="h-4 w-4" />
-        <span>Filtros</span>
+        <span className="hidden sm:inline">Filtros</span>
         {activeFiltersCount > 0 && (
           <Badge variant="secondary" className="h-5 px-1.5">
             {activeFiltersCount}
@@ -83,7 +83,7 @@ export function KanbanFilters({ members, sprints = [], onFiltersChange }: Kanban
           value={filters.assignee || "all"}
           onValueChange={(v) => updateFilter("assignee", v)}
         >
-          <SelectTrigger className="w-[180px] h-9">
+          <SelectTrigger className="w-[130px] sm:w-[180px] h-9 text-xs sm:text-sm">
             <SelectValue placeholder="Responsável" />
           </SelectTrigger>
           <SelectContent>
@@ -101,7 +101,7 @@ export function KanbanFilters({ members, sprints = [], onFiltersChange }: Kanban
           value={filters.priority || "all"}
           onValueChange={(v) => updateFilter("priority", v)}
         >
-          <SelectTrigger className="w-[140px] h-9">
+          <SelectTrigger className="w-[110px] sm:w-[140px] h-9 text-xs sm:text-sm">
             <SelectValue placeholder="Prioridade" />
           </SelectTrigger>
           <SelectContent>
@@ -118,7 +118,7 @@ export function KanbanFilters({ members, sprints = [], onFiltersChange }: Kanban
           value={filters.dueDate || "all"}
           onValueChange={(v) => updateFilter("dueDate", v)}
         >
-          <SelectTrigger className="w-[150px] h-9">
+          <SelectTrigger className="w-[110px] sm:w-[150px] h-9 text-xs sm:text-sm">
             <SelectValue placeholder="Prazo" />
           </SelectTrigger>
           <SelectContent>
@@ -136,7 +136,7 @@ export function KanbanFilters({ members, sprints = [], onFiltersChange }: Kanban
             value={filters.sprint || "all"}
             onValueChange={(v) => updateFilter("sprint", v)}
           >
-            <SelectTrigger className="w-[180px] h-9">
+            <SelectTrigger className="w-[130px] sm:w-[180px] h-9 text-xs sm:text-sm">
               <SelectValue placeholder="Sprint" />
             </SelectTrigger>
             <SelectContent>
@@ -160,7 +160,7 @@ export function KanbanFilters({ members, sprints = [], onFiltersChange }: Kanban
           className="h-9"
         >
           <X className="h-4 w-4 mr-1" />
-          Limpar
+          <span className="hidden sm:inline">Limpar</span>
         </Button>
       )}
     </div>
