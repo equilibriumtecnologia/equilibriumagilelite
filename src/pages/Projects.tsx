@@ -19,30 +19,23 @@ export default function Projects() {
     const aCriticality = (a as any).criticality_level ?? 3;
     const bCriticality = (b as any).criticality_level ?? 3;
     
-    // Calcular dias até o prazo
     const aDaysLeft = aDeadline ? Math.ceil((aDeadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : Infinity;
     const bDaysLeft = bDeadline ? Math.ceil((bDeadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : Infinity;
     
-    // Regra: projeto com nível inferior mas prazo < 5 dias à frente do nível superior
-    // Ex: projeto nível 4 com 3 dias < projeto nível 5 com 10 dias
     const aIsUrgent = aDaysLeft >= 0 && aDaysLeft < 5;
     const bIsUrgent = bDaysLeft >= 0 && bDaysLeft < 5;
     
-    // Ajustar criticidade efetiva baseada na urgência
     const aEffectiveCriticality = aIsUrgent ? Math.max(aCriticality, 5) : aCriticality;
     const bEffectiveCriticality = bIsUrgent ? Math.max(bCriticality, 5) : bCriticality;
     
-    // Se ambos são urgentes ou ambos não são, ordenar por criticidade, depois por prazo
     if (aEffectiveCriticality !== bEffectiveCriticality) {
-      return bEffectiveCriticality - aEffectiveCriticality; // Maior criticidade primeiro
+      return bEffectiveCriticality - aEffectiveCriticality;
     }
     
-    // Mesma criticidade efetiva: ordenar por prazo (mais próximo primeiro)
     if (aDaysLeft !== bDaysLeft) {
       return aDaysLeft - bDaysLeft;
     }
     
-    // Se tudo igual, ordenar por nome
     return a.name.localeCompare(b.name);
   });
 
@@ -51,18 +44,18 @@ export default function Projects() {
   );
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="px-3 sm:px-4 md:px-8 py-4 sm:py-6 md:py-8 space-y-4 sm:space-y-6 md:space-y-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Projetos</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Projetos</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Gerencie todos os seus projetos em um só lugar
           </p>
         </div>
         <CreateProjectDialog />
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-2 sm:gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -72,9 +65,9 @@ export default function Projects() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Button variant="outline">
-          <Filter className="mr-2 h-4 w-4" />
-          Filtros
+        <Button variant="outline" size="icon" className="sm:w-auto sm:px-4">
+          <Filter className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Filtros</span>
         </Button>
       </div>
 
@@ -84,14 +77,14 @@ export default function Projects() {
         </div>
       ) : filteredProjects.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm sm:text-base">
             {search
               ? "Nenhum projeto encontrado com esse termo"
               : "Nenhum projeto cadastrado. Crie seu primeiro projeto!"}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           {filteredProjects.map((project) => (
             <ProjectCard key={project.id} project={project} onUpdate={refetch} />
           ))}

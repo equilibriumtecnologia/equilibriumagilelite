@@ -35,12 +35,12 @@ const Dashboard = () => {
   const recentProjects = projects.slice(0, 3);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="px-3 sm:px-4 md:px-8 py-4 sm:py-6 md:py-8 space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Dashboard</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Visão geral dos seus projetos e atividades
             </p>
           </div>
@@ -48,66 +48,66 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6 bg-gradient-card border-border hover:shadow-lg transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <FolderKanban className="h-6 w-6 text-primary" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+          <Card className="p-3 sm:p-4 md:p-6 bg-gradient-card border-border hover:shadow-lg transition-all">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 md:w-12 sm:h-10 md:h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                <FolderKanban className="h-4 w-4 sm:h-5 md:h-6 sm:w-5 md:w-6 text-primary" />
               </div>
-              <TrendingUp className="h-4 w-4 text-success" />
+              <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-success" />
             </div>
-            <h3 className="text-2xl font-bold mb-1">{loading ? "..." : totalProjects}</h3>
-            <p className="text-sm text-muted-foreground">Projetos Ativos</p>
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-0.5 sm:mb-1">{loading ? "..." : totalProjects}</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">Projetos Ativos</p>
           </Card>
 
-          <Card className="p-6 bg-gradient-card border-border hover:shadow-lg transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center">
-                <CheckCircle2 className="h-6 w-6 text-success" />
+          <Card className="p-3 sm:p-4 md:p-6 bg-gradient-card border-border hover:shadow-lg transition-all">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 md:w-12 sm:h-10 md:h-12 bg-success/10 rounded-lg flex items-center justify-center">
+                <CheckCircle2 className="h-4 w-4 sm:h-5 md:h-6 sm:w-5 md:w-6 text-success" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold mb-1">{loading ? "..." : completedTasks}</h3>
-            <p className="text-sm text-muted-foreground">Tarefas Concluídas</p>
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-0.5 sm:mb-1">{loading ? "..." : completedTasks}</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">Concluídas</p>
           </Card>
 
-          <Card className="p-6 bg-gradient-card border-border hover:shadow-lg transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center">
-                <Clock className="h-6 w-6 text-warning" />
+          <Card className="p-3 sm:p-4 md:p-6 bg-gradient-card border-border hover:shadow-lg transition-all">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 md:w-12 sm:h-10 md:h-12 bg-warning/10 rounded-lg flex items-center justify-center">
+                <Clock className="h-4 w-4 sm:h-5 md:h-6 sm:w-5 md:w-6 text-warning" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold mb-1">{loading ? "..." : inProgressTasks}</h3>
-            <p className="text-sm text-muted-foreground">Em Andamento</p>
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-0.5 sm:mb-1">{loading ? "..." : inProgressTasks}</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">Em Andamento</p>
           </Card>
 
-          <Card className="p-6 bg-gradient-card border-border hover:shadow-lg transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-destructive/10 rounded-lg flex items-center justify-center">
-                <AlertCircle className="h-6 w-6 text-destructive" />
+          <Card className="p-3 sm:p-4 md:p-6 bg-gradient-card border-border hover:shadow-lg transition-all">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 md:w-12 sm:h-10 md:h-12 bg-destructive/10 rounded-lg flex items-center justify-center">
+                <AlertCircle className="h-4 w-4 sm:h-5 md:h-6 sm:w-5 md:w-6 text-destructive" />
               </div>
               {upcomingDeadlines > 0 && (
-                <span className="text-xs font-medium text-destructive bg-destructive/10 px-2 py-1 rounded">!</span>
+                <span className="text-xs font-medium text-destructive bg-destructive/10 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">!</span>
               )}
             </div>
-            <h3 className="text-2xl font-bold mb-1">{loading ? "..." : upcomingDeadlines}</h3>
-            <p className="text-sm text-muted-foreground">Próximas do Prazo</p>
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-0.5 sm:mb-1">{loading ? "..." : upcomingDeadlines}</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">Próximas do Prazo</p>
           </Card>
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
           {/* Recent Projects */}
-          <Card className="p-6 border-border">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <LayoutDashboard className="h-5 w-5 text-primary" />
+          <Card className="p-4 sm:p-6 border-border">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-xl font-semibold flex items-center gap-2">
+                <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 Projetos Recentes
               </h2>
               <Link to="/projects">
-                <Button variant="ghost" size="sm">Ver Todos</Button>
+                <Button variant="ghost" size="sm" className="text-xs sm:text-sm">Ver Todos</Button>
               </Link>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {loading ? (
                 <div className="text-center py-8 text-muted-foreground">Carregando...</div>
               ) : recentProjects.length === 0 ? (
@@ -129,22 +129,22 @@ const Dashboard = () => {
                   return (
                     <div 
                       key={project.id} 
-                      className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
+                      className="flex items-center justify-between p-3 sm:p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
                       onClick={() => navigate(`/projects/${project.id}`)}
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => e.key === 'Enter' && navigate(`/projects/${project.id}`)}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-primary" />
-                        <div>
-                          <p className="font-medium">{project.name}</p>
-                          <p className="text-sm text-muted-foreground">{statusLabels[project.status]}</p>
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{project.name}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">{statusLabels[project.status]}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{completedTasks}/{totalTasks}</span>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-xs sm:text-sm font-medium">{completedTasks}/{totalTasks}</span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block" />
                       </div>
                     </div>
                   );
@@ -154,17 +154,17 @@ const Dashboard = () => {
           </Card>
 
           {/* Upcoming Tasks */}
-          <Card className="p-6 border-border">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <Clock className="h-5 w-5 text-warning" />
+          <Card className="p-4 sm:p-6 border-border">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-xl font-semibold flex items-center gap-2">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-warning" />
                 Próximas Tarefas
               </h2>
               <Link to="/tasks">
-                <Button variant="ghost" size="sm">Ver Todas</Button>
+                <Button variant="ghost" size="sm" className="text-xs sm:text-sm">Ver Todas</Button>
               </Link>
             </div>
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-8 text-muted-foreground text-sm">
               Visualize todas as tarefas na página de Atividades
             </div>
           </Card>
