@@ -904,6 +904,7 @@ export type Database = {
       }
       expire_old_invitations: { Args: never; Returns: undefined }
       get_invitation_by_token: { Args: { _token: string }; Returns: Json }
+      get_my_pending_invitations: { Args: never; Returns: Json }
       get_user_email_for_notification: {
         Args: { _caller_id: string; _user_id: string }
         Returns: string
