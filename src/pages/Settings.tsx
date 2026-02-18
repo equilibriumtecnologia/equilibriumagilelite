@@ -8,9 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CategoriesManagement } from "@/components/settings/CategoriesManagement";
 import { UsersManagement } from "@/components/settings/UsersManagement";
+import { PermissionsManagement } from "@/components/settings/PermissionsManagement";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+
+const roleLabels: Record<string, string> = {
+  master: "Proprietário",
+  admin: "Administrador",
+  user: "Membro",
+  viewer: "Convidado",
+};
 
 export default function Settings() {
   const { user } = useAuth();
@@ -29,7 +38,7 @@ export default function Settings() {
       const { data: roleData } = await supabase.from("user_roles").select("role").eq("user_id", user?.id).single();
       if (roleData) setUserRole(roleData.role);
       const { data: profileData } = await supabase.from("profiles").select("full_name, avatar_url").eq("id", user?.id).single();
-      if (profileData) setProfile(profileData);
+      if (profileData) setProfile({ full_name: profileData.full_name || "", avatar_url: profileData.avatar_url || "" });
     } catch (error: any) {
       console.error("Erro ao carregar dados:", error);
     } finally {
@@ -40,7 +49,7 @@ export default function Settings() {
   const handleSaveProfile = async () => {
     try {
       setSaving(true);
-      const { error } = await supabase.from("profiles").update({ full_name: profile.full_name, avatar_url: profile.avatar_url }).eq("id", user?.id);
+      const { error } = await supabase.from("profiles").update({ full_name: profile.full_name, avatar_url: profile.avatar_url || null }).eq("id", user?.id);
       if (error) throw error;
       toast.success("Perfil atualizado com sucesso!");
     } catch (error: any) {
@@ -59,6 +68,16 @@ export default function Settings() {
   }
 
   const canAccessSystemSettings = userRole === "master" || userRole === "admin";
+  const canAccessUsers = userRole === "master" || userRole === "admin";
+  const canAccessPermissions = userRole === "master";
+
+  const initials = (() => {
+    if (profile.full_name) {
+      const parts = profile.full_name.split(" ");
+      return ((parts[0]?.[0] || "") + (parts[parts.length - 1]?.[0] || "")).toUpperCase();
+    }
+    return (user?.email?.[0] || "?").toUpperCase();
+  })();
 
   return (
     <div className="px-3 sm:px-4 md:px-8 py-4 sm:py-6 max-w-4xl mx-auto">
@@ -77,8 +96,11 @@ export default function Settings() {
             {canAccessSystemSettings && (
               <TabsTrigger value="categories" className="text-xs sm:text-sm">Categorias</TabsTrigger>
             )}
-            {userRole === "master" && (
+            {canAccessUsers && (
               <TabsTrigger value="users" className="text-xs sm:text-sm">Usuários</TabsTrigger>
+            )}
+            {canAccessPermissions && (
+              <TabsTrigger value="permissions" className="text-xs sm:text-sm">Permissões</TabsTrigger>
             )}
           </TabsList>
           <ScrollBar orientation="horizontal" />
@@ -91,6 +113,16 @@ export default function Settings() {
               <CardDescription className="text-xs sm:text-sm">Atualize suas informações pessoais</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 px-4 sm:px-6">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  {profile.avatar_url && <AvatarImage src={profile.avatar_url} alt={profile.full_name} />}
+                  <AvatarFallback className="text-lg bg-primary/10 text-primary">{initials}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{profile.full_name || "Sem nome"}</p>
+                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="full_name">Nome Completo</Label>
                 <Input id="full_name" value={profile.full_name} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} />
@@ -120,7 +152,7 @@ export default function Settings() {
               </div>
               <div className="space-y-2">
                 <Label>Role</Label>
-                <Input value={userRole} disabled />
+                <Input value={roleLabels[userRole] || userRole} disabled />
               </div>
             </CardContent>
           </Card>
@@ -129,8 +161,11 @@ export default function Settings() {
         {canAccessSystemSettings && (
           <TabsContent value="categories"><CategoriesManagement /></TabsContent>
         )}
-        {userRole === "master" && (
-          <TabsContent value="users"><UsersManagement /></TabsContent>
+        {canAccessUsers && (
+          <TabsContent value="users"><UsersManagement currentUserRole={userRole} /></TabsContent>
+        )}
+        {canAccessPermissions && (
+          <TabsContent value="permissions"><PermissionsManagement /></TabsContent>
         )}
       </Tabs>
     </div>
