@@ -456,6 +456,48 @@ export type Database = {
           },
         ]
       }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          features: Json
+          id: string
+          is_active: boolean
+          max_users_per_workspace: number
+          max_workspaces: number
+          name: string
+          price_monthly_cents: number
+          price_yearly_cents: number
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_users_per_workspace?: number
+          max_workspaces?: number
+          name: string
+          price_monthly_cents?: number
+          price_yearly_cents?: number
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_users_per_workspace?: number
+          max_workspaces?: number
+          name?: string
+          price_monthly_cents?: number
+          price_yearly_cents?: number
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       task_history: {
         Row: {
           action: Database["public"]["Enums"]["task_action_type"]
@@ -730,6 +772,53 @@ export type Database = {
           },
         ]
       }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string
+          id: string
+          plan_id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string
+          id?: string
+          plan_id: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string
+          id?: string
+          plan_id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_members: {
         Row: {
           id: string
@@ -808,12 +897,18 @@ export type Database = {
         Args: { _token: string; _user_id: string }
         Returns: Json
       }
+      check_workspace_limit: { Args: { _user_id: string }; Returns: boolean }
+      check_workspace_user_limit: {
+        Args: { _user_id: string; _workspace_id: string }
+        Returns: boolean
+      }
       expire_old_invitations: { Args: never; Returns: undefined }
       get_invitation_by_token: { Args: { _token: string }; Returns: Json }
       get_user_email_for_notification: {
         Args: { _caller_id: string; _user_id: string }
         Returns: string
       }
+      get_user_plan: { Args: { _user_id: string }; Returns: Json }
       get_workspace_role: {
         Args: { _user_id: string; _workspace_id: string }
         Returns: Database["public"]["Enums"]["workspace_role"]
