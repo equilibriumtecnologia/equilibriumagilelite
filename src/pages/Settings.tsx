@@ -67,7 +67,7 @@ export default function Settings() {
     );
   }
 
-  const canAccessSystemSettings = userRole === "master" || userRole === "admin";
+  const canAccessSystemSettings = true; // Categories available for all plans/roles
   const canAccessUsers = userRole === "master" || userRole === "admin";
   const canAccessPermissions = userRole === "master";
 
