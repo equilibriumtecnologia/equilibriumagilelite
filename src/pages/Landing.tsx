@@ -1,7 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, LayoutDashboard, Users, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  LayoutDashboard,
+  Users,
+  Zap,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-dashboard.jpg";
+import { PoweredByEquilibrium } from "@/components/layout/PoweredByEquilibrium";
 
 const Landing = () => {
   return (
@@ -18,11 +25,14 @@ const Landing = () => {
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
               <Link to="/login">
-                <Button variant="ghost" size="sm">Entrar</Button>
+                <Button variant="ghost" size="sm">
+                  Entrar
+                </Button>
               </Link>
               <Link to="/signup">
                 <Button variant="hero" size="sm">
-                  Começar <ArrowRight className="ml-1 h-3.5 w-3.5 sm:ml-2 sm:h-4 sm:w-4" />
+                  Começar{" "}
+                  <ArrowRight className="ml-1 h-3.5 w-3.5 sm:ml-2 sm:h-4 sm:w-4" />
                 </Button>
               </Link>
             </div>
@@ -40,15 +50,25 @@ const Landing = () => {
                 Gerencie Projetos com Simplicidade
               </h1>
               <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-                Sistema completo de gestão de projetos e atividades para equipes e pequenas empresas.
+                Sistema completo de gestão de projetos e atividades para equipes
+                e pequenas empresas.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
                 <Link to="/signup">
-                  <Button variant="hero" size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8">
-                    Criar Conta Grátis <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  <Button
+                    variant="hero"
+                    size="lg"
+                    className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8"
+                  >
+                    Criar Conta Grátis{" "}
+                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
                 </Link>
-                <Button variant="outline" size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8"
+                >
                   Ver Demonstração
                 </Button>
               </div>
@@ -56,9 +76,9 @@ const Landing = () => {
 
             {/* Hero Image */}
             <div className="relative mt-8 sm:mt-16 rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-border mx-2 sm:mx-0">
-              <img 
-                src={heroImage} 
-                alt="Agile Lite Equilibrium Dashboard" 
+              <img
+                src={heroImage}
+                alt="Agile Lite Equilibrium Dashboard"
                 className="w-full h-auto"
               />
             </div>
@@ -83,7 +103,9 @@ const Landing = () => {
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-primary rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                 <LayoutDashboard className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">Dashboard Visual</h3>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">
+                Dashboard Visual
+              </h3>
               <p className="text-sm sm:text-base text-muted-foreground">
                 Acompanhe o progresso com gráficos e métricas em tempo real.
               </p>
@@ -93,7 +115,9 @@ const Landing = () => {
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-accent rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                 <Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">Gestão de Equipes</h3>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">
+                Gestão de Equipes
+              </h3>
               <p className="text-sm sm:text-base text-muted-foreground">
                 Permissões personalizadas e colaboração eficiente.
               </p>
@@ -103,7 +127,9 @@ const Landing = () => {
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-success rounded-lg flex items-center justify-center mb-3 sm:mb-4">
                 <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">Automação Inteligente</h3>
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">
+                Automação Inteligente
+              </h3>
               <p className="text-sm sm:text-base text-muted-foreground">
                 Notificações automáticas e fluxos otimizados.
               </p>
@@ -128,7 +154,10 @@ const Landing = () => {
                 "Notificações por email automáticas",
                 "Interface moderna e responsiva",
               ].map((benefit, index) => (
-                <div key={index} className="flex items-start gap-3 sm:gap-4 bg-card p-4 sm:p-6 rounded-lg border border-border">
+                <div
+                  key={index}
+                  className="flex items-start gap-3 sm:gap-4 bg-card p-4 sm:p-6 rounded-lg border border-border"
+                >
                   <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-success flex-shrink-0 mt-0.5" />
                   <span className="text-sm sm:text-lg">{benefit}</span>
                 </div>
@@ -150,11 +179,12 @@ const Landing = () => {
               Crie sua conta gratuitamente
             </p>
             <Link to="/signup">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="bg-white text-primary hover:bg-white/90 text-base sm:text-lg px-6 sm:px-8 shadow-lg hover:shadow-xl transition-all"
               >
-                Criar Conta Grátis <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                Criar Conta Grátis{" "}
+                <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </Link>
           </div>
@@ -165,7 +195,14 @@ const Landing = () => {
       <footer className="border-t border-border py-6 sm:py-8 bg-card safe-bottom">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="text-center text-muted-foreground text-xs sm:text-sm">
-            <p>&copy; 2025 Agile Lite Equilibrium. Todos os direitos reservados.</p>
+            <p>
+              &copy; {new Date().getFullYear()} Agile Lite Equilibrium. Todos os
+              direitos reservados.
+            </p>
+            <PoweredByEquilibrium
+              variant="footer"
+              className="justify-center mt-2"
+            />
           </div>
         </div>
       </footer>
