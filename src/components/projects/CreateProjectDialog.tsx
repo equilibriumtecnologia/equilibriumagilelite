@@ -23,7 +23,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const formSchema = z.object({
   name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres").max(100),
   description: z.string().max(500).optional(),
-  category_id: z.string().uuid("Selecione uma categoria"),
+  category_id: z.string().uuid("Selecione uma categoria").optional().or(z.literal("")),
   status: z.enum(["planning", "active", "on_hold", "completed", "cancelled"]),
   deadline: z.string().optional(),
   criticality_level: z.coerce.number().min(1).max(5).default(3),
@@ -55,7 +55,7 @@ export function CreateProjectDialog() {
     await createProject.mutateAsync({
       name: values.name,
       description: values.description,
-      category_id: values.category_id,
+      category_id: values.category_id || undefined,
       status: values.status,
       deadline: values.deadline || null,
       criticality_level: values.criticality_level,
