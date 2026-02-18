@@ -609,6 +609,98 @@ export type Database = {
           },
         ]
       }
+      user_permissions: {
+        Row: {
+          can_assign_task: boolean
+          can_create_project: boolean
+          can_create_sprint: boolean
+          can_create_task: boolean
+          can_delete_any_task: boolean
+          can_delete_own_task: boolean
+          can_delete_project: boolean
+          can_delete_sprint: boolean
+          can_edit_any_task: boolean
+          can_edit_own_task: boolean
+          can_edit_project: boolean
+          can_edit_sprint: boolean
+          can_invite_members: boolean
+          can_manage_backlog: boolean
+          can_manage_board_settings: boolean
+          can_manage_categories: boolean
+          can_manage_members: boolean
+          can_manage_project_members: boolean
+          can_manage_workspace_settings: boolean
+          can_view_reports: boolean
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          can_assign_task?: boolean
+          can_create_project?: boolean
+          can_create_sprint?: boolean
+          can_create_task?: boolean
+          can_delete_any_task?: boolean
+          can_delete_own_task?: boolean
+          can_delete_project?: boolean
+          can_delete_sprint?: boolean
+          can_edit_any_task?: boolean
+          can_edit_own_task?: boolean
+          can_edit_project?: boolean
+          can_edit_sprint?: boolean
+          can_invite_members?: boolean
+          can_manage_backlog?: boolean
+          can_manage_board_settings?: boolean
+          can_manage_categories?: boolean
+          can_manage_members?: boolean
+          can_manage_project_members?: boolean
+          can_manage_workspace_settings?: boolean
+          can_view_reports?: boolean
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          can_assign_task?: boolean
+          can_create_project?: boolean
+          can_create_sprint?: boolean
+          can_create_task?: boolean
+          can_delete_any_task?: boolean
+          can_delete_own_task?: boolean
+          can_delete_project?: boolean
+          can_delete_sprint?: boolean
+          can_edit_any_task?: boolean
+          can_edit_own_task?: boolean
+          can_edit_project?: boolean
+          can_edit_sprint?: boolean
+          can_invite_members?: boolean
+          can_manage_backlog?: boolean
+          can_manage_board_settings?: boolean
+          can_manage_categories?: boolean
+          can_manage_members?: boolean
+          can_manage_project_members?: boolean
+          can_manage_workspace_settings?: boolean
+          can_view_reports?: boolean
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permissions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -682,6 +774,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_default: boolean
           name: string
           slug: string
           updated_at: string
@@ -690,6 +783,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_default?: boolean
           name: string
           slug: string
           updated_at?: string
@@ -698,6 +792,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_default?: boolean
           name?: string
           slug?: string
           updated_at?: string
@@ -758,6 +853,10 @@ export type Database = {
         Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
       }
+      set_default_permissions: {
+        Args: { _role: string; _user_id: string; _workspace_id: string }
+        Returns: undefined
+      }
       shares_project_with: {
         Args: { _other_user_id: string; _user_id: string }
         Returns: boolean
@@ -766,10 +865,17 @@ export type Database = {
         Args: { _new_owner_id: string; _workspace_id: string }
         Returns: boolean
       }
+      update_user_role: {
+        Args: {
+          _new_role: Database["public"]["Enums"]["app_role"]
+          _target_user_id: string
+        }
+        Returns: boolean
+      }
       user_has_system_access: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "master" | "admin" | "user"
+      app_role: "master" | "admin" | "user" | "viewer"
       invitation_status: "pending" | "accepted" | "expired" | "cancelled"
       project_role: "owner" | "admin" | "member" | "viewer"
       project_status:
@@ -920,7 +1026,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["master", "admin", "user"],
+      app_role: ["master", "admin", "user", "viewer"],
       invitation_status: ["pending", "accepted", "expired", "cancelled"],
       project_role: ["owner", "admin", "member", "viewer"],
       project_status: [

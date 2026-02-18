@@ -28,7 +28,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -67,6 +67,7 @@ export function AppSidebar() {
   const { role, canManageInvitations } = useUserRole();
   const { workspaces, currentWorkspace, switchWorkspace } = useWorkspace();
   const [profileName, setProfileName] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const isCollapsed = state === "collapsed";
   
@@ -79,10 +80,13 @@ export function AppSidebar() {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("full_name")
+      .select("full_name, avatar_url")
       .eq("id", user.id)
       .maybeSingle()
-      .then(({ data }) => setProfileName(data?.full_name || null));
+      .then(({ data }) => {
+        setProfileName(data?.full_name || null);
+        setAvatarUrl(data?.avatar_url || null);
+      });
   }, [user]);
 
   const displayName = profileName || user?.email || "";
@@ -180,6 +184,7 @@ export function AppSidebar() {
         {!isCollapsed && (
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9 flex-shrink-0">
+              {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
               <AvatarFallback className="text-xs bg-primary/10 text-primary">
                 {initials}
               </AvatarFallback>
@@ -206,6 +211,7 @@ export function AppSidebar() {
         {isCollapsed && (
           <div className="flex flex-col items-center gap-2">
             <Avatar className="h-8 w-8">
+              {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
               <AvatarFallback className="text-xs bg-primary/10 text-primary">
                 {initials}
               </AvatarFallback>
