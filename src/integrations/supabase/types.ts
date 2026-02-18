@@ -243,21 +243,21 @@ export type Database = {
           id: string
           joined_at: string
           project_id: string
-          role: string | null
+          role: Database["public"]["Enums"]["project_role"]
           user_id: string
         }
         Insert: {
           id?: string
           joined_at?: string
           project_id: string
-          role?: string | null
+          role?: Database["public"]["Enums"]["project_role"]
           user_id: string
         }
         Update: {
           id?: string
           joined_at?: string
           project_id?: string
-          role?: string | null
+          role?: Database["public"]["Enums"]["project_role"]
           user_id?: string
         }
         Relationships: [
@@ -723,6 +723,18 @@ export type Database = {
         Args: { _user_id: string; _workspace_id: string }
         Returns: Database["public"]["Enums"]["workspace_role"]
       }
+      has_project_admin_access: {
+        Args: { _project_id: string; _user_id: string }
+        Returns: boolean
+      }
+      has_project_role: {
+        Args: {
+          _project_id: string
+          _role: Database["public"]["Enums"]["project_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -759,6 +771,7 @@ export type Database = {
     Enums: {
       app_role: "master" | "admin" | "user"
       invitation_status: "pending" | "accepted" | "expired" | "cancelled"
+      project_role: "owner" | "admin" | "member" | "viewer"
       project_status:
         | "planning"
         | "active"
@@ -909,6 +922,7 @@ export const Constants = {
     Enums: {
       app_role: ["master", "admin", "user"],
       invitation_status: ["pending", "accepted", "expired", "cancelled"],
+      project_role: ["owner", "admin", "member", "viewer"],
       project_status: [
         "planning",
         "active",
