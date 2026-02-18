@@ -31,8 +31,11 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Validate authorization (accepts anon key from cron or service role key)
+    // Validate authorization - only accept service role key (from cron job)
     const authHeader = req.headers.get("Authorization");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
     if (!authHeader?.startsWith("Bearer ")) {
       console.error("Unauthorized: missing auth header");
       return new Response(
@@ -41,9 +44,14 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Use service role key internally for admin operations
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const providedKey = authHeader.replace("Bearer ", "");
+    if (providedKey !== serviceRoleKey) {
+      console.error("Unauthorized: invalid service role key");
+      return new Response(
+        JSON.stringify({ error: "Forbidden: Only service role can call this function" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
     const supabase = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
