@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CategoriesManagement } from "@/components/settings/CategoriesManagement";
 import { UsersManagement } from "@/components/settings/UsersManagement";
 import { PermissionsManagement } from "@/components/settings/PermissionsManagement";
+import { PendingInvitations } from "@/components/settings/PendingInvitations";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const roleLabels: Record<string, string> = {
@@ -87,6 +88,8 @@ export default function Settings() {
           Gerencie suas preferências e configurações
         </p>
       </div>
+
+      <PendingInvitations />
 
       <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
         <ScrollArea className="w-full">
