@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +34,7 @@ export function AddMemberDialog({
   currentMembers,
   onSuccess,
 }: AddMemberDialogProps) {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<Profile[]>([]);
@@ -94,6 +96,9 @@ export function AddMemberDialog({
       toast.success("Membro adicionado com sucesso!");
       setOpen(false);
       setSelectedUserId("");
+      // Invalidate both project detail and projects list queries
+      queryClient.invalidateQueries({ queryKey: ["project", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       onSuccess?.();
     } catch (error: any) {
       toast.error("Erro ao adicionar membro: " + error.message);
