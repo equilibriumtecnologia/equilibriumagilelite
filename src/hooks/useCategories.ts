@@ -34,7 +34,12 @@ export function useCategories() {
     enabled: !!currentWorkspace?.id,
   });
 
-  const createCategory = async (category: Omit<Category, "id" | "created_at" | "updated_at" | "workspace_id">) => {
+  const createCategory = async (
+    category: Omit<
+      Category,
+      "id" | "created_at" | "updated_at" | "workspace_id"
+    >,
+  ) => {
     if (!currentWorkspace) return;
     try {
       const { error } = await supabase
@@ -50,7 +55,10 @@ export function useCategories() {
 
   const updateCategory = async (id: string, updates: Partial<Category>) => {
     try {
-      const { error } = await supabase.from("categories").update(updates).eq("id", id);
+      const { error } = await supabase
+        .from("categories")
+        .update(updates)
+        .eq("id", id);
       if (error) throw error;
       toast.success("Categoria atualizada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -76,6 +84,9 @@ export function useCategories() {
     createCategory,
     updateCategory,
     deleteCategory,
-    refetch: () => queryClient.invalidateQueries({ queryKey: ["categories", currentWorkspace?.id] }),
+    refetch: () =>
+      queryClient.invalidateQueries({
+        queryKey: ["categories", currentWorkspace?.id],
+      }),
   };
 }

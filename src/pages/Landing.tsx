@@ -12,7 +12,7 @@ import { PoweredByEquilibrium } from "@/components/layout/PoweredByEquilibrium";
 
 const Landing = () => {
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-background">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50 safe-top">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
@@ -201,6 +201,7 @@ const Landing = () => {
             </p>
             <PoweredByEquilibrium
               variant="footer"
+              showTextFallback={false}
               className="justify-center mt-2"
             />
           </div>

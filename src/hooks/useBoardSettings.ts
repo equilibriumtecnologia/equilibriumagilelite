@@ -50,7 +50,7 @@ export function useBoardSettings(projectId: string | undefined) {
           },
           {
             onConflict: "project_id,column_id",
-          }
+          },
         )
         .select()
         .single();
@@ -59,7 +59,9 @@ export function useBoardSettings(projectId: string | undefined) {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["board-settings", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["board-settings", projectId],
+      });
       toast.success("Limite WIP atualizado");
     },
     onError: (error: Error) => {
@@ -74,7 +76,7 @@ export function useBoardSettings(projectId: string | undefined) {
 
   const getWipStatus = (
     columnId: string,
-    currentCount: number
+    currentCount: number,
   ): "normal" | "warning" | "exceeded" => {
     const limit = getWipLimit(columnId);
     if (!limit) return "normal";
