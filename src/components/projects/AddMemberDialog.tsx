@@ -47,6 +47,17 @@ export function AddMemberDialog({
   }, [open]);
 
   const fetchUsers = async () => {
+    // Fetch actual current members directly from DB (fresh, not cached)
+    const { data: dbMembers } = await supabase
+      .from("project_members")
+      .select("user_id")
+      .eq("project_id", projectId);
+
+    const memberIds = new Set([
+      ...currentMembers,
+      ...(dbMembers?.map((m) => m.user_id) || []),
+    ]);
+
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
@@ -57,8 +68,7 @@ export function AddMemberDialog({
       return;
     }
 
-    // Filtrar usuários que já são membros
-    const availableUsers = data.filter((u) => !currentMembers.includes(u.id));
+    const availableUsers = data.filter((u) => !memberIds.has(u.id));
     setUsers(availableUsers);
   };
 
@@ -71,32 +81,26 @@ export function AddMemberDialog({
     setLoading(true);
 
     try {
-      // Check if user is already a member to avoid duplicate key error
-      const { data: existing } = await supabase
-        .from("project_members")
-        .select("id")
-        .eq("project_id", projectId)
-        .eq("user_id", selectedUserId)
-        .maybeSingle();
-
-      if (existing) {
-        toast.error("Este usuário já é membro do projeto");
-        setLoading(false);
-        return;
-      }
-
       const { error } = await supabase.from("project_members").insert({
         project_id: projectId,
         user_id: selectedUserId,
         role: "member",
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle duplicate key gracefully
+        if (error.code === "23505") {
+          toast.info("Este usuário já é membro do projeto. Atualizando lista...");
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success("Membro adicionado com sucesso!");
+      }
 
-      toast.success("Membro adicionado com sucesso!");
       setOpen(false);
       setSelectedUserId("");
-      // Invalidate both project detail and projects list queries
+      // Force refetch all related queries
       queryClient.invalidateQueries({ queryKey: ["project", projectId] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       onSuccess?.();
