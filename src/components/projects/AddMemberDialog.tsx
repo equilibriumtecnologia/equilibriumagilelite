@@ -69,6 +69,20 @@ export function AddMemberDialog({
     setLoading(true);
 
     try {
+      // Check if user is already a member to avoid duplicate key error
+      const { data: existing } = await supabase
+        .from("project_members")
+        .select("id")
+        .eq("project_id", projectId)
+        .eq("user_id", selectedUserId)
+        .maybeSingle();
+
+      if (existing) {
+        toast.error("Este usuário já é membro do projeto");
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.from("project_members").insert({
         project_id: projectId,
         user_id: selectedUserId,

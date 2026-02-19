@@ -12,14 +12,20 @@ interface TeamMemberCardProps {
 }
 
 const roleLabels: Record<string, string> = {
-  master: "Master",
+  owner: "Owner",
   admin: "Admin",
+  member: "Membro",
+  viewer: "Viewer",
+  master: "Master",
   user: "Usuário",
 };
 
 const roleColors: Record<string, string> = {
-  master: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+  owner: "bg-purple-500/10 text-purple-500 border-purple-500/20",
   admin: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  member: "bg-gray-500/10 text-gray-500 border-gray-500/20",
+  viewer: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+  master: "bg-purple-500/10 text-purple-500 border-purple-500/20",
   user: "bg-gray-500/10 text-gray-500 border-gray-500/20",
 };
 
@@ -29,7 +35,7 @@ export function TeamMemberCard({ member, onUpdate }: TeamMemberCardProps) {
       ? (member.completed_task_count / member.task_count) * 100
       : 0;
 
-  const primaryRole = member.roles[0]?.role || "user";
+  const primaryRole = member.workspace_role || member.roles[0]?.role || "member";
 
   return (
     <Card className="p-4 sm:p-6 hover:shadow-md transition-shadow">
