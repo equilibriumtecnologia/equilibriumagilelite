@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CategoriesManagement } from "@/components/settings/CategoriesManagement";
-import { UsersManagement } from "@/components/settings/UsersManagement";
 import { PermissionsManagement } from "@/components/settings/PermissionsManagement";
 import { PendingInvitations } from "@/components/settings/PendingInvitations";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -69,7 +68,6 @@ export default function Settings() {
   }
 
   const canAccessSystemSettings = true; // Categories available for all plans/roles
-  const canAccessUsers = userRole === "master" || userRole === "admin";
   const canAccessPermissions = userRole === "master";
 
   const initials = (() => {
@@ -98,9 +96,6 @@ export default function Settings() {
             <TabsTrigger value="account" className="text-xs sm:text-sm">Conta</TabsTrigger>
             {canAccessSystemSettings && (
               <TabsTrigger value="categories" className="text-xs sm:text-sm">Categorias</TabsTrigger>
-            )}
-            {canAccessUsers && (
-              <TabsTrigger value="users" className="text-xs sm:text-sm">Usuários</TabsTrigger>
             )}
             {canAccessPermissions && (
               <TabsTrigger value="permissions" className="text-xs sm:text-sm">Permissões</TabsTrigger>
@@ -163,9 +158,6 @@ export default function Settings() {
 
         {canAccessSystemSettings && (
           <TabsContent value="categories"><CategoriesManagement /></TabsContent>
-        )}
-        {canAccessUsers && (
-          <TabsContent value="users"><UsersManagement currentUserRole={userRole} /></TabsContent>
         )}
         {canAccessPermissions && (
           <TabsContent value="permissions"><PermissionsManagement /></TabsContent>
