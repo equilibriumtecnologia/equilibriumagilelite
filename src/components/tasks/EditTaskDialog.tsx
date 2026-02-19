@@ -42,6 +42,7 @@ import { useProjects } from "@/hooks/useProjects";
 import type { Tables } from "@/integrations/supabase/types";
 import { useProject } from "@/hooks/useProject";
 import { Label } from "@/components/ui/label";
+import { StoryPointsSelector } from "./StoryPointsSelector";
 
 const taskSchema = z.object({
   title: z.string().min(1, "Título é obrigatório").max(200),
@@ -52,6 +53,7 @@ const taskSchema = z.object({
   due_date: z.date().optional(),
   assigned_to: z.string().optional(),
   status_comment: z.string().optional(),
+  story_points: z.number().nullable().optional(),
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
@@ -83,6 +85,7 @@ export const EditTaskDialog = ({
       due_date: task.due_date ? new Date(task.due_date) : undefined,
       assigned_to: task.assigned_to || "",
       status_comment: "",
+      story_points: task.story_points,
     },
   });
 
@@ -111,6 +114,7 @@ export const EditTaskDialog = ({
         due_date: task.due_date ? new Date(task.due_date) : undefined,
         assigned_to: task.assigned_to || "",
         status_comment: "",
+        story_points: task.story_points,
       });
       setStatusChanged(false);
       setCommentError("");
@@ -139,6 +143,7 @@ export const EditTaskDialog = ({
       priority: data.priority,
       due_date: data.due_date ? format(data.due_date, "yyyy-MM-dd") : null,
       assigned_to: data.assigned_to || null,
+      story_points: data.story_points ?? null,
       historyComment: statusChanged ? data.status_comment?.trim() : undefined,
     };
 
@@ -348,6 +353,19 @@ export const EditTaskDialog = ({
                 </FormItem>
               )}
             />
+
+            <div className="space-y-2">
+              <Label>Story Points</Label>
+              <div className="flex items-center gap-2">
+                <StoryPointsSelector
+                  value={form.watch("story_points") ?? null}
+                  onChange={(value) => form.setValue("story_points", value)}
+                />
+                <span className="text-sm text-muted-foreground">
+                  {form.watch("story_points") ? `${form.watch("story_points")} pontos` : "Não estimado"}
+                </span>
+              </div>
+            </div>
 
             {statusChanged && (
               <div className="space-y-2 p-4 border rounded-lg bg-muted/50">

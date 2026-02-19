@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,46 +11,51 @@ import { toast } from "sonner";
 interface UserWithRole {
   id: string;
   full_name: string;
-  email: string;
   role: string;
-  created_at: string;
 }
 
-const ROLE_COLORS = {
+const roleLabels: Record<string, string> = {
+  master: "Proprietário",
+  admin: "Administrador",
+  user: "Membro",
+  viewer: "Convidado",
+};
+
+const ROLE_COLORS: Record<string, string> = {
   master: "bg-purple-500",
   admin: "bg-blue-500",
   user: "bg-gray-500",
+  viewer: "bg-orange-500",
 };
 
-export function UsersManagement() {
+interface UsersManagementProps {
+  currentUserRole: string;
+}
+
+export function UsersManagement({ currentUserRole }: UsersManagementProps) {
+  const { user } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, full_name");
-
       if (profilesError) throw profilesError;
 
       const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
         .select("user_id, role");
-
       if (rolesError) throw rolesError;
 
       const usersData = profiles?.map(profile => {
-        const role = roles?.find(r => r.user_id === profile.id);
-        
+        const roleEntry = roles?.find(r => r.user_id === profile.id);
         return {
           id: profile.id,
           full_name: profile.full_name,
-          email: "",
-          role: role?.role || "user",
-          created_at: "",
+          role: roleEntry?.role || "user",
         };
       }) || [];
 
@@ -63,21 +68,45 @@ export function UsersManagement() {
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: "user" | "admin" | "master") => {
+  const handleRoleChange = async (userId: string, newRole: string) => {
     try {
-      const { error } = await supabase
-        .from("user_roles")
-        .update({ role: newRole as any })
-        .eq("user_id", userId);
-
+      const { error } = await supabase.rpc("update_user_role", {
+        _target_user_id: userId,
+        _new_role: newRole as any,
+      });
       if (error) throw error;
-      
       toast.success("Role atualizado com sucesso!");
       fetchUsers();
     } catch (error: any) {
       console.error("Erro ao atualizar role:", error);
-      toast.error("Erro ao atualizar role: " + error.message);
+      toast.error(error.message || "Erro ao atualizar role");
     }
+  };
+
+  const getRoleOptions = (targetRole: string, targetUserId: string) => {
+    // Can't change own role
+    if (targetUserId === user?.id) return [];
+
+    if (currentUserRole === "master") {
+      // Master can't change another master, can't promote to master
+      if (targetRole === "master") return [];
+      return [
+        { value: "admin", label: "Administrador" },
+        { value: "user", label: "Membro" },
+        { value: "viewer", label: "Convidado" },
+      ];
+    }
+
+    if (currentUserRole === "admin") {
+      // Admin can only toggle between user and viewer
+      if (targetRole !== "user" && targetRole !== "viewer") return [];
+      return [
+        { value: "user", label: "Membro" },
+        { value: "viewer", label: "Convidado" },
+      ];
+    }
+
+    return [];
   };
 
   useEffect(() => {
@@ -97,7 +126,9 @@ export function UsersManagement() {
       <CardHeader>
         <CardTitle>Gerenciar Usuários</CardTitle>
         <CardDescription>
-          Gerencie usuários e suas permissões no sistema
+          {currentUserRole === "master"
+            ? "Gerencie usuários e suas permissões no sistema (Admin, Membro ou Convidado)"
+            : "Alterne membros entre Membro e Convidado"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -110,31 +141,47 @@ export function UsersManagement() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.full_name}</TableCell>
-                <TableCell>
-                  <Badge className={ROLE_COLORS[user.role as keyof typeof ROLE_COLORS]}>
-                    {user.role}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Select
-                    value={user.role}
-                    onValueChange={(value) => handleRoleChange(user.id, value as "user" | "admin" | "master")}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="master">Master</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-              </TableRow>
-            ))}
+            {users.map((u) => {
+              const options = getRoleOptions(u.role, u.id);
+              const isCurrentUser = u.id === user?.id;
+
+              return (
+                <TableRow key={u.id}>
+                  <TableCell className="font-medium">
+                    {u.full_name}
+                    {isCurrentUser && (
+                      <span className="text-xs text-muted-foreground ml-2">(você)</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={ROLE_COLORS[u.role] || "bg-gray-500"}>
+                      {roleLabels[u.role] || u.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {options.length > 0 ? (
+                      <Select
+                        value={u.role}
+                        onValueChange={(value) => handleRoleChange(u.id, value)}
+                      >
+                        <SelectTrigger className="w-36">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </CardContent>

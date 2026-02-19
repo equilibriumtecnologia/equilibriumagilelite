@@ -219,7 +219,11 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
             </TabsContent>
 
             <TabsContent value="history" className="mt-4">
-              <TaskHistoryPanel taskId={task.id} />
+              <TaskHistoryPanel 
+                taskId={task.id} 
+                projectId={task.project_id} 
+                taskTitle={task.title} 
+              />
             </TabsContent>
           </Tabs>
         </div>

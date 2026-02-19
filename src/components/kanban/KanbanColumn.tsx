@@ -1,7 +1,7 @@
 import { useDroppable } from "@dnd-kit/core";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { KanbanTaskCard } from "./KanbanTaskCard";
+import { WIPLimitBadge } from "./WIPLimitBadge";
 import type { Database } from "@/integrations/supabase/types";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"] & {
@@ -15,9 +15,19 @@ interface KanbanColumnProps {
   color: string;
   tasks: Task[];
   count: number;
+  wipLimit: number | null;
+  wipStatus: "normal" | "warning" | "exceeded";
 }
 
-export function KanbanColumn({ id, title, color, tasks, count }: KanbanColumnProps) {
+export function KanbanColumn({
+  id,
+  title,
+  color,
+  tasks,
+  count,
+  wipLimit,
+  wipStatus,
+}: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
   });
@@ -29,14 +39,17 @@ export function KanbanColumn({ id, title, color, tasks, count }: KanbanColumnPro
           <div className={`w-3 h-3 rounded-full ${color}`} />
           <h3 className="font-semibold">{title}</h3>
         </div>
-        <Badge variant="outline">{count}</Badge>
+        <WIPLimitBadge count={count} limit={wipLimit} status={wipStatus} />
       </div>
 
       <div
         ref={setNodeRef}
-        className={`flex flex-col gap-3 min-h-[400px] p-3 rounded-lg border-2 border-dashed transition-colors ${
-          isOver ? "border-primary bg-primary/5" : "border-border bg-muted/20"
-        }`}
+        className={cn(
+          "flex flex-col gap-3 min-h-[400px] p-3 rounded-lg border-2 border-dashed transition-colors",
+          isOver ? "border-primary bg-primary/5" : "border-border bg-muted/20",
+          wipStatus === "warning" && "border-yellow-500/50 bg-yellow-500/5",
+          wipStatus === "exceeded" && "border-destructive/50 bg-destructive/5"
+        )}
       >
         {tasks.map((task) => (
           <KanbanTaskCard key={task.id} task={task} />

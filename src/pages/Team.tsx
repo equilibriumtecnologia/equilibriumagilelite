@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Search, Users, TrendingUp, Briefcase, CheckCircle } from "lucide-react";
 import { TeamMemberCard } from "@/components/team/TeamMemberCard";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const Team = () => {
   const { members, loading, refetch } = useTeam();
@@ -21,20 +22,16 @@ const Team = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
 
-  // Filtrar membros
   const filteredMembers = members.filter((member) => {
     const matchesSearch = member.full_name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
-
     const matchesRole =
       roleFilter === "all" ||
       member.roles.some((r) => r.role === roleFilter);
-
     return matchesSearch && matchesRole;
   });
 
-  // Estatísticas gerais
   const totalMembers = members.length;
   const totalProjects = members.reduce((sum, m) => sum + m.project_count, 0);
   const totalTasks = members.reduce((sum, m) => sum + m.task_count, 0);
@@ -43,7 +40,7 @@ const Team = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="px-3 sm:px-4 md:px-8 py-4 sm:py-8">
         <div className="text-center py-12 text-muted-foreground">
           Carregando equipe...
         </div>
@@ -52,71 +49,71 @@ const Team = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="px-3 sm:px-4 md:px-8 py-4 sm:py-6 md:py-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Equipe</h1>
-          <p className="text-muted-foreground">
-            Gerencie membros da equipe e visualize estatísticas de desempenho
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Equipe</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Gerencie membros e visualize estatísticas
           </p>
         </div>
         {canManageInvitations && <InviteUserDialog />}
       </div>
 
-      {/* Estatísticas Gerais */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-              <Users className="h-5 w-5 text-primary" />
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-8">
+        <Card className="p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </div>
-            <div>
-              <p className="text-2xl font-bold">{totalMembers}</p>
-              <p className="text-sm text-muted-foreground">Membros</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
-              <Briefcase className="h-5 w-5 text-accent" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{totalProjects}</p>
-              <p className="text-sm text-muted-foreground">Projetos Ativos</p>
+            <div className="min-w-0">
+              <p className="text-lg sm:text-2xl font-bold">{totalMembers}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Membros</p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
-              <CheckCircle className="h-5 w-5 text-success" />
+        <Card className="p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Briefcase className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
             </div>
-            <div>
-              <p className="text-2xl font-bold">{totalCompleted}/{totalTasks}</p>
-              <p className="text-sm text-muted-foreground">Tarefas Concluídas</p>
+            <div className="min-w-0">
+              <p className="text-lg sm:text-2xl font-bold">{totalProjects}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Projetos</p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-warning/10 rounded-lg flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-warning" />
+        <Card className="p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-success/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
             </div>
-            <div>
-              <p className="text-2xl font-bold">{Math.round(avgCompletionRate)}%</p>
-              <p className="text-sm text-muted-foreground">Taxa Média</p>
+            <div className="min-w-0">
+              <p className="text-lg sm:text-2xl font-bold">{totalCompleted}/{totalTasks}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Concluídas</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-warning/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-warning" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg sm:text-2xl font-bold">{Math.round(avgCompletionRate)}%</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Taxa Média</p>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* Filtros */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4 sm:mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -128,7 +125,7 @@ const Team = () => {
         </div>
 
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-full md:w-[200px]">
+          <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Filtrar por role" />
           </SelectTrigger>
           <SelectContent>
@@ -140,22 +137,25 @@ const Team = () => {
         </Select>
       </div>
 
-      {/* Lista de Membros */}
+      {/* Members List */}
       <Tabs defaultValue="all" className="w-full">
-        <TabsList>
-          <TabsTrigger value="all">
-            Todos ({filteredMembers.length})
-          </TabsTrigger>
-          <TabsTrigger value="active">
-            Ativos ({filteredMembers.filter((m) => m.task_count > 0).length})
-          </TabsTrigger>
-          <TabsTrigger value="inactive">
-            Inativos ({filteredMembers.filter((m) => m.task_count === 0).length})
-          </TabsTrigger>
-        </TabsList>
+        <ScrollArea className="w-full">
+          <TabsList className="inline-flex w-auto">
+            <TabsTrigger value="all" className="text-xs sm:text-sm whitespace-nowrap">
+              Todos ({filteredMembers.length})
+            </TabsTrigger>
+            <TabsTrigger value="active" className="text-xs sm:text-sm whitespace-nowrap">
+              Ativos ({filteredMembers.filter((m) => m.task_count > 0).length})
+            </TabsTrigger>
+            <TabsTrigger value="inactive" className="text-xs sm:text-sm whitespace-nowrap">
+              Inativos ({filteredMembers.filter((m) => m.task_count === 0).length})
+            </TabsTrigger>
+          </TabsList>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
 
-        <TabsContent value="all" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <TabsContent value="all" className="mt-4 sm:mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredMembers.length > 0 ? (
               filteredMembers.map((member) => (
                 <TeamMemberCard key={member.id} member={member} onUpdate={refetch} />
@@ -168,8 +168,8 @@ const Team = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="active" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <TabsContent value="active" className="mt-4 sm:mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredMembers.filter((m) => m.task_count > 0).length > 0 ? (
               filteredMembers
                 .filter((m) => m.task_count > 0)
@@ -184,8 +184,8 @@ const Team = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="inactive" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <TabsContent value="inactive" className="mt-4 sm:mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredMembers.filter((m) => m.task_count === 0).length > 0 ? (
               filteredMembers
                 .filter((m) => m.task_count === 0)

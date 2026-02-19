@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 type Invitation = Database["public"]["Tables"]["invitations"]["Row"] & {
   invited_by_profile?: {
@@ -13,10 +14,12 @@ type Invitation = Database["public"]["Tables"]["invitations"]["Row"] & {
 };
 
 export function useInvitations() {
+  const { currentWorkspace } = useWorkspace();
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchInvitations = async () => {
+    if (!currentWorkspace) { setInvitations([]); setLoading(false); return; }
     try {
       const { data, error } = await supabase
         .from("invitations")
@@ -25,6 +28,7 @@ export function useInvitations() {
           invited_by_profile:profiles!invitations_invited_by_fkey(full_name),
           project:projects(name)
         `)
+        .eq("workspace_id", currentWorkspace.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -52,7 +56,7 @@ export function useInvitations() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [currentWorkspace?.id]);
 
   const createInvitation = async (
     email: string,
@@ -62,6 +66,7 @@ export function useInvitations() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
+      if (!currentWorkspace) throw new Error("Nenhum workspace selecionado");
 
       // Convite expira em 7 dias
       const expiresAt = new Date();
@@ -75,6 +80,7 @@ export function useInvitations() {
           project_id: projectId || null,
           role,
           expires_at: expiresAt.toISOString(),
+          workspace_id: currentWorkspace.id,
         })
         .select(`
           *,
@@ -155,12 +161,31 @@ export function useInvitations() {
     }
   };
 
+  const deleteInvitation = async (invitationId: string) => {
+    try {
+      const { error } = await supabase
+        .from("invitations")
+        .delete()
+        .eq("id", invitationId);
+
+      if (error) throw error;
+
+      toast.success("Convite excluído");
+      await fetchInvitations();
+      return true;
+    } catch (error: any) {
+      toast.error("Erro ao excluir convite: " + error.message);
+      return false;
+    }
+  };
+
   return {
     invitations,
     loading,
     createInvitation,
     cancelInvitation,
     resendInvitation,
+    deleteInvitation,
     refetch: fetchInvitations,
   };
 }

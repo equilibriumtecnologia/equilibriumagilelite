@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 type Project = Database["public"]["Tables"]["projects"]["Row"] & {
   category: Database["public"]["Tables"]["categories"]["Row"] | null;
@@ -15,11 +16,12 @@ type Project = Database["public"]["Tables"]["projects"]["Row"] & {
 };
 
 export function useProjects() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { currentWorkspace } = useWorkspace();
+  const queryClient = useQueryClient();
 
-  const fetchProjects = async () => {
-    try {
+  const { data: projects = [], isLoading: loading } = useQuery({
+    queryKey: ["projects", currentWorkspace?.id],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
         .select(`
@@ -32,40 +34,82 @@ export function useProjects() {
           ),
           tasks(*)
         `)
+        .eq("workspace_id", currentWorkspace!.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setProjects(data || []);
-    } catch (error: any) {
-      toast.error("Erro ao carregar projetos: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return (data || []) as Project[];
+    },
+    enabled: !!currentWorkspace?.id,
+  });
 
-  useEffect(() => {
-    fetchProjects();
+  const createProject = useMutation({
+    mutationFn: async (values: {
+      name: string;
+      description?: string;
+      category_id: string;
+      status: string;
+      deadline?: string | null;
+      criticality_level?: number;
+      created_by: string;
+      workspace_id: string;
+    }) => {
+      const { error } = await supabase.from("projects").insert({
+        name: values.name,
+        description: values.description || null,
+        category_id: values.category_id,
+        status: values.status as any,
+        deadline: values.deadline || null,
+        criticality_level: values.criticality_level,
+        created_by: values.created_by,
+        workspace_id: values.workspace_id,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast.success("Projeto criado com sucesso!");
+    },
+    onError: (error: Error) => {
+      toast.error("Erro ao criar projeto: " + error.message);
+    },
+  });
 
-    // Realtime subscription
-    const channel = supabase
-      .channel("projects-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "projects",
-        },
-        () => {
-          fetchProjects();
-        }
-      )
-      .subscribe();
+  const updateProject = useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
+      const { error } = await supabase
+        .from("projects")
+        .update(updates)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project"] });
+      toast.success("Projeto atualizado com sucesso!");
+    },
+    onError: (error: Error) => {
+      toast.error("Erro ao atualizar projeto: " + error.message);
+    },
+  });
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+  const deleteProject = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("projects")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project"] });
+      toast.success("Projeto excluído com sucesso!");
+    },
+    onError: (error: Error) => {
+      toast.error("Erro ao excluir projeto: " + error.message);
+    },
+  });
 
-  return { projects, loading, refetch: fetchProjects };
+  return { projects, loading, createProject, updateProject, deleteProject, refetch: () => queryClient.invalidateQueries({ queryKey: ["projects", currentWorkspace?.id] }) };
 }
