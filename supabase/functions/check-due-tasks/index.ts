@@ -21,8 +21,8 @@ interface TaskRow {
   assigned_to: string;
   status: string;
   project_id: string;
-  projects: { name: string } | null;
-  profiles: { full_name: string } | null;
+  projects: { name: string }[] | { name: string } | null;
+  profiles: { full_name: string }[] | { full_name: string } | null;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -92,7 +92,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Fetch existing notification logs to avoid duplicates
-    const taskIds = tasks.map((t: TaskRow) => t.id);
+    const taskIds = (tasks as unknown as TaskRow[]).map((t) => t.id);
     const { data: existingLogs } = await supabase
       .from("task_notification_log")
       .select("task_id, user_id, notification_type")
@@ -107,7 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
     let sentCount = 0;
     const errors: string[] = [];
 
-    for (const task of tasks as TaskRow[]) {
+    for (const task of tasks as unknown as TaskRow[]) {
       const dueDate = task.due_date;
       let notificationType: "due_soon" | "overdue";
 
@@ -135,8 +135,10 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       const recipientEmail = userData.user.email;
-      const recipientName = (task.profiles as { full_name: string } | null)?.full_name || "Usuário";
-      const projectName = (task.projects as { name: string } | null)?.name || "";
+      const profilesData = Array.isArray(task.profiles) ? task.profiles[0] : task.profiles;
+      const projectsData = Array.isArray(task.projects) ? task.projects[0] : task.projects;
+      const recipientName = profilesData?.full_name || "Usuário";
+      const projectName = projectsData?.name || "";
 
       // Build email
       const { subject, headerText, bodyContent } = buildEmailContent(
