@@ -28,7 +28,7 @@ export default function Sprints() {
     startSprint,
     completeSprint,
   } = useSprints(projectId);
-  const { tasks } = useTasks(projectId);
+  const { tasks = [] } = useTasks(projectId);
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
