@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
@@ -249,9 +249,11 @@ export function AppSidebar() {
               />
             </div>
             {!isMaster && plan.plan_slug === "free" && (
-              <p className="text-[10px] text-muted-foreground mt-2 leading-tight">
-                Faça upgrade para desbloquear mais recursos
-              </p>
+              <Link to="/pricing" className="block mt-2">
+                <Button variant="outline" size="sm" className="w-full h-7 text-[10px] border-primary/30 text-primary hover:bg-primary/10">
+                  <Crown className="h-3 w-3 mr-1" /> Fazer Upgrade
+                </Button>
+              </Link>
             )}
           </div>
         )}
