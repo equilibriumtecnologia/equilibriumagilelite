@@ -1,3 +1,4 @@
+import { useScrollFadeIn } from "@/hooks/useScrollFadeIn";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -75,6 +76,23 @@ const stats = [
   { value: "4", label: "Níveis de Permissão" },
 ];
 
+const FadeSection = ({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => {
+  const { ref, isVisible } = useScrollFadeIn(0.12);
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? "translateY(0)" : "translateY(32px)",
+        transition: `opacity 0.7s cubic-bezier(0.4,0,0.2,1) ${delay}s, transform 0.7s cubic-bezier(0.4,0,0.2,1) ${delay}s`,
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+
 const Landing = () => {
   return (
     <div className="min-h-screen bg-background">
@@ -106,6 +124,7 @@ const Landing = () => {
       </nav>
 
       {/* Hero Section */}
+      <FadeSection>
       <section className="relative overflow-hidden py-16 sm:py-24 md:py-32">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
         <div className="container mx-auto px-4 relative">
@@ -144,8 +163,10 @@ const Landing = () => {
           </div>
         </div>
       </section>
+      </FadeSection>
 
       {/* Stats Bar */}
+      <FadeSection>
       <section className="py-8 sm:py-12 border-y border-border bg-card/50">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
@@ -158,8 +179,10 @@ const Landing = () => {
           </div>
         </div>
       </section>
+      </FadeSection>
 
       {/* Features Grid */}
+      <FadeSection>
       <section className="py-16 sm:py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12 sm:mb-16">
@@ -188,8 +211,10 @@ const Landing = () => {
           </div>
         </div>
       </section>
+      </FadeSection>
 
       {/* How it works */}
+      <FadeSection>
       <section className="py-16 sm:py-24 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
@@ -212,8 +237,10 @@ const Landing = () => {
           </div>
         </div>
       </section>
+      </FadeSection>
 
       {/* Benefits */}
+      <FadeSection>
       <section className="py-16 sm:py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
@@ -239,8 +266,10 @@ const Landing = () => {
           </div>
         </div>
       </section>
+      </FadeSection>
 
       {/* Pricing Preview */}
+      <FadeSection>
       <section className="py-16 sm:py-24 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
@@ -281,8 +310,10 @@ const Landing = () => {
           </div>
         </div>
       </section>
+      </FadeSection>
 
       {/* CTA */}
+      <FadeSection>
       <section className="py-16 sm:py-24 bg-gradient-hero relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(0,0,0,0.3)_100%)]" />
         <div className="container mx-auto px-4 relative">
@@ -304,6 +335,7 @@ const Landing = () => {
           </div>
         </div>
       </section>
+      </FadeSection>
 
       {/* Footer */}
       <footer className="border-t border-border py-8 bg-card safe-bottom">
