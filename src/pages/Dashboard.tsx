@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -8,14 +9,61 @@ import {
   Clock, 
   AlertCircle,
   TrendingUp,
-  ChevronRight
+  ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
 import { useProjects } from "@/hooks/useProjects";
+import { useUserPlan } from "@/hooks/useUserPlan";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { useWorkspaceMembers } from "@/hooks/useWorkspaceMembers";
+
+function usePlanWarnings() {
+  const { plan, isMaster } = useUserPlan();
+  const { projects } = useProjects();
+  const { workspaces } = useWorkspace();
+  const { members } = useWorkspaceMembers();
+
+  if (!plan || isMaster) return [];
+
+  const warnings: string[] = [];
+  const threshold = 0.8;
+
+  const projMax = plan.max_projects_per_workspace;
+  if (projMax < 999 && projects.length >= projMax * threshold) {
+    warnings.push(
+      projects.length >= projMax
+        ? `Você atingiu o limite de ${projMax} projeto(s). Faça upgrade para criar mais.`
+        : `Você está usando ${projects.length}/${projMax} projetos neste workspace.`
+    );
+  }
+
+  const invMax = plan.max_invites_per_workspace;
+  const memberCount = members.filter((m) => m.role !== "owner").length;
+  if (invMax < 999 && memberCount >= invMax * threshold) {
+    warnings.push(
+      memberCount >= invMax
+        ? `Limite de ${invMax} convite(s) atingido. Faça upgrade para convidar mais membros.`
+        : `Você está usando ${memberCount}/${invMax} convites neste workspace.`
+    );
+  }
+
+  const wsMax = plan.max_workspaces;
+  if (wsMax < 999 && workspaces.length >= wsMax * threshold) {
+    warnings.push(
+      workspaces.length >= wsMax
+        ? `Limite de ${wsMax} workspace(s) atingido.`
+        : `Você está usando ${workspaces.length}/${wsMax} workspaces.`
+    );
+  }
+
+  return warnings;
+}
 
 const Dashboard = () => {
   const { projects, loading } = useProjects();
   const navigate = useNavigate();
+  const warnings = usePlanWarnings();
 
   const totalProjects = projects.length;
   const completedTasks = projects.reduce((acc, p) => 
@@ -36,6 +84,25 @@ const Dashboard = () => {
 
   return (
     <div className="px-3 sm:px-4 md:px-8 py-4 sm:py-6 md:py-8 space-y-6 md:space-y-8">
+        {/* Plan Limit Warnings */}
+        {warnings.length > 0 && (
+          <div className="space-y-2">
+            {warnings.map((msg, i) => (
+              <Alert key={i} variant="destructive" className="bg-warning/10 border-warning/30 text-foreground">
+                <AlertTriangle className="h-4 w-4 text-warning" />
+                <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <span className="text-sm flex-1">{msg}</span>
+                  <Link to="/pricing">
+                    <Button variant="outline" size="sm" className="text-xs h-7 border-warning/40 hover:bg-warning/10">
+                      Ver Planos
+                    </Button>
+                  </Link>
+                </AlertDescription>
+              </Alert>
+            ))}
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
           <div>
