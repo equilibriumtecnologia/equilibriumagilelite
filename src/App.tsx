@@ -8,6 +8,7 @@ import { WorkspaceProvider } from "@/contexts/WorkspaceContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Landing from "./pages/Landing";
+import Pricing from "./pages/Pricing";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import AuthCallback from "./pages/auth/AuthCallback";
@@ -37,6 +38,7 @@ const App = () => (
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Landing />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
