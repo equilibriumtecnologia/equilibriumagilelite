@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
+import { DashboardReportCards } from "@/components/dashboard/DashboardReportCards";
 import { useProjects } from "@/hooks/useProjects";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -277,6 +278,9 @@ const Dashboard = () => {
             </div>
           </Card>
         </div>
+
+        {/* Report Cards - conditional rendering */}
+        <DashboardReportCards />
       </div>
   );
 };
