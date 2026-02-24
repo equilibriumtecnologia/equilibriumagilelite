@@ -11,6 +11,7 @@ import {
   Mail,
   ChevronsUpDown,
   Building2,
+  Crown,
 } from "lucide-react";
 import {
   Sidebar,
@@ -31,6 +32,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserPlan } from "@/hooks/useUserPlan";
+import { useProjects } from "@/hooks/useProjects";
+import { useWorkspaceMembers } from "@/hooks/useWorkspaceMembers";
+import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,12 +66,35 @@ const adminMenuItems = [
   { title: "Convites", url: "/invitations", icon: Mail },
 ];
 
+function PlanUsageBar({ label, current, max }: { label: string; current: number; max: number }) {
+  const isUnlimited = max >= 999;
+  const pct = isUnlimited ? 0 : max > 0 ? Math.min((current / max) * 100, 100) : 0;
+  const atLimit = !isUnlimited && current >= max;
+
+  return (
+    <div className="space-y-0.5">
+      <div className="flex justify-between text-[10px] text-muted-foreground">
+        <span>{label}</span>
+        <span className={atLimit ? "text-destructive font-medium" : ""}>
+          {current}/{isUnlimited ? "∞" : max}
+        </span>
+      </div>
+      {!isUnlimited && (
+        <Progress value={pct} className="h-1" />
+      )}
+    </div>
+  );
+}
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { role, canManageInvitations } = useUserRole();
   const { workspaces, currentWorkspace, switchWorkspace } = useWorkspace();
+  const { plan, isMaster } = useUserPlan();
+  const { projects } = useProjects();
+  const { members } = useWorkspaceMembers();
   const [profileName, setProfileName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
@@ -178,6 +207,58 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {/* Plan Usage Indicator */}
+        {!isCollapsed && plan && (
+          <div className="px-4 py-3 border-t border-sidebar-border">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Crown className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-semibold text-sidebar-foreground">
+                {plan.plan_name}
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {/* Projects usage */}
+              <PlanUsageBar
+                label="Projetos"
+                current={projects.length}
+                max={plan.max_projects_per_workspace}
+              />
+              {/* Members usage */}
+              <PlanUsageBar
+                label="Membros"
+                current={members.filter(m => m.role !== "owner").length}
+                max={plan.max_invites_per_workspace}
+              />
+              {/* Workspaces usage */}
+              <PlanUsageBar
+                label="Workspaces"
+                current={workspaces.length}
+                max={plan.max_workspaces}
+              />
+            </div>
+            {!isMaster && plan.plan_slug === "free" && (
+              <p className="text-[10px] text-muted-foreground mt-2 leading-tight">
+                Faça upgrade para desbloquear mais recursos
+              </p>
+            )}
+          </div>
+        )}
+        {isCollapsed && plan && (
+          <div className="px-2 py-2 border-t border-sidebar-border flex justify-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center justify-center">
+                  <Crown className="h-4 w-4 text-primary" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="text-xs">
+                <p className="font-semibold">{plan.plan_name}</p>
+                <p>Projetos: {projects.length}/{plan.max_projects_per_workspace === 999 ? "∞" : plan.max_projects_per_workspace}</p>
+                <p>Membros: {members.filter(m => m.role !== "owner").length}/{plan.max_invites_per_workspace === 999 ? "∞" : plan.max_invites_per_workspace}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-4">
