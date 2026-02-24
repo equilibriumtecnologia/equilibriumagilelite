@@ -1,15 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  ArrowRight,
-  CheckCircle2,
-  LayoutDashboard,
-  Users,
-  Zap,
-  FolderKanban,
-  Shield,
-  BarChart3,
-} from "lucide-react";
+import { ArrowRight, CheckCircle2, LayoutDashboard, Users, Zap, FolderKanban, Shield, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-dashboard.jpg";
 import { PoweredByEquilibrium } from "@/components/layout/PoweredByEquilibrium";
@@ -70,15 +61,19 @@ const Landing = () => {
             <div className="flex items-center gap-2">
               <LayoutDashboard className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               <span className="text-base sm:text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                ALE
+                Agile Lite
               </span>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
               <Link to="/pricing">
-                <Button variant="ghost" size="sm">Planos</Button>
+                <Button variant="ghost" size="sm">
+                  Planos
+                </Button>
               </Link>
               <Link to="/login">
-                <Button variant="ghost" size="sm">Entrar</Button>
+                <Button variant="ghost" size="sm">
+                  Entrar
+                </Button>
               </Link>
               <Link to="/signup">
                 <Button variant="hero" size="sm">
@@ -104,7 +99,8 @@ const Landing = () => {
                 <br className="hidden sm:block" /> Simplicidade e Controle
               </h1>
               <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
-                Plataforma completa de gestão ágil com workspaces, Kanban, sprints, permissões granulares e relatórios — tudo em um só lugar.
+                Plataforma completa de gestão ágil com workspaces, Kanban, sprints, permissões granulares e relatórios —
+                tudo em um só lugar.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
                 <Link to="/signup">
@@ -133,9 +129,7 @@ const Landing = () => {
       <section className="py-12 sm:py-20 bg-gradient-card">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="text-center mb-8 sm:mb-14">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
-              Tudo que sua equipe precisa
-            </h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Tudo que sua equipe precisa</h2>
             <p className="text-sm sm:text-lg text-muted-foreground max-w-xl mx-auto">
               Ferramentas poderosas com interface simples e intuitiva
             </p>
@@ -147,7 +141,9 @@ const Landing = () => {
                 key={i}
                 className="bg-card rounded-xl p-5 sm:p-6 shadow-sm hover:shadow-md transition-all border border-border group"
               >
-                <div className={`w-10 h-10 ${feature.gradient} rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                <div
+                  className={`w-10 h-10 ${feature.gradient} rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}
+                >
                   <feature.icon className="h-5 w-5 text-white" />
                 </div>
                 <h3 className="text-base sm:text-lg font-semibold mb-1.5">{feature.title}</h3>
@@ -188,12 +184,8 @@ const Landing = () => {
       <section className="py-12 sm:py-20 bg-muted/30">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
-              Planos que crescem com você
-            </h2>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Comece grátis, escale quando precisar
-            </p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">Planos que crescem com você</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">Comece grátis, escale quando precisar</p>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
@@ -249,8 +241,15 @@ const Landing = () => {
         <div className="container mx-auto px-3 sm:px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <Link to="/pricing" className="hover:text-foreground transition-colors">Planos</Link>
-              <a href="mailto:contato@agilelite.equilibriumtecnologia.com.br" className="hover:text-foreground transition-colors">Contato</a>
+              <Link to="/pricing" className="hover:text-foreground transition-colors">
+                Planos
+              </Link>
+              <a
+                href="mailto:contato@agilelite.equilibriumtecnologia.com.br"
+                className="hover:text-foreground transition-colors"
+              >
+                Contato
+              </a>
             </div>
             <div className="text-center text-muted-foreground text-xs sm:text-sm">
               <p>&copy; {new Date().getFullYear()} Agile Lite Equilibrium. Todos os direitos reservados.</p>
