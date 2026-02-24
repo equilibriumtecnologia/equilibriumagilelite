@@ -53,7 +53,7 @@ export default function Backlog() {
   );
 
   const backlogTasks = useMemo(() => {
-    let filtered = tasks.filter((t) => !t.sprint_id);
+    let filtered = (tasks ?? []).filter((t) => !t.sprint_id);
     if (search) {
       filtered = filtered.filter((t) =>
         t.title.toLowerCase().includes(search.toLowerCase()) ||
