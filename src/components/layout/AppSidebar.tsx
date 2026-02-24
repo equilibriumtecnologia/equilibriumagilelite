@@ -12,6 +12,7 @@ import {
   ChevronsUpDown,
   Building2,
   Crown,
+  Plus,
 } from "lucide-react";
 import {
   Sidebar,
@@ -37,6 +38,8 @@ import { useProjects } from "@/hooks/useProjects";
 import { useWorkspaceMembers } from "@/hooks/useWorkspaceMembers";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { CreateWorkspaceDialog } from "@/components/workspace/CreateWorkspaceDialog";
+import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -178,6 +181,15 @@ export function AppSidebar() {
                     <span className="truncate">{ws.name}</span>
                   </DropdownMenuItem>
                 ))}
+                <DropdownMenuSeparator />
+                <CreateWorkspaceDialog
+                  trigger={
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      <span>Novo Workspace</span>
+                    </DropdownMenuItem>
+                  }
+                />
               </DropdownMenuContent>
             </DropdownMenu>
           )}
