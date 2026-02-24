@@ -196,18 +196,27 @@ const Landing = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto">
-            {features.map((feature, i) => (
-              <div
-                key={i}
-                className="group bg-card rounded-xl p-5 sm:p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
-              >
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <feature.icon className="h-5 w-5 text-primary" />
+            {features.map((feature, i) => {
+              const { ref, isVisible } = useScrollFadeIn(0.1);
+              return (
+                <div
+                  key={i}
+                  ref={ref}
+                  className="group bg-card rounded-xl p-5 sm:p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
+                  style={{
+                    opacity: isVisible ? 1 : 0,
+                    transform: isVisible ? "translateY(0)" : "translateY(24px)",
+                    transition: `opacity 0.5s cubic-bezier(0.4,0,0.2,1) ${i * 0.1}s, transform 0.5s cubic-bezier(0.4,0,0.2,1) ${i * 0.1}s`,
+                  }}
+                >
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                    <feature.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
                 </div>
-                <h3 className="font-semibold mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
