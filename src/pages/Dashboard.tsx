@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -11,17 +12,19 @@ import {
   TrendingUp,
   ChevronRight,
   AlertTriangle,
+  X,
 } from "lucide-react";
 import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
 import { useProjects } from "@/hooks/useProjects";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useWorkspaceMembers } from "@/hooks/useWorkspaceMembers";
+import { useAuth } from "@/contexts/AuthContext";
 
 function usePlanWarnings() {
   const { plan, isMaster } = useUserPlan();
   const { projects } = useProjects();
-  const { workspaces } = useWorkspace();
+  const { currentWorkspace } = useWorkspace();
   const { members } = useWorkspaceMembers();
 
   if (!plan || isMaster) return [];
@@ -48,22 +51,49 @@ function usePlanWarnings() {
     );
   }
 
-  const wsMax = plan.max_workspaces;
-  if (wsMax < 999 && workspaces.length >= wsMax * threshold) {
-    warnings.push(
-      workspaces.length >= wsMax
-        ? `Limite de ${wsMax} workspace(s) atingido.`
-        : `Você está usando ${workspaces.length}/${wsMax} workspaces.`
-    );
-  }
+  // Workspace limit: count only workspaces where the user is owner (created by them)
+  // Guest workspaces (where user was invited) don't count against the owner's limit
+  const ownedWsCount = currentWorkspace ? 1 : 0; // This warning is contextual to current workspace
+  // We skip the workspace count warning here since the user only sees workspaces
+  // they are a member of, not all workspaces. The limit is enforced server-side.
 
   return warnings;
+}
+
+function useDismissedWarnings() {
+  const { user } = useAuth();
+  const storageKey = user ? `dismissed_warnings_${user.id}` : null;
+
+  const [dismissed, setDismissed] = useState<Set<string>>(() => {
+    if (!storageKey) return new Set();
+    try {
+      const stored = sessionStorage.getItem(storageKey);
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
+  const dismiss = useCallback((msg: string) => {
+    setDismissed((prev) => {
+      const next = new Set(prev);
+      next.add(msg);
+      if (storageKey) {
+        sessionStorage.setItem(storageKey, JSON.stringify([...next]));
+      }
+      return next;
+    });
+  }, [storageKey]);
+
+  return { dismissed, dismiss };
 }
 
 const Dashboard = () => {
   const { projects, loading } = useProjects();
   const navigate = useNavigate();
   const warnings = usePlanWarnings();
+  const { dismissed, dismiss } = useDismissedWarnings();
+  const visibleWarnings = warnings.filter((w) => !dismissed.has(w));
 
   const totalProjects = projects.length;
   const completedTasks = projects.reduce((acc, p) => 
@@ -85,18 +115,29 @@ const Dashboard = () => {
   return (
     <div className="px-3 sm:px-4 md:px-8 py-4 sm:py-6 md:py-8 space-y-6 md:space-y-8">
         {/* Plan Limit Warnings */}
-        {warnings.length > 0 && (
+        {visibleWarnings.length > 0 && (
           <div className="space-y-2">
-            {warnings.map((msg, i) => (
+            {visibleWarnings.map((msg, i) => (
               <Alert key={i} variant="destructive" className="bg-warning/10 border-warning/30 text-foreground">
                 <AlertTriangle className="h-4 w-4 text-warning" />
                 <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <span className="text-sm flex-1">{msg}</span>
-                  <Link to="/pricing">
-                    <Button variant="outline" size="sm" className="text-xs h-7 border-warning/40 hover:bg-warning/10">
-                      Ver Planos
+                  <div className="flex items-center gap-1">
+                    <Link to="/pricing">
+                      <Button variant="outline" size="sm" className="text-xs h-7 border-warning/40 hover:bg-warning/10">
+                        Ver Planos
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      onClick={() => dismiss(msg)}
+                      title="Marcar como lido"
+                    >
+                      <X className="h-3.5 w-3.5" />
                     </Button>
-                  </Link>
+                  </div>
                 </AlertDescription>
               </Alert>
             ))}
