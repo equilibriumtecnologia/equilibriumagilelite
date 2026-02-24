@@ -68,6 +68,16 @@ export function useInvitations() {
       if (!user) throw new Error("Usuário não autenticado");
       if (!currentWorkspace) throw new Error("Nenhum workspace selecionado");
 
+      // Check invite limit via RPC
+      const { data: canInvite } = await supabase.rpc("check_invite_limit", {
+        _user_id: user.id,
+        _workspace_id: currentWorkspace.id,
+      });
+      if (!canInvite) {
+        toast.error("Limite de convites atingido para este workspace. Faça upgrade do seu plano para convidar mais membros.");
+        return false;
+      }
+
       // Convite expira em 7 dias
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);

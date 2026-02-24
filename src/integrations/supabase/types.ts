@@ -462,6 +462,10 @@ export type Database = {
           features: Json
           id: string
           is_active: boolean
+          max_created_workspaces: number
+          max_guest_workspaces: number
+          max_invites_per_workspace: number
+          max_projects_per_workspace: number
           max_users_per_workspace: number
           max_workspaces: number
           name: string
@@ -475,6 +479,10 @@ export type Database = {
           features?: Json
           id?: string
           is_active?: boolean
+          max_created_workspaces?: number
+          max_guest_workspaces?: number
+          max_invites_per_workspace?: number
+          max_projects_per_workspace?: number
           max_users_per_workspace?: number
           max_workspaces?: number
           name: string
@@ -488,6 +496,10 @@ export type Database = {
           features?: Json
           id?: string
           is_active?: boolean
+          max_created_workspaces?: number
+          max_guest_workspaces?: number
+          max_invites_per_workspace?: number
+          max_projects_per_workspace?: number
           max_users_per_workspace?: number
           max_workspaces?: number
           name?: string
@@ -896,6 +908,19 @@ export type Database = {
       accept_invitation: {
         Args: { _token: string; _user_id: string }
         Returns: Json
+      }
+      check_can_create_workspace: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
+      check_can_join_workspace: { Args: { _user_id: string }; Returns: boolean }
+      check_invite_limit: {
+        Args: { _user_id: string; _workspace_id: string }
+        Returns: boolean
+      }
+      check_project_limit: {
+        Args: { _user_id: string; _workspace_id: string }
+        Returns: boolean
       }
       check_workspace_limit: { Args: { _user_id: string }; Returns: boolean }
       check_workspace_user_limit: {
