@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +34,7 @@ export function AddMemberDialog({
   currentMembers,
   onSuccess,
 }: AddMemberDialogProps) {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<Profile[]>([]);
@@ -45,6 +47,17 @@ export function AddMemberDialog({
   }, [open]);
 
   const fetchUsers = async () => {
+    // Fetch actual current members directly from DB (fresh, not cached)
+    const { data: dbMembers } = await supabase
+      .from("project_members")
+      .select("user_id")
+      .eq("project_id", projectId);
+
+    const memberIds = new Set([
+      ...currentMembers,
+      ...(dbMembers?.map((m) => m.user_id) || []),
+    ]);
+
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
@@ -55,8 +68,7 @@ export function AddMemberDialog({
       return;
     }
 
-    // Filtrar usuários que já são membros
-    const availableUsers = data.filter((u) => !currentMembers.includes(u.id));
+    const availableUsers = data.filter((u) => !memberIds.has(u.id));
     setUsers(availableUsers);
   };
 
@@ -75,11 +87,22 @@ export function AddMemberDialog({
         role: "member",
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle duplicate key gracefully
+        if (error.code === "23505") {
+          toast.info("Este usuário já é membro do projeto. Atualizando lista...");
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success("Membro adicionado com sucesso!");
+      }
 
-      toast.success("Membro adicionado com sucesso!");
       setOpen(false);
       setSelectedUserId("");
+      // Force refetch all related queries
+      queryClient.invalidateQueries({ queryKey: ["project", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       onSuccess?.();
     } catch (error: any) {
       toast.error("Erro ao adicionar membro: " + error.message);

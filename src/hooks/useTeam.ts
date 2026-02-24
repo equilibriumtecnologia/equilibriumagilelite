@@ -5,10 +5,11 @@ import type { Database } from "@/integrations/supabase/types";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-type UserRole = Database["public"]["Tables"]["user_roles"]["Row"];
+type WorkspaceMember = Database["public"]["Tables"]["workspace_members"]["Row"];
 
 export type TeamMember = Profile & {
-  roles: UserRole[];
+  roles: { role: string; user_id: string }[];
+  workspace_role: string;
   project_count: number;
   task_count: number;
   completed_task_count: number;
@@ -41,12 +42,13 @@ export function useTeam() {
 
       if (profilesError) throw profilesError;
 
-      // Buscar roles de cada usuário
-      const { data: roles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("*");
+      // Buscar roles do workspace (não globais)
+      const { data: wsRoles, error: wsRolesError } = await supabase
+        .from("workspace_members")
+        .select("user_id, role")
+        .eq("workspace_id", currentWorkspace.id);
 
-      if (rolesError) throw rolesError;
+      if (wsRolesError) throw wsRolesError;
 
       // Buscar contagem de projetos por usuário
       const { data: projectCounts, error: projectCountsError } = await supabase
@@ -64,7 +66,7 @@ export function useTeam() {
 
       // Montar dados dos membros
       const teamMembers: TeamMember[] = profiles.map((profile) => {
-        const userRoles = roles.filter((r) => r.user_id === profile.id);
+        const wsRole = wsRoles.find((r) => r.user_id === profile.id);
         const projectCount = projectCounts.filter((pc) => pc.user_id === profile.id).length;
         const userTasks = tasks.filter((t) => t.assigned_to === profile.id);
         const taskCount = userTasks.length;
@@ -72,7 +74,8 @@ export function useTeam() {
 
         return {
           ...profile,
-          roles: userRoles,
+          roles: wsRole ? [{ role: wsRole.role, user_id: wsRole.user_id }] : [],
+          workspace_role: wsRole?.role || "member",
           project_count: projectCount,
           task_count: taskCount,
           completed_task_count: completedTaskCount,
@@ -101,10 +104,10 @@ export function useTeam() {
       .subscribe();
 
     const rolesChannel = supabase
-      .channel("roles-changes")
+      .channel("ws-members-changes")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "user_roles" },
+        { event: "*", schema: "public", table: "workspace_members" },
         () => fetchTeam()
       )
       .subscribe();

@@ -19,6 +19,8 @@ import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useProjects } from "@/hooks/useProjects";
 import { useCategories } from "@/hooks/useCategories";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserPlan } from "@/hooks/useUserPlan";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres").max(100),
@@ -37,6 +39,7 @@ export function CreateProjectDialog() {
   const { user } = useAuth();
   const { createProject } = useProjects();
   const { categories } = useCategories();
+  const { checkProjectLimit, plan } = useUserPlan();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -52,6 +55,12 @@ export function CreateProjectDialog() {
   const onSubmit = async (values: FormData) => {
     if (!user || !currentWorkspace) return;
 
+    // Check project limit
+    const canCreate = await checkProjectLimit(currentWorkspace.id);
+    if (!canCreate) {
+      toast.error("Limite de projetos atingido para este workspace. Faça upgrade do seu plano para criar mais projetos.");
+      return;
+    }
     await createProject.mutateAsync({
       name: values.name,
       description: values.description,

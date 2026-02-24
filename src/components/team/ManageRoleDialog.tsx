@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useWorkspaceMembers } from "@/hooks/useWorkspaceMembers";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,79 +28,45 @@ interface ManageRoleDialogProps {
 
 export function ManageRoleDialog({ member, onSuccess }: ManageRoleDialogProps) {
   const { user } = useAuth();
+  const { members, updateRole } = useWorkspaceMembers();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<string>(member.roles[0]?.role || "user");
-  const [currentUserRole, setCurrentUserRole] = useState<string>("user");
+
+  // Find the workspace member record for this team member
+  const workspaceMember = members.find((m) => m.user_id === member.id);
+  const currentUserWsMember = members.find((m) => m.user_id === user?.id);
+
+  const currentWsRole = workspaceMember?.role || "member";
+  const [selectedRole, setSelectedRole] = useState<string>(currentWsRole);
 
   useEffect(() => {
-    const fetchCurrentUserRole = async () => {
-      if (!user) return;
-
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .single();
-
-      if (data) {
-        setCurrentUserRole(data.role);
-      }
-    };
-
-    fetchCurrentUserRole();
-  }, [user]);
-
-  useEffect(() => {
-    if (open && member.roles.length > 0) {
-      setSelectedRole(member.roles[0].role);
+    if (open && workspaceMember) {
+      setSelectedRole(workspaceMember.role);
     }
-  }, [open, member.roles]);
+  }, [open, workspaceMember]);
 
-  // Verificar se usuário atual pode gerenciar roles
-  const canManageRoles = currentUserRole === "admin" || currentUserRole === "master";
-  const isOwnProfile = user?.id === member.id;
-  const isMaster = member.roles.some((r) => r.role === "master");
+  const isOwner = currentUserWsMember?.role === "owner";
+  const isAdmin = currentUserWsMember?.role === "admin";
+  const isSelf = user?.id === member.id;
+  const targetIsOwner = workspaceMember?.role === "owner";
 
-  // Master não pode ter role alterada por ninguém
-  // Admin não pode alterar outro admin ou master
-  const canEditThisMember = 
-    canManageRoles && 
-    !isOwnProfile && 
-    !isMaster &&
-    (currentUserRole === "master" || member.roles[0]?.role === "user");
+  // Owner can edit non-owner, non-self members
+  // Admin cannot edit roles (only owner can in workspace-settings)
+  const canEditThisMember = isOwner && !isSelf && !targetIsOwner && !!workspaceMember;
 
   if (!canEditThisMember) {
     return null;
   }
 
   const handleSave = async () => {
+    if (!workspaceMember) return;
     setLoading(true);
-
     try {
-      // Remover role atual
-      const { error: deleteError } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", member.id);
-
-      if (deleteError) throw deleteError;
-
-      // Adicionar nova role
-      const { error: insertError } = await supabase
-        .from("user_roles")
-        .insert({
-          user_id: member.id,
-          role: selectedRole as any,
-        });
-
-      if (insertError) throw insertError;
-
-      toast.success("Role atualizada com sucesso!");
-      setOpen(false);
-      onSuccess?.();
-    } catch (error: any) {
-      toast.error("Erro ao atualizar role: " + error.message);
+      const success = await updateRole(workspaceMember.id, selectedRole);
+      if (success) {
+        setOpen(false);
+        onSuccess?.();
+      }
     } finally {
       setLoading(false);
     }
@@ -118,7 +83,7 @@ export function ManageRoleDialog({ member, onSuccess }: ManageRoleDialogProps) {
         <DialogHeader>
           <DialogTitle>Gerenciar Permissões</DialogTitle>
           <DialogDescription>
-            Alterar nível de acesso de {member.full_name}
+            Alterar nível de acesso de {member.full_name} no workspace
           </DialogDescription>
         </DialogHeader>
 
@@ -130,24 +95,30 @@ export function ManageRoleDialog({ member, onSuccess }: ManageRoleDialogProps) {
                 <SelectValue placeholder="Selecione uma role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="user">
+                <SelectItem value="admin">
                   <div className="flex items-center gap-2">
-                    <span>Usuário</span>
+                    <span>Admin</span>
+                    <span className="text-xs text-muted-foreground">
+                      - Gerenciar projetos e membros
+                    </span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="member">
+                  <div className="flex items-center gap-2">
+                    <span>Membro</span>
                     <span className="text-xs text-muted-foreground">
                       - Acesso padrão
                     </span>
                   </div>
                 </SelectItem>
-                {currentUserRole === "master" && (
-                  <SelectItem value="admin">
-                    <div className="flex items-center gap-2">
-                      <span>Admin</span>
-                      <span className="text-xs text-muted-foreground">
-                        - Gerenciar projetos e usuários
-                      </span>
-                    </div>
-                  </SelectItem>
-                )}
+                <SelectItem value="viewer">
+                  <div className="flex items-center gap-2">
+                    <span>Viewer</span>
+                    <span className="text-xs text-muted-foreground">
+                      - Somente visualização
+                    </span>
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -158,9 +129,9 @@ export function ManageRoleDialog({ member, onSuccess }: ManageRoleDialogProps) {
               <div>
                 <p className="font-medium">Sobre Permissões</p>
                 <ul className="text-muted-foreground text-xs space-y-1 mt-1">
-                  <li>• <strong>Usuário:</strong> Acesso básico, gerencia próprias tarefas</li>
-                  <li>• <strong>Admin:</strong> Gerencia projetos e pode promover usuários</li>
-                  <li>• <strong>Master:</strong> Controle total do sistema</li>
+                  <li>• <strong>Admin:</strong> Gerencia projetos, membros e configurações</li>
+                  <li>• <strong>Membro:</strong> Acesso padrão, cria e gerencia próprias tarefas</li>
+                  <li>• <strong>Viewer:</strong> Somente visualização, sem criação de conteúdo</li>
                 </ul>
               </div>
             </div>
