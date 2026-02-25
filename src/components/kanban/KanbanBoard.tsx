@@ -18,6 +18,7 @@ import { StatusChangeDialog } from "./StatusChangeDialog";
 import { WIPLimitSettings } from "./WIPLimitSettings";
 import { KanbanFilters, FilterState } from "./KanbanFilters";
 import { useBoardSettings } from "@/hooks/useBoardSettings";
+import { useProjectRole } from "@/hooks/useProjectRole";
 import { isToday, isThisWeek, isBefore, startOfDay } from "date-fns";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"] & {
@@ -61,6 +62,7 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
   });
 
   const { getWipLimit, getWipStatus } = useBoardSettings(projectId);
+  const { canCreateTasks } = useProjectRole(projectId);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -131,7 +133,7 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
     const newStatus = over.id as TaskStatus;
 
     const task = tasks.find((t) => t.id === taskId);
-    if (!task || task.status === newStatus) return;
+    if (!task || task.status === newStatus || !canCreateTasks) return;
 
     // Check WIP limit before allowing drop
     const newColumnCount = tasksByStatus[newStatus].length;
