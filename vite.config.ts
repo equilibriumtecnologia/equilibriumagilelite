@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => ({
       },
       manifest: {
         name: "Agile Lite Equilibrium",
-        short_name: "ALE",
+        short_name: "Agile Lite",
         description: "Sistema completo de gestão de projetos e atividades",
         theme_color: "#000823",
         background_color: "#000823",

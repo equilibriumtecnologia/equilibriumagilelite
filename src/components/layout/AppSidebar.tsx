@@ -106,7 +106,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { role, canManageInvitations } = useUserRole();
+  const { role, workspaceRole, canManageInvitations } = useUserRole();
   const { workspaces, currentWorkspace, switchWorkspace } = useWorkspace();
   const { plan, isMaster } = useUserPlan();
   const { projects } = useProjects();
@@ -320,12 +320,12 @@ export function AppSidebar() {
               </Avatar>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium truncate">{displayName}</p>
-                {role && (
+                {(workspaceRole || role) && (
                   <Badge
                     variant="outline"
                     className="text-[10px] px-1.5 py-0 mt-0.5"
                   >
-                    {roleLabels[role] || role}
+                    {roleLabels[workspaceRole || role || ""] || workspaceRole || role}
                   </Badge>
                 )}
               </div>

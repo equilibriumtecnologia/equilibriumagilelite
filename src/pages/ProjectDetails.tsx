@@ -21,6 +21,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useProject } from "@/hooks/useProject";
 import { useSprints } from "@/hooks/useSprints";
+import { useProjectRole } from "@/hooks/useProjectRole";
 import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
 import { AddMemberDialog } from "@/components/projects/AddMemberDialog";
 import { RemoveMemberDialog } from "@/components/projects/RemoveMemberDialog";
@@ -50,6 +51,7 @@ const ProjectDetails = () => {
   const { id } = useParams<{ id: string }>();
   const { project, loading, refetch } = useProject(id);
   const { activeSprint, sprints } = useSprints(id);
+  const { canManageProject, canCreateTasks, canManageMembers, canDeleteAnyTask } = useProjectRole(id);
 
   if (loading) {
     return (
@@ -94,14 +96,16 @@ const ProjectDetails = () => {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2 flex-wrap">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold truncate">{project.name}</h1>
-              <div className="flex items-center gap-1">
-                <EditProjectDialog project={project} onSuccess={refetch} />
-                <DeleteProjectDialog
-                  projectId={project.id}
-                  projectName={project.name}
-                  onSuccess={() => (window.location.href = "/projects")}
-                />
-              </div>
+              {canManageProject && (
+                <div className="flex items-center gap-1">
+                  <EditProjectDialog project={project} onSuccess={refetch} />
+                  <DeleteProjectDialog
+                    projectId={project.id}
+                    projectName={project.name}
+                    onSuccess={() => (window.location.href = "/projects")}
+                  />
+                </div>
+              )}
             </div>
             <p className="text-sm text-muted-foreground line-clamp-2">
               {project.description || "Sem descrição"}
@@ -127,9 +131,11 @@ const ProjectDetails = () => {
                   Backlog
                 </Link>
               </Button>
-              <CreateTaskDialog projectId={project.id}>
-                <Button variant="hero" size="sm">Nova Tarefa</Button>
-              </CreateTaskDialog>
+              {canCreateTasks && (
+                <CreateTaskDialog projectId={project.id}>
+                  <Button variant="hero" size="sm">Nova Tarefa</Button>
+                </CreateTaskDialog>
+              )}
             </div>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -269,13 +275,15 @@ const ProjectDetails = () => {
                 <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 Equipe
               </h3>
-              <AddMemberDialog
-                projectId={project.id}
-                currentMembers={
-                  project.project_members?.map((m) => m.user_id) || []
-                }
-                onSuccess={refetch}
-              />
+              {canManageMembers && (
+                <AddMemberDialog
+                  projectId={project.id}
+                  currentMembers={
+                    project.project_members?.map((m) => m.user_id) || []
+                  }
+                  onSuccess={refetch}
+                />
+              )}
             </div>
 
             <div className="space-y-2 sm:space-y-3">
@@ -302,7 +310,7 @@ const ProjectDetails = () => {
                       </p>
                     </div>
                   </div>
-                  {member.role !== "owner" && (
+                  {member.role !== "owner" && canManageMembers && (
                     <RemoveMemberDialog
                       projectId={project.id}
                       userId={member.user_id}
