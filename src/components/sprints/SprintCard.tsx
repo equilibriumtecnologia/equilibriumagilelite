@@ -109,45 +109,47 @@ export function SprintCard({
             </CardDescription>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {sprint.status === "planning" && onStart && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStart(); }}>
-                  <Play className="h-4 w-4 mr-2" />
-                  Iniciar Sprint
-                </DropdownMenuItem>
-              )}
-              {sprint.status === "active" && onComplete && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onComplete(); }}>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Finalizar Sprint
-                </DropdownMenuItem>
-              )}
-              {onEdit && (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar
-                </DropdownMenuItem>
-              )}
-              {onDelete && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-destructive"
-                    onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Excluir
+          {(onEdit || onDelete || onStart || onComplete) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {sprint.status === "planning" && onStart && (
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStart(); }}>
+                    <Play className="h-4 w-4 mr-2" />
+                    Iniciar Sprint
                   </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                )}
+                {sprint.status === "active" && onComplete && (
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onComplete(); }}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Finalizar Sprint
+                  </DropdownMenuItem>
+                )}
+                {onEdit && (
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </DropdownMenuItem>
+                )}
+                {onDelete && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </CardHeader>
 
