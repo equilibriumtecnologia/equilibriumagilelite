@@ -6,17 +6,17 @@
 
 ### Tecnologias Principais
 
-| Categoria | Tecnologia |
-|-----------|------------|
-| Frontend | React 18, TypeScript, Vite |
-| Estilização | Tailwind CSS, shadcn/ui |
-| Backend | Supabase (Lovable Cloud) |
-| Autenticação | Supabase Auth |
-| Banco de Dados | PostgreSQL (Supabase) |
-| Estado | React Query, Context API |
-| Roteamento | React Router v6 |
-| Drag & Drop | @dnd-kit |
-| Validação | Zod, React Hook Form |
+| Categoria      | Tecnologia                 |
+| -------------- | -------------------------- |
+| Frontend       | React 18, TypeScript, Vite |
+| Estilização    | Tailwind CSS, shadcn/ui    |
+| Backend        | Supabase (Lovable Cloud)   |
+| Autenticação   | Supabase Auth              |
+| Banco de Dados | PostgreSQL (Supabase)      |
+| Estado         | React Query, Context API   |
+| Roteamento     | React Router v6            |
+| Drag & Drop    | @dnd-kit                   |
+| Validação      | Zod, React Hook Form       |
 
 ---
 
@@ -24,25 +24,25 @@
 
 ### Rotas Públicas
 
-| Rota | Componente | Descrição |
-|------|------------|-----------|
-| `/` | Landing | Página inicial pública com apresentação do sistema |
-| `/login` | Login | Formulário de autenticação de usuários |
-| `/signup` | Signup | Cadastro de novos usuários |
-| `/auth/callback` | AuthCallback | Callback para autenticação OAuth |
-| `/accept-invitation` | AcceptInvitation | Aceite de convites para projetos/sistema |
+| Rota                 | Componente       | Descrição                                          |
+| -------------------- | ---------------- | -------------------------------------------------- |
+| `/`                  | Landing          | Página inicial pública com apresentação do sistema |
+| `/login`             | Login            | Formulário de autenticação de usuários             |
+| `/signup`            | Signup           | Cadastro de novos usuários                         |
+| `/auth/callback`     | AuthCallback     | Callback para autenticação OAuth                   |
+| `/accept-invitation` | AcceptInvitation | Aceite de convites para projetos/sistema           |
 
 ### Rotas Protegidas (Requer Autenticação)
 
-| Rota | Componente | Descrição |
-|------|------------|-----------|
-| `/dashboard` | Dashboard | Painel principal com visão geral |
-| `/projects` | Projects | Lista e gestão de projetos |
-| `/projects/:id` | ProjectDetails | Detalhes de um projeto específico |
-| `/tasks` | Activities | Lista e gestão de atividades/tarefas |
-| `/team` | Team | Gestão de membros da equipe |
-| `/invitations` | Invitations | Gerenciamento de convites enviados |
-| `/settings` | Settings | Configurações do usuário e sistema |
+| Rota            | Componente     | Descrição                            |
+| --------------- | -------------- | ------------------------------------ |
+| `/dashboard`    | Dashboard      | Painel principal com visão geral     |
+| `/projects`     | Projects       | Lista e gestão de projetos           |
+| `/projects/:id` | ProjectDetails | Detalhes de um projeto específico    |
+| `/tasks`        | Activities     | Lista e gestão de atividades/tarefas |
+| `/team`         | Team           | Gestão de membros da equipe          |
+| `/invitations`  | Invitations    | Gerenciamento de convites enviados   |
+| `/settings`     | Settings       | Configurações do usuário e sistema   |
 
 ---
 
@@ -55,6 +55,7 @@
 **Propósito:** Página de entrada pública para visitantes não autenticados.
 
 **Funcionalidades:**
+
 - Navegação com logo e botões de acesso (Entrar/Começar Grátis)
 - Hero section com título, descrição e CTAs principais
 - Imagem de demonstração do dashboard
@@ -67,6 +68,7 @@
 - Footer com copyright
 
 **Elementos de UI:**
+
 - Gradientes personalizados (hero, primary, accent)
 - Cards com hover effects
 - Botões com variantes (hero, outline, ghost)
@@ -100,6 +102,7 @@
    - Botão "Criar Projeto" via dialog
 
 **Dados Utilizados:**
+
 - Hook `useProjects` para buscar todos os projetos do usuário
 - Cálculos agregados de tarefas por status
 - Filtro de prazos próximos (7 dias)
@@ -133,6 +136,7 @@
    - Ordenação secundária por nome
 
 **Componentes Utilizados:**
+
 - `CreateProjectDialog`
 - `ProjectCard`
 
@@ -171,6 +175,7 @@
    - Remover membros (exceto owner)
 
 **Componentes Utilizados:**
+
 - `KanbanBoard`, `TaskCard`
 - `AddMemberDialog`, `RemoveMemberDialog`
 - `EditProjectDialog`, `DeleteProjectDialog`
@@ -203,6 +208,7 @@
    - Exibe quantidade de tarefas por status nas tabs
 
 **Componentes Utilizados:**
+
 - `TaskCard`
 - `CreateTaskDialog`
 
@@ -235,6 +241,7 @@
    - Botão para convidar novos usuários (admin/master)
 
 **Componentes Utilizados:**
+
 - `TeamMemberCard`
 - `InviteUserDialog`
 
@@ -247,6 +254,7 @@
 **Propósito:** Gerenciamento de convites enviados pelo usuário.
 
 **Funcionalidades:**
+
 - Lista de convites pendentes, aceitos e expirados
 - Status e data de envio
 - Cancelamento de convites pendentes
@@ -280,6 +288,7 @@
    - Visualização de estatísticas
 
 **Componentes Utilizados:**
+
 - `CategoriesManagement`
 - `UsersManagement`
 
@@ -290,12 +299,14 @@
 ### Kanban Board
 
 **Arquivos:**
+
 - `src/components/kanban/KanbanBoard.tsx`
 - `src/components/kanban/KanbanColumn.tsx`
 - `src/components/kanban/KanbanTaskCard.tsx`
 - `src/components/kanban/StatusChangeDialog.tsx`
 
 **Funcionalidades:**
+
 - 4 colunas: A Fazer, Em Progresso, Em Revisão, Concluído
 - Drag-and-drop com @dnd-kit
 - Validação de mudança de status com comentário obrigatório
@@ -307,6 +318,7 @@
 **Arquivo:** `src/components/tasks/TaskDetailsDialog.tsx`
 
 **Funcionalidades:**
+
 - Visualização completa da tarefa
 - Tabs: Detalhes, Checklist (Sub-tarefas), Histórico
 - Métricas de tempo
@@ -317,6 +329,7 @@
 **Arquivo:** `src/components/tasks/SubTasksList.tsx`
 
 **Funcionalidades:**
+
 - Criação de sub-tarefas
 - Toggle com confirmação
 - Exclusão com confirmação
@@ -328,11 +341,11 @@
 
 ### Roles Disponíveis
 
-| Role | Descrição | Permissões |
-|------|-----------|------------|
-| `master` | Administrador geral | Acesso total, gestão de usuários |
-| `admin` | Administrador | Gestão de categorias, convites globais |
-| `user` | Usuário padrão | Projetos próprios e atribuídos |
+| Role     | Descrição           | Permissões                             |
+| -------- | ------------------- | -------------------------------------- |
+| `master` | Administrador geral | Acesso total, gestão de usuários       |
+| `admin`  | Administrador       | Gestão de categorias, convites globais |
+| `user`   | Usuário padrão      | Projetos próprios e atribuídos         |
 
 ### RLS Policies Principais
 
@@ -348,17 +361,17 @@
 
 ### Tabelas Principais
 
-| Tabela | Descrição |
-|--------|-----------|
-| `profiles` | Perfis de usuários (nome, avatar) |
-| `user_roles` | Roles dos usuários no sistema |
-| `categories` | Categorias de projetos |
-| `projects` | Projetos |
-| `project_members` | Membros de cada projeto |
-| `tasks` | Tarefas dos projetos |
-| `sub_tasks` | Sub-tarefas (checklist) |
-| `task_history` | Histórico de alterações |
-| `invitations` | Convites de acesso |
+| Tabela            | Descrição                         |
+| ----------------- | --------------------------------- |
+| `profiles`        | Perfis de usuários (nome, avatar) |
+| `user_roles`      | Roles dos usuários no sistema     |
+| `categories`      | Categorias de projetos            |
+| `projects`        | Projetos                          |
+| `project_members` | Membros de cada projeto           |
+| `tasks`           | Tarefas dos projetos              |
+| `sub_tasks`       | Sub-tarefas (checklist)           |
+| `task_history`    | Histórico de alterações           |
+| `invitations`     | Convites de acesso                |
 
 ### Funções do Banco
 
@@ -375,10 +388,12 @@
 ### Edge Functions
 
 **`send-invitation-email`**
+
 - Envia email de convite com link de aceite
 - Template HTML estilizado
 
 **`send-task-notification`**
+
 - Notifica sobre atribuição de tarefas
 - Notifica sobre mudanças de status
 
@@ -387,6 +402,7 @@
 ## 📱 Responsividade
 
 O sistema é totalmente responsivo com breakpoints:
+
 - Mobile: 1 coluna
 - Tablet (md): 2 colunas
 - Desktop (lg): 3-4 colunas
@@ -415,6 +431,7 @@ Sidebar colapsável em dispositivos móveis via `SidebarProvider`.
 ### Componentes UI
 
 Baseados em shadcn/ui com customizações:
+
 - Button (variantes: default, hero, outline, ghost)
 - Card, Badge, Avatar
 - Dialog, Tabs, Select
