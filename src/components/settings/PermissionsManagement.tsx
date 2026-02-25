@@ -20,9 +20,9 @@ interface MemberWithPermissions {
 }
 
 const roleLabels: Record<string, string> = {
-  master: "Proprietário",
+  owner: "Proprietário",
   admin: "Administrador",
-  user: "Membro",
+  member: "Membro",
   viewer: "Convidado",
 };
 
@@ -88,12 +88,10 @@ function getPermTier(group: typeof permissionGroups[0], perm: typeof permissionG
 // Determine which permissions a role can have enabled (max tier)
 function getMaxTierForRole(role: string): number {
   switch (role) {
-    case "master":
     case "owner":
       return 1; // All tiers
     case "admin":
       return 2;
-    case "user":
     case "member":
       return 3;
     case "viewer":
@@ -131,12 +129,6 @@ export function PermissionsManagement() {
         .eq("workspace_id", currentWorkspace.id);
       if (wmError) throw wmError;
 
-      // Fetch user roles
-      const { data: roles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("user_id, role");
-      if (rolesError) throw rolesError;
-
       // Fetch permissions for this workspace
       const { data: perms, error: permsError } = await supabase
         .from("user_permissions")
@@ -145,7 +137,8 @@ export function PermissionsManagement() {
       if (permsError) throw permsError;
 
       const membersData: MemberWithPermissions[] = (wsMembers || []).map((wm: any) => {
-        const appRole = roles?.find(r => r.user_id === wm.user_id)?.role || "user";
+        // Use workspace_members.role as source of truth
+        const wsRole = wm.role || "member";
         const permRow = perms?.find(p => p.user_id === wm.user_id);
 
         const permissions: Record<string, boolean> = {};
@@ -158,7 +151,7 @@ export function PermissionsManagement() {
         return {
           userId: wm.user_id,
           fullName: (wm.profile as any)?.full_name || "Usuário",
-          role: appRole,
+          role: wsRole,
           permissions,
           hasPermissionRow: !!permRow,
         };
@@ -272,7 +265,7 @@ export function PermissionsManagement() {
             </SelectTrigger>
             <SelectContent>
               {members
-                .filter(m => m.role !== "master") // Master has all permissions, can't be edited
+                .filter(m => m.role !== "owner") // Owner has all permissions, can't be edited
                 .map(m => (
                   <SelectItem key={m.userId} value={m.userId}>
                     {m.fullName} — {roleLabels[m.role] || m.role}
