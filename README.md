@@ -1,277 +1,160 @@
-# Agile Lite Equilibrium - Sistema de Gestão de Projetos e Atividades
+# Agile Lite Equilibrium
 
-Sistema completo de gestão de projetos baseado em metodologias ágeis (Kanban/Scrum), desenvolvido para equipes e pequenas empresas. Oferece controle granular de permissões, gestão de atividades e acompanhamento visual de progresso.
+Sistema completo de gestão de projetos baseado em metodologias ágeis (Kanban e Scrum), desenvolvido para equipes e pequenas empresas que buscam organização, produtividade e acompanhamento visual de progresso.
 
-## 🚀 Tecnologias
+---
 
-- **Frontend:** React 18 + TypeScript + Vite
-- **UI:** TailwindCSS + shadcn/ui
-- **Backend:** Lovable Cloud (Supabase)
-- **Autenticação:** Supabase Auth
-- **Banco de Dados:** PostgreSQL (Supabase)
-- **Formulários:** React Hook Form + Zod
-- **Roteamento:** React Router v6
-- **Gerenciamento de Estado:** React Query (TanStack Query)
+## 🚀 O que é o ALE?
 
-## 📋 Pré-requisitos
+O **Agile Lite Equilibrium (ALE)** é uma plataforma web de gestão de projetos e atividades que combina o melhor do Kanban e do Scrum em uma interface moderna e intuitiva. Ele foi projetado para equipes que precisam de controle sem a complexidade de ferramentas enterprise.
 
-- Node.js 18+ e npm
+### Principais funcionalidades
+
+- **Board Kanban** com drag & drop, limites WIP e filtros por responsável, prioridade e sprint
+- **Sprints** com planejamento, metas, velocidade e acompanhamento de progresso
+- **Backlog** priorizado com ordenação manual e movimentação para sprints
+- **Tarefas** com subtarefas, story points, prioridades, prazos, histórico completo e comentários com menções
+- **Relatórios visuais** — Burndown, Velocity, Cumulative Flow (CFD), Cycle Time e desempenho da equipe
+- **Dashboard** com cards de resumo e gráficos compactos para visão rápida do projeto
+- **Workspaces** para separar times, clientes ou departamentos
+- **Gestão de equipe** com papéis (Owner, Admin, Member, Viewer) e permissões granulares configuráveis
+- **Convites** por e-mail com link de aceite e controle de limites por plano
+- **Notificações** em tempo real para atribuições, menções e prazos
+- **Categorias** personalizáveis para classificar projetos
+- **Planos de assinatura** com limites de workspaces, projetos, convites e membros
+
+### Para quem é?
+
+- Equipes de desenvolvimento de software
+- Agências e consultorias
+- Freelancers gerenciando múltiplos clientes
+- Pequenas empresas que querem organizar demandas sem complexidade
+
+---
+
+## 🛠️ Parte Técnica
+
+### Tecnologias
+
+| Camada | Stack |
+|---|---|
+| Frontend | React 18 + TypeScript + Vite |
+| UI | TailwindCSS + shadcn/ui |
+| Backend | Lovable Cloud (Supabase) |
+| Autenticação | Supabase Auth |
+| Banco de Dados | PostgreSQL |
+| Formulários | React Hook Form + Zod |
+| Roteamento | React Router v6 |
+| Estado servidor | TanStack Query (React Query) |
+| Drag & Drop | dnd-kit |
+| Gráficos | Recharts |
+
+### Pré-requisitos
+
+- Node.js 18+ e npm/bun
 - Conta no Lovable (para deploy e backend)
 
-## 🛠️ Instalação Local
-
-### 1. Clonar o repositório
+### Instalação local
 
 ```bash
+# 1. Clonar o repositório
 git clone <YOUR_GIT_URL>
 cd <YOUR_PROJECT_NAME>
-```
 
-### 2. Instalar dependências
-
-```bash
+# 2. Instalar dependências
 npm install
-```
 
-### 3. Configurar variáveis de ambiente
-
-O arquivo `.env` é gerado automaticamente pelo Lovable Cloud quando você conecta o backend.
-
-**Importante:** Você NÃO precisa criar manualmente o arquivo `.env`. Ele contém:
-
-```env
-VITE_SUPABASE_URL=<seu-projeto-url>
-VITE_SUPABASE_PUBLISHABLE_KEY=<sua-chave-publica>
-VITE_SUPABASE_PROJECT_ID=<seu-project-id>
-```
-
-### 4. Executar o projeto
-
-```bash
+# 3. Executar
 npm run dev
 ```
 
-O projeto estará disponível em `http://localhost:8080`
+O projeto estará disponível em `http://localhost:8080`.
 
-## 📁 Estrutura do Projeto
+> **Nota:** O arquivo `.env` é gerado automaticamente pelo Lovable Cloud e contém `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` e `VITE_SUPABASE_PROJECT_ID`.
+
+### Estrutura do projeto
 
 ```
 src/
 ├── assets/              # Imagens e assets estáticos
-├── components/          # Componentes React
-│   ├── ui/             # Componentes shadcn/ui
-│   ├── layout/         # Layout (Sidebar, Header)
-│   └── ProtectedRoute.tsx
-├── contexts/           # Contexts React (Auth)
-├── hooks/              # Custom hooks
-├── integrations/       # Integrações (Supabase - gerado automaticamente)
-├── lib/                # Utilitários
-├── pages/              # Páginas da aplicação
-│   ├── auth/          # Login, Signup
-│   ├── Landing.tsx    # Landing page
-│   ├── Dashboard.tsx  # Dashboard principal
-│   └── Projects.tsx   # Listagem de projetos
-└── App.tsx            # Componente raiz
+├── components/
+│   ├── backlog/         # Backlog e priorização
+│   ├── comments/        # Menções e comentários
+│   ├── dashboard/       # Cards e gráficos do dashboard
+│   ├── invitations/     # Convites por e-mail
+│   ├── kanban/          # Board Kanban (colunas, cards, filtros, WIP)
+│   ├── layout/          # AppLayout, Sidebar
+│   ├── notifications/   # Popover de notificações
+│   ├── projects/        # CRUD de projetos e membros
+│   ├── reports/         # Gráficos de relatórios
+│   ├── settings/        # Categorias, permissões, usuários
+│   ├── sprints/         # CRUD de sprints
+│   ├── tasks/           # CRUD de tarefas, subtarefas, histórico
+│   ├── team/            # Cards de membros e roles
+│   ├── ui/              # Componentes shadcn/ui
+│   └── workspace/       # Criação e configuração de workspaces
+├── contexts/            # AuthContext, WorkspaceContext
+├── hooks/               # Custom hooks (useTasks, useSprints, useTeam, etc.)
+├── integrations/        # Cliente Supabase (gerado automaticamente)
+├── lib/                 # Utilitários
+├── pages/               # Páginas da aplicação
+│   └── auth/            # Login, Signup, AuthCallback
+└── App.tsx              # Rotas e componente raiz
 
 supabase/
-├── migrations/        # Migrações do banco de dados
-└── config.toml       # Configuração do Supabase (gerado automaticamente)
+├── functions/           # Edge Functions (notificações, convites, tarefas)
+└── config.toml          # Configuração (gerado automaticamente)
+
+docs/
+├── DEVELOPMENT.md       # Histórico completo de implementações
+├── STRIPE.md            # Plano de integração Stripe
+├── TRAINING.md          # Script para treinamento em vídeo
+├── ROADMAP.md           # Roadmap de funcionalidades
+└── ...                  # Outros documentos auxiliares
 ```
 
-## 🗄️ Estrutura do Banco de Dados
+### Sistema de permissões
 
-### Tabelas Principais
+| Role | Escopo | Descrição |
+|---|---|---|
+| `master` | Global | Controle total do sistema |
+| `admin` | Global | Gerencia projetos e atividades |
+| `user` | Global | Usuário padrão |
+| `viewer` | Global | Apenas visualização |
+| `owner` | Workspace | Dono do workspace |
+| `admin` | Workspace | Administrador do workspace |
+| `member` | Workspace | Membro do workspace |
+| `owner` | Projeto | Criador do projeto |
+| `admin` | Projeto | Administrador do projeto |
+| `member` | Projeto | Membro do projeto |
+| `viewer` | Projeto | Apenas visualização do projeto |
 
-**profiles** - Perfis de usuário
+Permissões granulares são configuráveis por workspace na tabela `user_permissions`.
 
-- `id` (UUID, PK) - Referência ao auth.users
-- `full_name` (TEXT) - Nome completo
-- `avatar_url` (TEXT, nullable) - URL do avatar
-- `created_at`, `updated_at` (TIMESTAMPTZ)
-
-**user_roles** - Roles e permissões
-
-- `id` (UUID, PK)
-- `user_id` (UUID, FK → profiles)
-- `role` (app_role ENUM: master, admin, user)
-- `created_at` (TIMESTAMPTZ)
-- Constraint: UNIQUE(user_id, role)
-
-**categories** - Categorias globais de projetos
-
-- `id` (UUID, PK)
-- `name` (TEXT, UNIQUE)
-- `description` (TEXT)
-- `color` (TEXT) - Classe CSS para cor
-- `icon` (TEXT, nullable)
-- `is_default` (BOOLEAN) - Se é categoria padrão do sistema
-- `created_at`, `updated_at` (TIMESTAMPTZ)
-
-**projects** - Projetos ⭐ FASE 2
-
-- `id` (UUID, PK)
-- `name` (TEXT) - Nome do projeto
-- `description` (TEXT, nullable)
-- `category_id` (UUID, FK → categories)
-- `status` (project_status ENUM: planning, active, on_hold, completed, cancelled)
-- `deadline` (DATE, nullable)
-- `created_by` (UUID, FK → profiles)
-- `created_at`, `updated_at` (TIMESTAMPTZ)
-
-**project_members** - Membros dos projetos ⭐ FASE 2
-
-- `id` (UUID, PK)
-- `project_id` (UUID, FK → projects)
-- `user_id` (UUID, FK → profiles)
-- `role` (TEXT: owner, member)
-- `joined_at` (TIMESTAMPTZ)
-- Constraint: UNIQUE(project_id, user_id)
-
-**tasks** - Tarefas dos projetos ⭐ FASE 2
-
-- `id` (UUID, PK)
-- `project_id` (UUID, FK → projects)
-- `title` (TEXT) - Título da tarefa
-- `description` (TEXT, nullable)
-- `status` (task_status ENUM: todo, in_progress, review, completed)
-- `priority` (task_priority ENUM: low, medium, high, urgent)
-- `assigned_to` (UUID, FK → profiles, nullable)
-- `due_date` (DATE, nullable)
-- `created_by` (UUID, FK → profiles)
-- `created_at`, `updated_at` (TIMESTAMPTZ)
-
-### Funções de Segurança
-
-**has_role(\_user_id, \_role)** - Verifica se usuário possui determinada role (evita recursão em RLS policies)
-
-**handle_new_user()** - Trigger que cria automaticamente perfil e role ao registrar novo usuário
-
-**add_creator_as_member()** - Trigger que adiciona o criador como membro "owner" ao criar projeto ⭐ FASE 2
-
-### Row Level Security (RLS)
-
-Todas as tabelas possuem RLS habilitado com policies apropriadas:
-
-- **profiles:** Todos podem visualizar, apenas donos podem editar
-- **user_roles:** Todos autenticados podem visualizar
-- **categories:** Todos autenticados podem visualizar
-- **projects:** ⭐ Membros podem visualizar seus projetos, criadores/admins podem editar
-- **project_members:** ⭐ Membros do projeto podem visualizar, criadores/admins podem gerenciar
-- **tasks:** ⭐ Membros do projeto têm acesso completo às tarefas
-
-## 🔐 Sistema de Autenticação
-
-### Configuração
-
-- Auto-confirmação de email habilitada (development)
-- Suporte a email + senha
-- Sessões persistentes via localStorage
-- Redirecionamento automático após login/signup
-
-### Fluxo de Autenticação
-
-1. Usuário acessa `/signup` e cria conta
-2. Sistema cria automaticamente:
-   - Registro em `auth.users`
-   - Perfil em `profiles`
-   - Role padrão em `user_roles`
-3. Usuário é redirecionado para `/dashboard`
-4. Rotas protegidas verificam autenticação via `ProtectedRoute`
-
-### Primeiro Usuário Master
-
-O primeiro usuário deve ter sua role alterada manualmente para `master`:
-
-```sql
--- Atualizar role do primeiro usuário para master
-UPDATE user_roles
-SET role = 'master'
-WHERE user_id = '<user-id>';
-```
-
-Acesse o backend pelo Lovable Cloud para executar esta query.
-
-## ✨ Funcionalidades Implementadas
-
-### FASE 1: Fundação ✅
-
-- ✅ Sistema de autenticação completo (signup, login, logout)
-- ✅ Sistema de permissões (master, admin, user)
-- ✅ Layout responsivo com sidebar colapsável
-- ✅ Rotas protegidas
-- ✅ Dashboard inicial
-- ✅ Design system customizado com Tailwind
-
-### FASE 2: Gestão de Projetos ✅
-
-- ✅ CRUD completo de projetos
-- ✅ Categorização de projetos
-- ✅ Sistema de membros (owner, member)
-- ✅ Gerenciamento de tarefas
-- ✅ Barra de progresso baseada em tarefas
-- ✅ Atualização em tempo real (Realtime)
-- ✅ Filtros e busca de projetos
-- ✅ Visualização de prazos e membros
-
-### Próximas Fases
-
-- 🔄 FASE 3: Visualização e edição detalhada de projetos
-- 🔄 FASE 4: Board Kanban para tarefas
-- 🔄 FASE 5: Gestão de equipe e convites
-
-## 📦 Scripts Disponíveis
+### Scripts disponíveis
 
 ```bash
-npm run dev          # Inicia servidor de desenvolvimento
+npm run dev          # Servidor de desenvolvimento
 npm run build        # Build para produção
-npm run preview      # Preview do build de produção
-npm run lint         # Executa ESLint
+npm run preview      # Preview do build
+npm run lint         # ESLint
 ```
 
-## 🚀 Deploy
+### Deploy
 
-### Deploy via Lovable
+- **Via Lovable:** Clique em **Publish** no canto superior direito do editor
+- **Via Vercel/Netlify:** Configure as variáveis de ambiente do backend na plataforma escolhida (veja `docs/vercel-github.md`)
 
-1. Acesse o projeto no [Lovable](https://lovable.dev)
-2. Clique em **Publish** no canto superior direito
-3. Seu app será publicado em `<seu-projeto>.lovable.app`
+### Documentação adicional
 
-### Deploy Manual (outras plataformas)
-
-O projeto é uma aplicação React + Vite padrão e pode ser hospedado em:
-
-- Vercel
-- Netlify
-- Railway
-- Render
-- Cloudflare Pages
-
-**Importante:** Configure as variáveis de ambiente do Supabase na plataforma escolhida.
-
-## 🔗 Links Úteis
-
-- **Documentação Lovable:** [https://docs.lovable.dev](https://docs.lovable.dev)
-- **shadcn/ui:** [https://ui.shadcn.com](https://ui.shadcn.com)
-- **Supabase Docs:** [https://supabase.com/docs](https://supabase.com/docs)
-- **React Router:** [https://reactrouter.com](https://reactrouter.com)
-
-## 📄 Documentação de Desenvolvimento
-
-Para histórico detalhado de todas as implementações e mudanças, consulte o arquivo [DEVELOPMENT.md](./DEVELOPMENT.md).
-
-## 🤝 Contribuindo
-
-Este é um projeto privado. Para contribuir:
-
-1. Crie uma branch feature: `git checkout -b feature/nova-funcionalidade`
-2. Commit suas mudanças: `git commit -m 'feat: adiciona nova funcionalidade'`
-3. Push para a branch: `git push origin feature/nova-funcionalidade`
-4. Abra um Pull Request
-
-## 📝 Licença
-
-Projeto proprietário. Todos os direitos reservados.
+- [Histórico de Desenvolvimento](./docs/DEVELOPMENT.md)
+- [Integração Stripe](./docs/STRIPE.md)
+- [Script de Treinamento](./docs/TRAINING.md)
+- [Roadmap](./docs/ROADMAP.md)
+- [Deploy via Vercel + GitHub](./docs/vercel-github.md)
 
 ---
 
 **Desenvolvido com ❤️ usando [Lovable](https://lovable.dev)**
+
+📝 Projeto proprietário. Todos os direitos reservados.
