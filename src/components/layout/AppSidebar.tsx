@@ -37,7 +37,11 @@ import { useUserPlan } from "@/hooks/useUserPlan";
 import { useProjects } from "@/hooks/useProjects";
 import { useWorkspaceMembers } from "@/hooks/useWorkspaceMembers";
 import { Progress } from "@/components/ui/progress";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { CreateWorkspaceDialog } from "@/components/workspace/CreateWorkspaceDialog";
 import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import {
@@ -46,6 +50,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PoweredByEquilibrium } from "./PoweredByEquilibrium";
 
 const roleLabels: Record<string, string> = {
   master: "Proprietário",
@@ -65,13 +70,23 @@ const baseMenuItems = [
   { title: "Configurações", url: "/settings", icon: Settings },
 ];
 
-const adminMenuItems = [
-  { title: "Convites", url: "/invitations", icon: Mail },
-];
+const adminMenuItems = [{ title: "Convites", url: "/invitations", icon: Mail }];
 
-function PlanUsageBar({ label, current, max }: { label: string; current: number; max: number }) {
+function PlanUsageBar({
+  label,
+  current,
+  max,
+}: {
+  label: string;
+  current: number;
+  max: number;
+}) {
   const isUnlimited = max >= 999;
-  const pct = isUnlimited ? 0 : max > 0 ? Math.min((current / max) * 100, 100) : 0;
+  const pct = isUnlimited
+    ? 0
+    : max > 0
+      ? Math.min((current / max) * 100, 100)
+      : 0;
   const atLimit = !isUnlimited && current >= max;
 
   return (
@@ -82,9 +97,7 @@ function PlanUsageBar({ label, current, max }: { label: string; current: number;
           {current}/{isUnlimited ? "∞" : max}
         </span>
       </div>
-      {!isUnlimited && (
-        <Progress value={pct} className="h-1" />
-      )}
+      {!isUnlimited && <Progress value={pct} className="h-1" />}
     </div>
   );
 }
@@ -102,7 +115,7 @@ export function AppSidebar() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const isCollapsed = state === "collapsed";
-  
+
   const menuItems = [
     ...baseMenuItems,
     ...(canManageInvitations ? adminMenuItems : []),
@@ -125,7 +138,9 @@ export function AppSidebar() {
   const initials = (() => {
     if (profileName) {
       const parts = profileName.split(" ");
-      return ((parts[0]?.[0] || "") + (parts[parts.length - 1]?.[0] || "")).toUpperCase();
+      return (
+        (parts[0]?.[0] || "") + (parts[parts.length - 1]?.[0] || "")
+      ).toUpperCase();
     }
     return (user?.email?.[0] || "?").toUpperCase();
   })();
@@ -134,7 +149,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         {/* Logo/Header */}
-        <div className="p-4 border-b border-sidebar-border">
+        <div className="p-4 border-b border-sidebar-border h-12 sm:h-16">
           {!isCollapsed && (
             <div className="flex items-center gap-2">
               <LayoutDashboard className="h-6 w-6 text-primary" />
@@ -167,7 +182,9 @@ export function AppSidebar() {
                       </span>
                     )}
                   </div>
-                  {!isCollapsed && <ChevronsUpDown className="h-3 w-3 shrink-0 text-muted-foreground" />}
+                  {!isCollapsed && (
+                    <ChevronsUpDown className="h-3 w-3 shrink-0 text-muted-foreground" />
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56">
@@ -175,7 +192,9 @@ export function AppSidebar() {
                   <DropdownMenuItem
                     key={ws.id}
                     onClick={() => switchWorkspace(ws.id)}
-                    className={ws.id === currentWorkspace?.id ? "bg-accent" : ""}
+                    className={
+                      ws.id === currentWorkspace?.id ? "bg-accent" : ""
+                    }
                   >
                     <Building2 className="h-4 w-4 mr-2" />
                     <span className="truncate">{ws.name}</span>
@@ -238,7 +257,7 @@ export function AppSidebar() {
               {/* Members usage */}
               <PlanUsageBar
                 label="Membros"
-                current={members.filter(m => m.role !== "owner").length}
+                current={members.filter((m) => m.role !== "owner").length}
                 max={plan.max_invites_per_workspace}
               />
               {/* Workspaces usage */}
@@ -250,7 +269,11 @@ export function AppSidebar() {
             </div>
             {!isMaster && plan.plan_slug === "free" && (
               <Link to="/pricing" className="block mt-2">
-                <Button variant="outline" size="sm" className="w-full h-7 text-[10px] border-primary/30 text-primary hover:bg-primary/10">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full h-7 text-[10px] border-primary/30 text-primary hover:bg-primary/10"
+                >
                   <Crown className="h-3 w-3 mr-1" /> Fazer Upgrade
                 </Button>
               </Link>
@@ -267,8 +290,18 @@ export function AppSidebar() {
               </TooltipTrigger>
               <TooltipContent side="right" className="text-xs">
                 <p className="font-semibold">{plan.plan_name}</p>
-                <p>Projetos: {projects.length}/{plan.max_projects_per_workspace === 999 ? "∞" : plan.max_projects_per_workspace}</p>
-                <p>Membros: {members.filter(m => m.role !== "owner").length}/{plan.max_invites_per_workspace === 999 ? "∞" : plan.max_invites_per_workspace}</p>
+                <p>
+                  Projetos: {projects.length}/
+                  {plan.max_projects_per_workspace === 999
+                    ? "∞"
+                    : plan.max_projects_per_workspace}
+                </p>
+                <p>
+                  Membros: {members.filter((m) => m.role !== "owner").length}/
+                  {plan.max_invites_per_workspace === 999
+                    ? "∞"
+                    : plan.max_invites_per_workspace}
+                </p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -277,30 +310,41 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-sidebar-border p-4">
         {!isCollapsed && (
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9 flex-shrink-0">
-              {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
-              <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate">{displayName}</p>
-              {role && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 mt-0.5">
-                  {roleLabels[role] || role}
-                </Badge>
-              )}
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-9 w-9 flex-shrink-0">
+                {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
+                <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium truncate">{displayName}</p>
+                {role && (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] px-1.5 py-0 mt-0.5"
+                  >
+                    {roleLabels[role] || role}
+                  </Badge>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 flex-shrink-0"
+                onClick={signOut}
+                title="Sair"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 flex-shrink-0"
-              onClick={signOut}
-              title="Sair"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <PoweredByEquilibrium
+              variant="menu"
+              logo="compact"
+              showTextFallback={false}
+              theme="light"
+            />
           </div>
         )}
         {isCollapsed && (
@@ -311,14 +355,16 @@ export function AppSidebar() {
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={signOut}
-              title="Sair"
-            >
+            <Button variant="ghost" size="icon" onClick={signOut} title="Sair">
               <LogOut className="h-4 w-4" />
             </Button>
+            <PoweredByEquilibrium
+              variant="badge"
+              logo="icon"
+              label=""
+              showTextFallback={false}
+              theme="light"
+            />
           </div>
         )}
       </SidebarFooter>
