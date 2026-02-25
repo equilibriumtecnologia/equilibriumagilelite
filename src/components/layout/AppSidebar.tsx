@@ -149,7 +149,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         {/* Logo/Header */}
-        <div className="p-4 border-b border-sidebar-border">
+        <div className="p-4 border-b border-sidebar-border h-12 sm:h-16">
           {!isCollapsed && (
             <div className="flex items-center gap-2">
               <LayoutDashboard className="h-6 w-6 text-primary" />
