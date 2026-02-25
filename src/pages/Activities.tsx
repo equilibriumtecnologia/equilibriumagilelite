@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Filter } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
+import { useProjectRole } from "@/hooks/useProjectRole";
 import { TaskCard } from "@/components/tasks/TaskCard";
 import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +18,7 @@ const Activities = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const { tasks, isLoading } = useTasks(projectId || undefined);
+  const { canCreateTasks } = useProjectRole(projectId || undefined);
 
   const filteredTasks = tasks?.filter((task) => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -42,12 +44,14 @@ const Activities = () => {
             Gerencie suas tarefas e acompanhe o progresso
           </p>
         </div>
-        <CreateTaskDialog projectId={projectId}>
-          <Button variant="hero" size="sm" className="sm:size-default">
-            <Plus className="mr-1.5 h-4 w-4" />
-            Nova Atividade
-          </Button>
-        </CreateTaskDialog>
+        {(!projectId || canCreateTasks) && (
+          <CreateTaskDialog projectId={projectId}>
+            <Button variant="hero" size="sm" className="sm:size-default">
+              <Plus className="mr-1.5 h-4 w-4" />
+              Nova Atividade
+            </Button>
+          </CreateTaskDialog>
+        )}
       </div>
 
       {/* Filters */}
