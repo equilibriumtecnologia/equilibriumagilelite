@@ -71,52 +71,22 @@ export function CreateWorkspaceDialog({ trigger }: CreateWorkspaceDialogProps) {
   const onSubmit = async (values: FormData) => {
     if (!user) return;
 
-    // Double-check limit server-side
-    if (!isMaster) {
-      const canCreate = await checkCanCreateWorkspace();
-      if (!canCreate) {
-        toast.error("Limite de workspaces atingido. Faça upgrade do seu plano.");
-        return;
-      }
-    }
-
     try {
       const slug = "ws-" + Date.now().toString(36);
 
-      const { data, error } = await supabase
-        .from("workspaces")
-        .insert({
-          name: values.name.trim(),
-          description: values.description?.trim() || null,
-          slug,
-          is_default: false,
-        })
-        .select("id")
-        .single();
+      const { data, error } = await supabase.rpc("create_workspace", {
+        _name: values.name.trim(),
+        _description: values.description?.trim() || null,
+        _slug: slug,
+      });
 
       if (error) throw error;
 
-      // Add creator as owner
-      const { error: memberError } = await supabase
-        .from("workspace_members")
-        .insert({
-          workspace_id: data.id,
-          user_id: user.id,
-          role: "owner" as any,
-        });
-
-      if (memberError) throw memberError;
-
-      // Set default permissions
-      await supabase.rpc("set_default_permissions", {
-        _user_id: user.id,
-        _workspace_id: data.id,
-        _role: "owner",
-      });
+      const workspaceId = data as unknown as string;
 
       toast.success("Workspace criado com sucesso!");
       await refetch();
-      switchWorkspace(data.id);
+      switchWorkspace(workspaceId);
       setOpen(false);
       form.reset();
     } catch (error: any) {
