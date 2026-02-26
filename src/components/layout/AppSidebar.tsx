@@ -72,6 +72,8 @@ const baseMenuItems = [
 
 const adminMenuItems = [{ title: "Convites", url: "/invitations", icon: Mail }];
 
+const masterMenuItems = [{ title: "Todos Workspaces", url: "/view-all-workspaces", icon: Crown }];
+
 function PlanUsageBar({
   label,
   current,
@@ -155,6 +157,7 @@ export function AppSidebar() {
   const menuItems = [
     ...baseMenuItems,
     ...(canManageInvitations ? adminMenuItems : []),
+    ...(isMaster ? masterMenuItems : []),
   ];
 
   useEffect(() => {
