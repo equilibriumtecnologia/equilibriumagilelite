@@ -960,6 +960,7 @@ export type Database = {
         Returns: boolean
       }
       expire_old_invitations: { Args: never; Returns: undefined }
+      get_all_workspaces_for_master: { Args: never; Returns: Json }
       get_invitation_by_token: { Args: { _token: string }; Returns: Json }
       get_my_pending_invitations: { Args: never; Returns: Json }
       get_user_email_for_notification: {
