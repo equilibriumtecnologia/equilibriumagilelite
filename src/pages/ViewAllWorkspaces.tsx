@@ -20,20 +20,18 @@ interface WorkspaceAccess {
   is_enabled: boolean;
   owner_name: string;
   owner_id: string;
-  owner_plan: string;
   is_master_member: boolean;
 }
 
 interface GroupedByOwner {
   owner_id: string;
   owner_name: string;
-  owner_plan: string;
   workspaces: WorkspaceAccess[];
 }
 
 export default function ViewAllWorkspaces() {
   const { user } = useAuth();
-  const { isMaster } = useUserPlan();
+  const { isMaster, loading: planLoading } = useUserPlan();
   const [data, setData] = useState<WorkspaceAccess[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -43,116 +41,11 @@ export default function ViewAllWorkspaces() {
     if (!user) return;
     setLoading(true);
     try {
-      // Fetch all workspaces (master RLS allows via master_workspace_access or membership)
-      // We need a broader approach - use the master_workspace_access table + join
-      const { data: accessRows, error: accessError } = await supabase
-        .from("master_workspace_access")
-        .select("workspace_id, is_enabled");
+      const { data: result, error } = await supabase.rpc("get_all_workspaces_for_master");
+      if (error) throw error;
 
-      if (accessError) throw accessError;
-
-      // Get all workspace IDs
-      const wsIds = accessRows?.map((r) => r.workspace_id) || [];
-      if (wsIds.length === 0) {
-        setData([]);
-        setLoading(false);
-        return;
-      }
-
-      // For workspaces where master has access, fetch workspace details
-      // We need to fetch workspace info using a service-level approach
-      // Since master may not have SELECT access to all workspaces, 
-      // we'll create an RPC or use the access table which has all workspace_ids
-
-      // Fetch workspace details for enabled ones + get all workspace info
-      // The master_workspace_access table has ALL workspace IDs
-      // Let's fetch workspace details for those the master CAN access (enabled or member)
-      const { data: accessibleWs, error: wsError } = await supabase
-        .from("workspaces")
-        .select("id, name, slug, is_default");
-
-      if (wsError) throw wsError;
-
-      // Fetch workspace members to find owners
-      const accessibleIds = accessibleWs?.map((w) => w.id) || [];
-      
-      // For non-accessible workspaces, we only have the ID from master_workspace_access
-      // We need an RPC to get all workspace info for master
-      // Let's build what we can
-
-      const { data: membersData, error: membersError } = await supabase
-        .from("workspace_members")
-        .select("workspace_id, user_id, role")
-        .in("workspace_id", accessibleIds);
-
-      if (membersError) throw membersError;
-
-      // Get profiles for owners
-      const ownerIds = [...new Set(
-        (membersData || []).filter((m) => m.role === "owner").map((m) => m.user_id)
-      )];
-
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", ownerIds.length > 0 ? ownerIds : ["00000000-0000-0000-0000-000000000000"]);
-
-      const profileMap = new Map((profiles || []).map((p) => [p.id, p.full_name]));
-
-      // Check which workspaces master is a member of
-      const masterMemberWs = new Set(
-        (membersData || []).filter((m) => m.user_id === user.id).map((m) => m.workspace_id)
-      );
-
-      // Build access map
-      const accessMap = new Map((accessRows || []).map((r) => [r.workspace_id, r.is_enabled]));
-
-      // Get owner plans
-      const ownerPlanPromises = ownerIds.map(async (oid) => {
-        const { data: planData } = await supabase.rpc("get_user_plan", { _user_id: oid });
-        return { id: oid, plan: (planData as any)?.plan_name || "Free" };
-      });
-      const ownerPlans = await Promise.all(ownerPlanPromises);
-      const planMap = new Map(ownerPlans.map((p) => [p.id, p.plan]));
-
-      // Build result for accessible workspaces
-      const result: WorkspaceAccess[] = (accessibleWs || []).map((ws) => {
-        const owner = (membersData || []).find(
-          (m) => m.workspace_id === ws.id && m.role === "owner"
-        );
-        const ownerId = owner?.user_id || "";
-        return {
-          workspace_id: ws.id,
-          workspace_name: ws.name,
-          workspace_slug: ws.slug,
-          is_default: ws.is_default,
-          is_enabled: accessMap.get(ws.id) ?? false,
-          owner_name: profileMap.get(ownerId) || "Desconhecido",
-          owner_id: ownerId,
-          owner_plan: planMap.get(ownerId) || "Free",
-          is_master_member: masterMemberWs.has(ws.id),
-        };
-      });
-
-      // Add non-accessible workspaces (only ID available, no details since RLS blocks)
-      const accessibleSet = new Set(accessibleIds);
-      for (const row of accessRows || []) {
-        if (!accessibleSet.has(row.workspace_id)) {
-          result.push({
-            workspace_id: row.workspace_id,
-            workspace_name: `Workspace (${row.workspace_id.slice(0, 8)}...)`,
-            workspace_slug: "",
-            is_default: false,
-            is_enabled: row.is_enabled,
-            owner_name: "Sem acesso",
-            owner_id: "",
-            owner_plan: "—",
-            is_master_member: false,
-          });
-        }
-      }
-
-      setData(result);
+      const workspaces = (result as unknown as WorkspaceAccess[]) || [];
+      setData(workspaces);
     } catch (error: any) {
       console.error("Error fetching workspaces:", error);
       toast.error("Erro ao carregar workspaces");
@@ -192,7 +85,15 @@ export default function ViewAllWorkspaces() {
     }
   };
 
-  // Guard: only master
+  // Guard: only master (wait for plan to load)
+  if (planLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
   if (!isMaster) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -212,7 +113,6 @@ export default function ViewAllWorkspaces() {
       const group: GroupedByOwner = {
         owner_id: w.owner_id,
         owner_name: w.owner_name,
-        owner_plan: w.owner_plan,
         workspaces: [],
       };
       ownerMap.set(key, group);
@@ -221,7 +121,7 @@ export default function ViewAllWorkspaces() {
     ownerMap.get(key)!.workspaces.push(w);
   }
 
-  // Sort groups: master's own first, then alphabetically
+  // Sort: master's own first, then alphabetically
   grouped.sort((a, b) => {
     if (a.owner_id === user?.id) return -1;
     if (b.owner_id === user?.id) return 1;
@@ -278,9 +178,6 @@ export default function ViewAllWorkspaces() {
                   </Avatar>
                   <div className="flex items-center gap-2">
                     <CardTitle className="text-base">{group.owner_name}</CardTitle>
-                    <Badge variant="outline" className="text-[10px]">
-                      {group.owner_plan}
-                    </Badge>
                     {group.owner_id === user?.id && (
                       <Badge className="text-[10px] bg-primary/20 text-primary border-0">
                         <Crown className="h-3 w-3 mr-1" /> Você
