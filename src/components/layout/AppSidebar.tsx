@@ -72,6 +72,8 @@ const baseMenuItems = [
 
 const adminMenuItems = [{ title: "Convites", url: "/invitations", icon: Mail }];
 
+const masterMenuItems = [{ title: "Todos Workspaces", url: "/view-all-workspaces", icon: Crown }];
+
 function PlanUsageBar({
   label,
   current,
@@ -108,17 +110,54 @@ export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { role, workspaceRole, canManageInvitations } = useUserRole();
   const { workspaces, currentWorkspace, switchWorkspace } = useWorkspace();
-  const { plan, isMaster } = useUserPlan();
+  const { plan: userPlan, isMaster } = useUserPlan();
   const { projects } = useProjects();
   const { members } = useWorkspaceMembers();
   const [profileName, setProfileName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [ownerPlan, setOwnerPlan] = useState<any>(null);
 
   const isCollapsed = state === "collapsed";
+
+  // Determine if user is the workspace owner
+  const isWorkspaceOwner = members.some(
+    (m) => m.user_id === user?.id && m.role === "owner"
+  );
+
+  // Find workspace owner's user_id
+  const workspaceOwnerId = members.find((m) => m.role === "owner")?.user_id;
+
+  // Fetch workspace owner's plan when user is NOT the owner
+  useEffect(() => {
+    if (!workspaceOwnerId || isWorkspaceOwner || !currentWorkspace) {
+      setOwnerPlan(null);
+      return;
+    }
+    supabase
+      .rpc("get_user_plan", { _user_id: workspaceOwnerId })
+      .then(({ data, error }) => {
+        if (!error && data) setOwnerPlan(data);
+        else setOwnerPlan(null);
+      });
+  }, [workspaceOwnerId, isWorkspaceOwner, currentWorkspace?.id]);
+
+  // Use owner's plan when viewing someone else's workspace, own plan otherwise
+  const plan = isWorkspaceOwner ? userPlan : ownerPlan || userPlan;
+
+  // Check if user has any permission that warrants seeing usage
+  const userPermissions = members.find((m) => m.user_id === user?.id);
+  const hasRelevantPermission =
+    isMaster ||
+    isWorkspaceOwner ||
+    workspaceRole === "admin" ||
+    role === "admin";
+
+  const showPlanUsage = !!plan && hasRelevantPermission;
 
   const menuItems = [
     ...baseMenuItems,
     ...(canManageInvitations ? adminMenuItems : []),
+    ...(isMaster ? masterMenuItems : []),
   ];
 
   useEffect(() => {
@@ -239,7 +278,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         {/* Plan Usage Indicator */}
-        {!isCollapsed && plan && (
+        {!isCollapsed && showPlanUsage && (
           <div className="px-4 py-3 border-t border-sidebar-border">
             <div className="flex items-center gap-1.5 mb-2">
               <Crown className="h-3.5 w-3.5 text-primary" />
@@ -267,7 +306,7 @@ export function AppSidebar() {
                 max={plan.max_workspaces}
               />
             </div>
-            {!isMaster && plan.plan_slug === "free" && (
+            {isWorkspaceOwner && !isMaster && plan?.plan_slug === "free" && (
               <Link to="/pricing" className="block mt-2">
                 <Button
                   variant="outline"
@@ -280,7 +319,7 @@ export function AppSidebar() {
             )}
           </div>
         )}
-        {isCollapsed && plan && (
+        {isCollapsed && showPlanUsage && (
           <div className="px-2 py-2 border-t border-sidebar-border flex justify-center">
             <Tooltip>
               <TooltipTrigger asChild>

@@ -1,0 +1,1 @@
+ALTER TABLE public.categories ALTER COLUMN color SET DEFAULT '#6366f1';

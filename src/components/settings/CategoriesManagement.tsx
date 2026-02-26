@@ -9,6 +9,75 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useCategories, Category } from "@/hooks/useCategories";
 import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+function ColorPicker({ value, onChange }: { value: string; onChange: (color: string) => void }) {
+  const [hexInput, setHexInput] = useState(value);
+
+  const handleHexChange = (hex: string) => {
+    setHexInput(hex);
+    if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+      onChange(hex);
+    }
+  };
+
+  const handleNativeChange = (color: string) => {
+    setHexInput(color);
+    onChange(color);
+  };
+
+  // Sync hexInput when value prop changes externally
+  const displayHex = /^#[0-9A-Fa-f]{6}$/.test(value) ? value : "#6366f1";
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className="w-full justify-start gap-3 h-10">
+          <div
+            className="w-6 h-6 rounded border border-border shrink-0"
+            style={{ backgroundColor: displayHex }}
+          />
+          <span className="text-sm font-mono">{displayHex}</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 space-y-3" align="start">
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Disco de cores</Label>
+          <input
+            type="color"
+            value={displayHex}
+            onChange={(e) => handleNativeChange(e.target.value)}
+            className="w-full h-10 cursor-pointer rounded border border-border bg-transparent"
+          />
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Código HEX</Label>
+          <Input
+            value={hexInput}
+            onChange={(e) => handleHexChange(e.target.value)}
+            placeholder="#6366f1"
+            className="font-mono text-sm"
+            maxLength={7}
+          />
+        </div>
+        <div className="grid grid-cols-6 gap-1.5">
+          {[
+            "#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7",
+            "#ec4899", "#14b8a6", "#6366f1", "#64748b", "#f59e0b", "#6b7280",
+          ].map((c) => (
+            <button
+              key={c}
+              type="button"
+              className="w-7 h-7 rounded border border-border hover:scale-110 transition-transform"
+              style={{ backgroundColor: c }}
+              onClick={() => handleNativeChange(c)}
+            />
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function CategoriesManagement() {
   const { categories, loading, createCategory, updateCategory, deleteCategory } = useCategories();
@@ -19,14 +88,14 @@ export function CategoriesManagement() {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    color: "bg-primary",
+    color: "#6366f1",
     icon: "",
   });
 
   const handleCreate = async () => {
     await createCategory({ ...formData, is_default: false });
     setIsCreateOpen(false);
-    setFormData({ name: "", description: "", color: "bg-primary", icon: "" });
+    setFormData({ name: "", description: "", color: "#6366f1", icon: "" });
   };
 
   const handleEdit = async () => {
@@ -34,7 +103,7 @@ export function CategoriesManagement() {
     await updateCategory(editingCategory.id, formData);
     setIsEditOpen(false);
     setEditingCategory(null);
-    setFormData({ name: "", description: "", color: "bg-primary", icon: "" });
+    setFormData({ name: "", description: "", color: "#6366f1", icon: "" });
   };
 
   const handleDelete = async () => {
@@ -102,12 +171,10 @@ export function CategoriesManagement() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="color">Cor (classe Tailwind)</Label>
-                  <Input
-                    id="color"
+                  <Label>Cor</Label>
+                  <ColorPicker
                     value={formData.color}
-                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    placeholder="Ex: bg-blue-500"
+                    onChange={(color) => setFormData({ ...formData, color })}
                   />
                 </div>
                 <div className="space-y-2">
@@ -145,24 +212,18 @@ export function CategoriesManagement() {
                 <TableCell className="font-medium">{category.name}</TableCell>
                 <TableCell>{category.description}</TableCell>
                 <TableCell>
-                  <div className={`w-6 h-6 rounded ${category.color}`} />
+                  <div
+                    className="w-6 h-6 rounded border border-border"
+                    style={{ backgroundColor: category.color }}
+                  />
                 </TableCell>
                 <TableCell>{category.is_default ? "Sim" : "Não"}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openEditDialog(category)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => openEditDialog(category)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeleteId(category.id)}
-                      disabled={category.is_default}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => setDeleteId(category.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -197,11 +258,10 @@ export function CategoriesManagement() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-color">Cor (classe Tailwind)</Label>
-              <Input
-                id="edit-color"
+              <Label>Cor</Label>
+              <ColorPicker
                 value={formData.color}
-                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                onChange={(color) => setFormData({ ...formData, color })}
               />
             </div>
             <div className="space-y-2">
