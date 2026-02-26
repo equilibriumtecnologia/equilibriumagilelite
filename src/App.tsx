@@ -25,6 +25,7 @@ import Settings from "./pages/Settings";
 import WorkspaceSettings from "./pages/WorkspaceSettings";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
+import ViewAllWorkspaces from "./pages/ViewAllWorkspaces";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -153,6 +154,14 @@ const App = () => (
                   <AppLayout>
                     <WorkspaceSettings />
                   </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/view-all-workspaces"
+              element={
+                <ProtectedRoute>
+                  <ViewAllWorkspaces />
                 </ProtectedRoute>
               }
             />
