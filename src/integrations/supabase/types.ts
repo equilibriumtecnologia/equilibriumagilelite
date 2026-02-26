@@ -959,6 +959,10 @@ export type Database = {
         Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
       }
+      create_workspace: {
+        Args: { _description?: string; _name: string; _slug?: string }
+        Returns: string
+      }
       expire_old_invitations: { Args: never; Returns: undefined }
       get_all_workspaces_for_master: { Args: never; Returns: Json }
       get_invitation_by_token: { Args: { _token: string }; Returns: Json }
