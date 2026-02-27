@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -29,50 +29,50 @@ export function useProjectRole(projectId: string | undefined): UseProjectRoleRet
   const [workspaceRole, setWorkspaceRole] = useState<WorkspaceRole | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchRoles = async () => {
-      if (!user || !projectId) {
-        setRole(null);
-        setWorkspaceRole(null);
-        setLoading(false);
-        return;
-      }
+  const fetchRoles = useCallback(async () => {
+    if (!user || !projectId) {
+      setRole(null);
+      setWorkspaceRole(null);
+      setLoading(false);
+      return;
+    }
 
-      try {
-        // Fetch project role
-        const { data: projectData, error: projectError } = await supabase
-          .from("project_members")
+    try {
+      // Fetch project role
+      const { data: projectData, error: projectError } = await supabase
+        .from("project_members")
+        .select("role")
+        .eq("project_id", projectId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (projectError) throw projectError;
+      setRole(projectData?.role || null);
+
+      // Fetch workspace role
+      if (currentWorkspace?.id) {
+        const { data: wsData, error: wsError } = await supabase
+          .from("workspace_members")
           .select("role")
-          .eq("project_id", projectId)
+          .eq("workspace_id", currentWorkspace.id)
           .eq("user_id", user.id)
           .maybeSingle();
 
-        if (projectError) throw projectError;
-        setRole(projectData?.role || null);
-
-        // Fetch workspace role
-        if (currentWorkspace?.id) {
-          const { data: wsData, error: wsError } = await supabase
-            .from("workspace_members")
-            .select("role")
-            .eq("workspace_id", currentWorkspace.id)
-            .eq("user_id", user.id)
-            .maybeSingle();
-
-          if (wsError) throw wsError;
-          setWorkspaceRole(wsData?.role || null);
-        }
-      } catch (error) {
-        console.error("Error fetching project role:", error);
-        setRole(null);
-        setWorkspaceRole(null);
-      } finally {
-        setLoading(false);
+        if (wsError) throw wsError;
+        setWorkspaceRole(wsData?.role || null);
       }
-    };
-
-    fetchRoles();
+    } catch (error) {
+      console.error("Error fetching project role:", error);
+      setRole(null);
+      setWorkspaceRole(null);
+    } finally {
+      setLoading(false);
+    }
   }, [user, projectId, currentWorkspace?.id]);
+
+  useEffect(() => {
+    fetchRoles();
+  }, [fetchRoles]);
 
   const isOwner = role === "owner";
   const isAdmin = role === "admin";
