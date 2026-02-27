@@ -306,7 +306,13 @@ const ProjectDetails = () => {
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">{member.profiles.full_name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {member.role === "owner" ? "Proprietário" : "Membro"}
+                        {member.role === "owner"
+                          ? "Proprietário"
+                          : member.role === "admin"
+                          ? "Admin"
+                          : member.role === "viewer"
+                          ? "Viewer"
+                          : "Membro"}
                       </p>
                     </div>
                   </div>
