@@ -59,7 +59,7 @@ export function InfoBlocksViewer({ blocks }: InfoBlocksViewerProps) {
                   <code>{block.content}</code>
                 </pre>
               ) : block.type === "markdown" ? (
-                <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
+                <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:font-semibold prose-h1:text-xl prose-h1:mt-2 prose-h1:mb-2 prose-h2:text-lg prose-h2:mt-2 prose-h2:mb-1 prose-h3:text-base prose-h3:mt-1 prose-h3:mb-1 prose-p:text-sm prose-li:text-sm">
                   <ReactMarkdown>{block.content}</ReactMarkdown>
                 </div>
               ) : (
