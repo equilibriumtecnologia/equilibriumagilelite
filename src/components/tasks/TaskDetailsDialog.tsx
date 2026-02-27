@@ -17,11 +17,14 @@ import {
   User, 
   FileText, 
   CheckSquare,
-  History 
+  History,
+  Info
 } from "lucide-react";
 import { SubTasksList } from "./SubTasksList";
 import { TaskHistoryPanel } from "./TaskHistoryPanel";
 import { TaskTimeMetrics } from "./TaskTimeMetrics";
+import { InfoBlocksViewer } from "./InfoBlocksViewer";
+import type { InfoBlock } from "./InfoBlocksEditor";
 import type { Database, Tables } from "@/integrations/supabase/types";
 import { useSubTasks } from "@/hooks/useSubTasks";
 
@@ -103,7 +106,7 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
 
         <div className="flex-1 overflow-y-auto -mx-6 px-6">
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="details" className="flex items-center gap-1">
                 <FileText className="h-4 w-4" />
                 Detalhes
@@ -111,6 +114,10 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
               <TabsTrigger value="subtasks" className="flex items-center gap-1">
                 <CheckSquare className="h-4 w-4" />
                 Checklist
+              </TabsTrigger>
+              <TabsTrigger value="info" className="flex items-center gap-1">
+                <Info className="h-4 w-4" />
+                Informações
               </TabsTrigger>
               <TabsTrigger value="history" className="flex items-center gap-1">
                 <History className="h-4 w-4" />
@@ -212,6 +219,16 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
                   </div>
                 </>
               )}
+            </TabsContent>
+
+            <TabsContent value="info" className="mt-4">
+              <InfoBlocksViewer
+                blocks={
+                  Array.isArray((task as any).additional_info)
+                    ? ((task as any).additional_info as InfoBlock[])
+                    : []
+                }
+              />
             </TabsContent>
 
             <TabsContent value="subtasks" className="mt-4">
