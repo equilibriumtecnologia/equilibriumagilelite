@@ -44,6 +44,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProject } from "@/hooks/useProject";
 import { StoryPointsSelector } from "./StoryPointsSelector";
 import { Label } from "@/components/ui/label";
+import { InfoBlocksEditor, type InfoBlock } from "./InfoBlocksEditor";
 
 const taskSchema = z.object({
   title: z.string().min(1, "Título é obrigatório").max(200),
@@ -68,6 +69,7 @@ export const CreateTaskDialog = ({
   projectId,
 }: CreateTaskDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [infoBlocks, setInfoBlocks] = useState<InfoBlock[]>([]);
   const { createTask } = useTasks();
   const { projects } = useProjects();
   const { user } = useAuth();
@@ -92,6 +94,12 @@ export const CreateTaskDialog = ({
   const onSubmit = async (data: TaskFormValues) => {
     if (!user) return;
 
+    // Validate info blocks - titles are required
+    const invalidBlocks = infoBlocks.filter((b) => !b.title.trim());
+    if (invalidBlocks.length > 0) {
+      return;
+    }
+
     const taskData = {
       title: data.title,
       project_id: data.project_id,
@@ -102,10 +110,12 @@ export const CreateTaskDialog = ({
       assigned_to: data.assigned_to || null,
       description: data.description || null,
       story_points: data.story_points ?? null,
+      additional_info: infoBlocks.length > 0 ? infoBlocks : [],
     };
 
-    await createTask.mutateAsync(taskData);
+    await createTask.mutateAsync(taskData as any);
     form.reset();
+    setInfoBlocks([]);
     setOpen(false);
   };
 
@@ -325,6 +335,8 @@ export const CreateTaskDialog = ({
                 </span>
               </div>
             </div>
+
+            <InfoBlocksEditor blocks={infoBlocks} onChange={setInfoBlocks} />
 
             <div className="flex justify-end gap-3 pt-4">
               <Button

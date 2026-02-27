@@ -54,6 +54,7 @@ import { PoweredByEquilibrium } from "./PoweredByEquilibrium";
 
 const roleLabels: Record<string, string> = {
   master: "Proprietário",
+  owner: "Proprietário",
   admin: "Administrador",
   member: "Membro",
   user: "Membro",
