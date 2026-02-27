@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { FileText, Code, FileCode } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import type { InfoBlock } from "./InfoBlocksEditor";
 
 interface InfoBlocksViewerProps {
@@ -58,8 +59,8 @@ export function InfoBlocksViewer({ blocks }: InfoBlocksViewerProps) {
                   <code>{block.content}</code>
                 </pre>
               ) : block.type === "markdown" ? (
-                <div className="text-sm prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
-                  {block.content}
+                <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
+                  <ReactMarkdown>{block.content}</ReactMarkdown>
                 </div>
               ) : (
                 <p className="text-sm whitespace-pre-wrap">{block.content}</p>
