@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 import type { Tables, TablesInsert, TablesUpdate, Enums } from "@/integrations/supabase/types";
 
 type Task = Tables<"tasks"> & {
@@ -14,21 +15,32 @@ type TaskActionType = Enums<"task_action_type">;
 export const useTasks = (projectId?: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currentWorkspace } = useWorkspace();
 
   const { data: tasks, isLoading } = useQuery({
-    queryKey: ["tasks", projectId],
+    queryKey: ["tasks", projectId, currentWorkspace?.id],
     queryFn: async () => {
       let query = supabase
         .from("tasks")
         .select(`
           *,
           assigned_user:profiles!tasks_assigned_to_fkey(id, full_name, avatar_url),
-          project:projects!tasks_project_id_fkey(id, name)
+          project:projects!tasks_project_id_fkey(id, name, workspace_id)
         `)
         .order("created_at", { ascending: false });
 
       if (projectId) {
         query = query.eq("project_id", projectId);
+      } else if (currentWorkspace?.id) {
+        // Filter tasks to current workspace via projects
+        // First get project IDs for this workspace
+        const { data: wsProjects } = await supabase
+          .from("projects")
+          .select("id")
+          .eq("workspace_id", currentWorkspace.id);
+        
+        if (!wsProjects || wsProjects.length === 0) return [];
+        query = query.in("project_id", wsProjects.map(p => p.id));
       }
 
       const { data, error } = await query;
@@ -36,6 +48,7 @@ export const useTasks = (projectId?: string) => {
       if (error) throw error;
       return data as Task[];
     },
+    enabled: !!currentWorkspace?.id || !!projectId,
   });
 
   // Subscribe to realtime changes
@@ -51,7 +64,7 @@ export const useTasks = (projectId?: string) => {
           filter: projectId ? `project_id=eq.${projectId}` : undefined,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+          queryClient.invalidateQueries({ queryKey: ["tasks", projectId, currentWorkspace?.id] });
         }
       )
       .subscribe();
@@ -59,7 +72,7 @@ export const useTasks = (projectId?: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient, projectId]);
+  }, [queryClient, projectId, currentWorkspace?.id]);
 
   const createTask = useMutation({
     mutationFn: async (task: TablesInsert<"tasks">) => {
@@ -368,3 +381,4 @@ export const useTasks = (projectId?: string) => {
     deleteTask,
   };
 };
+
