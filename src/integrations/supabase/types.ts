@@ -617,6 +617,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          additional_info: Json | null
           assigned_to: string | null
           backlog_order: number | null
           created_at: string
@@ -633,6 +634,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          additional_info?: Json | null
           assigned_to?: string | null
           backlog_order?: number | null
           created_at?: string
@@ -649,6 +651,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          additional_info?: Json | null
           assigned_to?: string | null
           backlog_order?: number | null
           created_at?: string

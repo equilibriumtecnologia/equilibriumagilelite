@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { InfoBlocksEditor, type InfoBlock } from "./InfoBlocksEditor";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -73,6 +74,9 @@ export const EditTaskDialog = ({
   const { projects } = useProjects();
   const [statusChanged, setStatusChanged] = useState(false);
   const [commentError, setCommentError] = useState("");
+  const [infoBlocks, setInfoBlocks] = useState<InfoBlock[]>(
+    Array.isArray((task as any).additional_info) ? (task as any).additional_info : []
+  );
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
@@ -118,6 +122,9 @@ export const EditTaskDialog = ({
       });
       setStatusChanged(false);
       setCommentError("");
+      setInfoBlocks(
+        Array.isArray((task as any).additional_info) ? (task as any).additional_info : []
+      );
     }
   }, [open, task, form]);
 
@@ -134,6 +141,12 @@ export const EditTaskDialog = ({
       }
     }
 
+    // Validate info blocks - titles are required
+    const invalidBlocks = infoBlocks.filter((b) => !b.title.trim());
+    if (invalidBlocks.length > 0) {
+      return;
+    }
+
     const updateData = {
       id: task.id,
       title: data.title,
@@ -144,10 +157,11 @@ export const EditTaskDialog = ({
       due_date: data.due_date ? format(data.due_date, "yyyy-MM-dd") : null,
       assigned_to: data.assigned_to || null,
       story_points: data.story_points ?? null,
+      additional_info: infoBlocks.length > 0 ? infoBlocks : [],
       historyComment: statusChanged ? data.status_comment?.trim() : undefined,
     };
 
-    await updateTask.mutateAsync(updateData);
+    await updateTask.mutateAsync(updateData as any);
     onOpenChange(false);
   };
 
@@ -367,7 +381,10 @@ export const EditTaskDialog = ({
               </div>
             </div>
 
+            <InfoBlocksEditor blocks={infoBlocks} onChange={setInfoBlocks} />
+
             {statusChanged && (
+
               <div className="space-y-2 p-4 border rounded-lg bg-muted/50">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="h-4 w-4 text-primary" />
