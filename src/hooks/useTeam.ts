@@ -50,19 +50,34 @@ export function useTeam() {
 
       if (wsRolesError) throw wsRolesError;
 
-      // Buscar contagem de projetos por usuário
+      // Buscar projetos do workspace atual
+      const { data: wsProjects, error: wsProjectsError } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("workspace_id", currentWorkspace.id);
+
+      if (wsProjectsError) throw wsProjectsError;
+      const wsProjectIds = (wsProjects || []).map((p) => p.id);
+
+      // Buscar contagem de projetos por usuário (filtrado pelo workspace)
       const { data: projectCounts, error: projectCountsError } = await supabase
         .from("project_members")
-        .select("user_id");
+        .select("user_id")
+        .in("project_id", wsProjectIds.length > 0 ? wsProjectIds : ["00000000-0000-0000-0000-000000000000"]);
 
       if (projectCountsError) throw projectCountsError;
 
-      // Buscar contagem de tarefas por usuário
-      const { data: tasks, error: tasksError } = await supabase
-        .from("tasks")
-        .select("assigned_to, status");
+      // Buscar contagem de tarefas por usuário (filtrado pelo workspace)
+      let tasks: { assigned_to: string | null; status: string }[] = [];
+      if (wsProjectIds.length > 0) {
+        const { data: tasksData, error: tasksError } = await supabase
+          .from("tasks")
+          .select("assigned_to, status")
+          .in("project_id", wsProjectIds);
 
-      if (tasksError) throw tasksError;
+        if (tasksError) throw tasksError;
+        tasks = tasksData || [];
+      }
 
       // Montar dados dos membros
       const teamMembers: TeamMember[] = profiles.map((profile) => {

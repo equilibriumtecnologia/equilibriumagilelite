@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Task = Tables<"tasks"> & {
@@ -50,9 +51,20 @@ export interface TeamMemberPerformance {
 
 export function useReportData(projectId?: string) {
   const { user } = useAuth();
+  const { currentWorkspace } = useWorkspace();
+
+  // Helper to get workspace project IDs for filtering
+  const getWorkspaceProjectIds = async (): Promise<string[]> => {
+    if (!currentWorkspace?.id) return [];
+    const { data } = await supabase
+      .from("projects")
+      .select("id")
+      .eq("workspace_id", currentWorkspace.id);
+    return (data || []).map(p => p.id);
+  };
 
   const { data: tasks = [], isLoading: tasksLoading } = useQuery({
-    queryKey: ["report-tasks", projectId],
+    queryKey: ["report-tasks", projectId, currentWorkspace?.id],
     queryFn: async () => {
       let query = supabase
         .from("tasks")
@@ -64,17 +76,21 @@ export function useReportData(projectId?: string) {
 
       if (projectId) {
         query = query.eq("project_id", projectId);
+      } else {
+        const wsProjectIds = await getWorkspaceProjectIds();
+        if (wsProjectIds.length === 0) return [];
+        query = query.in("project_id", wsProjectIds);
       }
 
       const { data, error } = await query;
       if (error) throw error;
       return data as Task[];
     },
-    enabled: !!user,
+    enabled: !!user && (!!projectId || !!currentWorkspace?.id),
   });
 
   const { data: sprints = [], isLoading: sprintsLoading } = useQuery({
-    queryKey: ["report-sprints", projectId],
+    queryKey: ["report-sprints", projectId, currentWorkspace?.id],
     queryFn: async () => {
       let query = supabase
         .from("sprints")
@@ -83,23 +99,31 @@ export function useReportData(projectId?: string) {
 
       if (projectId) {
         query = query.eq("project_id", projectId);
+      } else {
+        const wsProjectIds = await getWorkspaceProjectIds();
+        if (wsProjectIds.length === 0) return [];
+        query = query.in("project_id", wsProjectIds);
       }
 
       const { data, error } = await query;
       if (error) throw error;
       return data as Sprint[];
     },
-    enabled: !!user,
+    enabled: !!user && (!!projectId || !!currentWorkspace?.id),
   });
 
   const { data: taskHistory = [], isLoading: historyLoading } = useQuery({
-    queryKey: ["report-task-history", projectId],
+    queryKey: ["report-task-history", projectId, currentWorkspace?.id],
     queryFn: async () => {
-      // Get task IDs for this project first
       let taskIdsQuery = supabase.from("tasks").select("id");
       if (projectId) {
         taskIdsQuery = taskIdsQuery.eq("project_id", projectId);
+      } else {
+        const wsProjectIds = await getWorkspaceProjectIds();
+        if (wsProjectIds.length === 0) return [];
+        taskIdsQuery = taskIdsQuery.in("project_id", wsProjectIds);
       }
+
       const { data: taskIds, error: taskIdsError } = await taskIdsQuery;
       if (taskIdsError) throw taskIdsError;
 
@@ -115,7 +139,7 @@ export function useReportData(projectId?: string) {
       if (error) throw error;
       return data as TaskHistory[];
     },
-    enabled: !!user,
+    enabled: !!user && (!!projectId || !!currentWorkspace?.id),
   });
 
   // Burndown data for a specific sprint
@@ -193,10 +217,8 @@ export function useReportData(projectId?: string) {
     const today = new Date();
     const data: CumulativeFlowDataPoint[] = [];
 
-    // Build a map of task status at each date from history
     const taskStatusAtDate = new Map<string, Map<string, string>>();
     
-    // Initialize all tasks as "todo" at creation
     for (const task of tasks) {
       const createdDate = new Date(task.created_at).toISOString().split("T")[0];
       if (!taskStatusAtDate.has(task.id)) {
@@ -205,7 +227,6 @@ export function useReportData(projectId?: string) {
       taskStatusAtDate.get(task.id)!.set(createdDate, "todo");
     }
 
-    // Apply status changes
     for (const change of taskHistory) {
       if (change.action === "status_changed" && change.new_value) {
         const dateKey = new Date(change.created_at).toISOString().split("T")[0];
@@ -216,7 +237,6 @@ export function useReportData(projectId?: string) {
       }
     }
 
-    // Generate daily snapshots (last 30 days max)
     const startDate = new Date(Math.max(firstTaskDate.getTime(), today.getTime() - 30 * 24 * 60 * 60 * 1000));
     
     for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
@@ -230,7 +250,6 @@ export function useReportData(projectId?: string) {
         const statusHistory = taskStatusAtDate.get(task.id);
         if (!statusHistory) continue;
 
-        // Find the latest status on or before this date
         let latestStatus = "todo";
         let latestDate = "";
         for (const [sDate, status] of statusHistory) {
@@ -259,10 +278,8 @@ export function useReportData(projectId?: string) {
       const createdAt = new Date(task.created_at).getTime();
       const updatedAt = new Date(task.updated_at).getTime();
       
-      // Lead time: creation → completion
       const leadTime = Math.round((updatedAt - createdAt) / (1000 * 60 * 60 * 24) * 10) / 10;
       
-      // Cycle time: first in_progress → completion
       const firstInProgress = taskHistory.find(
         (h) => h.task_id === task.id && h.action === "status_changed" && h.new_value === "in_progress"
       );
@@ -277,7 +294,7 @@ export function useReportData(projectId?: string) {
         completedAt: task.updated_at,
       };
     }).sort((a, b) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime())
-      .slice(-20); // Last 20 completed tasks
+      .slice(-20);
   };
 
   // Team Performance
@@ -310,7 +327,6 @@ export function useReportData(projectId?: string) {
       member.completionRate = totalTasks > 0 ? Math.round((member.tasksCompleted / totalTasks) * 100) : 0;
     }
 
-    // Calculate avg cycle time
     for (const [memberId, member] of memberMap) {
       const completedTasks = tasks.filter(
         (t) => t.assigned_to === memberId && t.status === "completed"
