@@ -266,7 +266,7 @@ export function AppSidebar() {
                       onClick={() => setOpenMobile(false)}
                       className={({ isActive }) =>
                         isActive
-                          ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary rounded-l-none"
+                          ? "!bg-primary/10 !text-primary !font-semibold border-l-2 !border-primary rounded-l-none"
                           : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
                       }
                     >
