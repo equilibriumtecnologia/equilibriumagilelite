@@ -174,7 +174,7 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
                   </div>
                   <span className="text-sm">
                     {task.due_date
-                      ? format(new Date(task.due_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                      ? format(new Date(task.due_date + "T12:00:00"), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
                       : "Sem prazo definido"}
                   </span>
                 </div>

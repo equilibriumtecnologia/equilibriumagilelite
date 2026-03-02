@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MentionTextarea } from "@/components/comments/MentionTextarea";
 import { useMentions, notifyMentions } from "@/hooks/useMentions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -103,6 +103,39 @@ export function TaskHistoryPanel({ taskId, projectId, taskTitle }: TaskHistoryPa
   const { mentionUsers, loadUsers } = useMentions(projectId);
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profileNames, setProfileNames] = useState<Record<string, string>>({});
+
+  // Resolve user IDs in assignment history entries to profile names
+  useEffect(() => {
+    if (!history) return;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const idsToResolve = new Set<string>();
+    history.forEach((entry) => {
+      if (entry.action === "assigned" || entry.action === "unassigned") {
+        if (entry.old_value && uuidRegex.test(entry.old_value) && !profileNames[entry.old_value]) {
+          idsToResolve.add(entry.old_value);
+        }
+        if (entry.new_value && uuidRegex.test(entry.new_value) && !profileNames[entry.new_value]) {
+          idsToResolve.add(entry.new_value);
+        }
+      }
+    });
+    if (idsToResolve.size === 0) return;
+    const ids = Array.from(idsToResolve);
+    supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", ids)
+      .then(({ data }) => {
+        if (data) {
+          setProfileNames((prev) => {
+            const next = { ...prev };
+            data.forEach((p) => { next[p.id] = p.full_name; });
+            return next;
+          });
+        }
+      });
+  }, [history]);
 
   const handleAddComment = async () => {
     if (!newComment.trim() || !user) return;
@@ -228,6 +261,8 @@ export function TaskHistoryPanel({ taskId, projectId, taskTitle }: TaskHistoryPa
                             ? statusLabels[entry.old_value] 
                             : entry.action === "priority_changed"
                             ? priorityLabels[entry.old_value]
+                            : (entry.action === "assigned" || entry.action === "unassigned")
+                            ? (profileNames[entry.old_value] || entry.old_value)
                             : entry.old_value}
                         </span>
                         <ArrowRight className="h-3 w-3" />
@@ -236,6 +271,8 @@ export function TaskHistoryPanel({ taskId, projectId, taskTitle }: TaskHistoryPa
                             ? statusLabels[entry.new_value] 
                             : entry.action === "priority_changed"
                             ? priorityLabels[entry.new_value]
+                            : (entry.action === "assigned" || entry.action === "unassigned")
+                            ? (profileNames[entry.new_value] || entry.new_value)
                             : entry.new_value}
                         </span>
                       </div>
