@@ -1,110 +1,142 @@
 
+# Melhorias PWA: Push Notifications + Pagina de Instalacao
 
-# Plano: Notificacoes Automaticas para Tarefas Proximas ao Vencimento e Vencidas
+## Visao Geral
 
-## Diagnostico Atual
+Implementar push notifications nativas do navegador (Web Push API com VAPID) e criar uma experiencia completa de instalacao do PWA, incluindo uma pagina dedicada `/install` e um banner flutuante dentro do app.
 
-### O que funciona hoje
-- **Tarefa atribuida**: Quando um usuario atribui uma tarefa a outro, o frontend chama a edge function `send-task-notification` e envia e-mail.
-- **Status alterado**: Quando um usuario muda o status de uma tarefa atribuida a outra pessoa, o e-mail e enviado.
+---
 
-### Problemas identificados
-1. **Sem notificacoes de vencimento**: Nao existe nenhum mecanismo para alertar sobre tarefas proximas ao vencimento ou ja vencidas.
-2. **Depende de usuario online**: Todas as notificacoes sao disparadas pelo frontend -- se ninguem esta usando o sistema, nada acontece.
-3. **Autenticacao bloqueante**: A edge function atual exige JWT de usuario e usa a RPC `get_user_email_for_notification` que valida `shares_project_with`. Um job automatico nao tem usuario autenticado, entao precisa de uma abordagem diferente.
+## 1. Infraestrutura de Push Notifications
 
-## Solucao Proposta
+### 1.1 Gerar chaves VAPID
+- Gerar um par de chaves VAPID (publica/privada) usando a lib `web-push`
+- Armazenar a chave privada como secret (`VAPID_PRIVATE_KEY`) e a publica como secret (`VAPID_PUBLIC_KEY`)
+- A chave publica tambem sera exposta no frontend via variavel de ambiente ou hardcoded (e publica por natureza)
 
-Criar uma nova edge function `check-due-tasks` que roda automaticamente via cron (pg_cron + pg_net), sem depender de nenhum usuario logado.
-
+### 1.2 Tabela `push_subscriptions` (migracao SQL)
 ```text
-pg_cron (a cada hora)
-    |
-    v
-pg_net --> HTTP POST --> Edge Function: check-due-tasks
-    |
-    v
-Consulta tarefas com due_date proximo/vencido
-    |
-    v
-Busca e-mail do responsavel (via service_role)
-    |
-    v
-Envia e-mail via Resend
-    |
-    v
-Registra notificacao enviada (evita duplicatas)
+push_subscriptions
+  - id: uuid (PK)
+  - user_id: uuid (FK -> auth.users)
+  - endpoint: text (unique)
+  - p256dh: text
+  - auth_key: text
+  - created_at: timestamptz
 ```
+- RLS: usuarios podem inserir/deletar/ver apenas as proprias subscriptions
+- Politica de INSERT: `auth.uid() = user_id`
+- Politica de SELECT/DELETE: `auth.uid() = user_id`
 
-## Mudancas no Banco de Dados
+### 1.3 Migrar Service Worker para `injectManifest`
+- Alterar `vite.config.ts` de `registerType: "autoUpdate"` para estrategia `injectManifest`
+- Criar `src/sw.ts` (ou `public/sw.js`) com:
+  - Pre-caching do Workbox (via `precacheAndRoute`)
+  - Listener `push` para exibir notificacao nativa
+  - Listener `notificationclick` para abrir/focar a janela do app e navegar ao link da notificacao
+  - Manter o `navigateFallbackDenylist` para `/~oauth`
 
-### 1. Nova tabela `task_notification_log`
-Evita enviar a mesma notificacao repetidamente:
+### 1.4 Hook `usePushSubscription`
+- Verificar suporte do navegador (`'PushManager' in window`)
+- Verificar permissao atual (`Notification.permission`)
+- Funcao `subscribe()`: solicitar permissao, criar subscription via `pushManager.subscribe()` com a chave VAPID publica, salvar no banco (`push_subscriptions`)
+- Funcao `unsubscribe()`: remover do banco e chamar `subscription.unsubscribe()`
+- Estado reativo: `isSubscribed`, `isSupported`, `permission`
 
-- `id` UUID PK
-- `task_id` UUID FK tasks(id) ON DELETE CASCADE
-- `user_id` UUID (destinatario)
-- `notification_type` TEXT (due_soon, overdue)
-- `sent_at` TIMESTAMPTZ DEFAULT now()
-- UNIQUE(task_id, user_id, notification_type)
+### 1.5 Edge Function `send-push-notification`
+- Recebe: `user_id`, `title`, `body`, `url`, `icon`
+- Busca todas as subscriptions do usuario na tabela `push_subscriptions`
+- Usa protocolo Web Push (com chaves VAPID) para enviar a cada endpoint
+- Remove subscriptions com endpoint invalido (status 410 Gone)
+- Configurar em `supabase/config.toml` com `verify_jwt = false` (validacao manual no codigo)
 
-### 2. Habilitar extensoes pg_cron e pg_net
-Necessarias para agendar a chamada HTTP automatica.
+### 1.6 Integrar push com notificacoes existentes
+- Nos locais onde ja se cria notificacoes in-app (`useTasks.ts`, `KanbanBoard.tsx`), apos inserir na tabela `notifications`, invocar tambem `send-push-notification` para o `user_id` destinatario
+- O push so e enviado se o usuario tiver subscriptions ativas
 
-### 3. Criar cron job
-Agendar execucao a cada hora, chamando a edge function com o service role key (sem JWT de usuario).
+---
 
-### 4. RLS na tabela `task_notification_log`
-Apenas o service role precisa acessar esta tabela. RLS habilitado sem policies publicas (acesso somente via service role).
+## 2. Pagina de Instalacao `/install`
 
-## Nova Edge Function: `check-due-tasks`
+### 2.1 Rota publica
+- Adicionar rota `/install` no `App.tsx` (rota publica, sem `ProtectedRoute`)
+- Pagina `src/pages/Install.tsx`
 
-### Logica principal
-1. Autenticar via service role key (enviado pelo cron job no header)
-2. Buscar tarefas com `due_date` definido e `status != 'completed'` e `assigned_to IS NOT NULL`
-3. Para cada tarefa:
-   - **Proxima ao vencimento** (due_date = amanha): verificar se ja enviou notificacao `due_soon` -> se nao, enviar e registrar
-   - **Vencida** (due_date < hoje): verificar se ja enviou notificacao `overdue` -> se nao, enviar e registrar
-4. Buscar e-mail diretamente de `auth.users` usando client com service role (sem precisar da RPC que exige caller)
-5. Enviar e-mail via Resend com template adequado
+### 2.2 Conteudo da pagina
+- Header com logo e titulo "Instale o Agile Lite"
+- Deteccao automatica da plataforma (iOS, Android, Desktop)
+- Instrucoes visuais com icones para cada plataforma:
+  - **iOS**: "Toque em Compartilhar > Adicionar a Tela de Inicio"
+  - **Android/Chrome**: Botao "Instalar" usando `beforeinstallprompt` ou instrucoes manuais
+  - **Desktop**: Botao "Instalar" ou instrucoes do navegador
+- Botao de instalacao nativo (capturando evento `beforeinstallprompt`)
+- Secao de beneficios: acesso offline, notificacoes push, experiencia nativa
+- Link para login/signup para usuarios nao autenticados
 
-### Tipos de notificacao adicionados
-- `due_soon`: "Sua tarefa X vence amanha"
-- `overdue`: "Sua tarefa X esta vencida desde DD/MM"
+---
+
+## 3. Banner de Instalacao no App
+
+### 3.1 Componente `InstallBanner`
+- `src/components/pwa/InstallBanner.tsx`
+- Exibido dentro do `AppLayout` (apos login) se:
+  - O app NAO esta em modo standalone (`window.matchMedia('(display-mode: standalone)')`)
+  - O usuario nao dispensou o banner (salvar no `localStorage`)
+- Conteudo: mensagem curta + botao "Instalar" + botao "X" para dispensar
+- No Android/Desktop: capturar `beforeinstallprompt` e disparar o prompt nativo
+- No iOS: redirecionar para `/install` com instrucoes
+
+### 3.2 Hook `useInstallPrompt`
+- Capturar e armazenar o evento `beforeinstallprompt`
+- Expor `canInstall`, `promptInstall()`, `isStandalone`
+- Compartilhado entre a pagina `/install` e o banner
+
+---
+
+## 4. Configuracao de Notificacoes nas Settings
+
+### 4.1 Secao na pagina de Configuracoes
+- Adicionar toggle "Notificacoes Push" na pagina `/settings`
+- Usar o hook `usePushSubscription` para ativar/desativar
+- Mostrar status: "Ativadas", "Bloqueadas pelo navegador", "Nao suportadas"
+
+---
+
+## Detalhes Tecnicos
+
+### Dependencias necessarias
+- `web-push` (apenas na Edge Function, importado via esm.sh no Deno)
+- Nenhuma dependencia frontend adicional
+
+### Arquivos a criar
+| Arquivo | Descricao |
+|---|---|
+| `src/sw.ts` | Service Worker customizado com push handlers |
+| `src/pages/Install.tsx` | Pagina de instalacao do PWA |
+| `src/components/pwa/InstallBanner.tsx` | Banner de instalacao flutuante |
+| `src/hooks/useInstallPrompt.ts` | Hook para capturar beforeinstallprompt |
+| `src/hooks/usePushSubscription.ts` | Hook para gerenciar push subscriptions |
+| `supabase/functions/send-push-notification/index.ts` | Edge Function para envio de push |
+| Migracao SQL | Tabela push_subscriptions + RLS |
+
+### Arquivos a modificar
+| Arquivo | Mudanca |
+|---|---|
+| `vite.config.ts` | Trocar para `injectManifest` strategy |
+| `src/App.tsx` | Adicionar rota `/install` |
+| `src/components/layout/AppLayout.tsx` | Adicionar `InstallBanner` |
+| `src/hooks/useTasks.ts` | Invocar push apos criar notificacao in-app |
+| `src/components/kanban/KanbanBoard.tsx` | Invocar push apos criar notificacao in-app |
+| `src/pages/Settings.tsx` | Adicionar secao de push notifications |
+| `supabase/config.toml` | Adicionar config da nova edge function |
 
 ### Seguranca
-- A funcao valida que o request vem com o service role key
-- Nao aceita chamadas sem autorizacao
-- `verify_jwt = false` no config.toml (validacao manual do service role)
+- Chaves VAPID privadas armazenadas como secrets
+- RLS na tabela `push_subscriptions` garante isolamento por usuario
+- Edge Function valida JWT antes de enviar push
+- Endpoints expirados (410) sao removidos automaticamente
 
-## Ajuste na Edge Function Existente
-
-A funcao `send-task-notification` atual usa `supabase.auth.getClaims()` que pode nao estar disponivel em todas as versoes do SDK. Sera ajustada para usar `supabase.auth.getUser()` como metodo mais confiavel de validacao do JWT.
-
-## Mudancas no Frontend
-
-### Nenhuma mudanca obrigatoria
-As notificacoes de vencimento sao 100% automaticas (cron). O frontend continua enviando notificacoes de atribuicao e mudanca de status como ja faz.
-
-## Resumo dos arquivos
-
-### Novos
-- `supabase/functions/check-due-tasks/index.ts` -- edge function do cron
-- Migracao SQL (tabela + cron job + extensoes)
-
-### Alterados
-- `supabase/config.toml` -- adicionar entrada `[functions.check-due-tasks]`
-- `supabase/functions/send-task-notification/index.ts` -- corrigir metodo de validacao JWT
-
-## Detalhes tecnicos do cron
-
-O cron sera configurado para rodar **a cada hora** com a seguinte query SQL (via pg_cron + pg_net):
-
-```text
-Frequencia: 0 * * * * (a cada hora, minuto 0)
-Destino: POST https://<project-ref>.supabase.co/functions/v1/check-due-tasks
-Headers: Authorization: Bearer <SERVICE_ROLE_KEY>
-```
-
-Isso garante que mesmo sem nenhum usuario no sistema, as notificacoes de vencimento serao enviadas automaticamente.
-
+### Limitacoes conhecidas
+- iOS Safari so suporta push em PWAs instaladas (iOS 16.4+)
+- Permissao de notificacao e por navegador/dispositivo, nao por usuario
+- Alguns navegadores podem bloquear o prompt de instalacao
