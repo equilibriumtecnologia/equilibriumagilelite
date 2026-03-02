@@ -106,7 +106,7 @@ export const CreateTaskDialog = ({
       status: data.status,
       priority: data.priority,
       created_by: user.id,
-      due_date: data.due_date ? format(data.due_date, "yyyy-MM-dd") : null,
+      due_date: data.due_date ? `${data.due_date.getFullYear()}-${String(data.due_date.getMonth() + 1).padStart(2, '0')}-${String(data.due_date.getDate()).padStart(2, '0')}` : null,
       assigned_to: data.assigned_to || null,
       description: data.description || null,
       story_points: data.story_points ?? null,

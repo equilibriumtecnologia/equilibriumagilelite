@@ -161,7 +161,7 @@ export const TaskCard = ({ task }: TaskCardProps) => {
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Calendar className="h-3.5 w-3.5" />
                   <span>
-                    {format(new Date(task.due_date), "dd/MM/yyyy", {
+                    {format(new Date(task.due_date + "T12:00:00"), "dd/MM/yyyy", {
                       locale: ptBR,
                     })}
                   </span>

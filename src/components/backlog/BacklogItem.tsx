@@ -91,7 +91,7 @@ export function BacklogItem({
         {task.due_date && (
           <div className="hidden sm:flex items-center gap-1 text-sm text-muted-foreground">
             <Calendar className="h-3 w-3" />
-            {format(new Date(task.due_date), "dd/MM", { locale: ptBR })}
+            {format(new Date(task.due_date + "T12:00:00"), "dd/MM", { locale: ptBR })}
           </div>
         )}
       </div>
