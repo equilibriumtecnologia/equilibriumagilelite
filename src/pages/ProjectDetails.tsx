@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -6,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
   Calendar,
@@ -16,6 +18,7 @@ import {
   List,
   Zap,
   ListTodo,
+  Search,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -52,6 +55,29 @@ const ProjectDetails = () => {
   const { project, loading, refetch } = useProject(id);
   const { activeSprint, sprints } = useSprints(id);
   const { canManageProject, canCreateTasks, canManageMembers, canDeleteAnyTask } = useProjectRole(id);
+  const [listSearch, setListSearch] = useState("");
+
+  // Filter and sort tasks for list view
+  const filteredSortedTasks = useMemo(() => {
+    if (!project?.tasks) return [];
+    let filtered = [...project.tasks];
+    
+    // Filter by search term
+    if (listSearch.trim()) {
+      const search = listSearch.toLowerCase();
+      filtered = filtered.filter(
+        (t) =>
+          t.title.toLowerCase().includes(search) ||
+          t.description?.toLowerCase().includes(search) ||
+          t.assigned_to_profile?.full_name.toLowerCase().includes(search)
+      );
+    }
+    
+    // Sort by updated_at descending (recently modified first)
+    filtered.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    
+    return filtered;
+  }, [project?.tasks, listSearch]);
 
   if (loading) {
     return (
@@ -253,13 +279,24 @@ const ProjectDetails = () => {
 
             <TabsContent value="list" className="mt-4 sm:mt-6">
               <div className="space-y-3 sm:space-y-4">
-                {project.tasks && project.tasks.length > 0 ? (
-                  project.tasks.map((task) => (
+                {/* Search filter */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar tarefas por título, descrição ou responsável..."
+                    value={listSearch}
+                    onChange={(e) => setListSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+
+                {filteredSortedTasks.length > 0 ? (
+                  filteredSortedTasks.map((task) => (
                     <TaskCard key={task.id} task={task} />
                   ))
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
-                    Nenhuma tarefa ainda
+                    {listSearch ? "Nenhuma tarefa encontrada" : "Nenhuma tarefa ainda"}
                   </div>
                 )}
               </div>

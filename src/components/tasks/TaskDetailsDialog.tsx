@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -8,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -18,15 +20,18 @@ import {
   FileText, 
   CheckSquare,
   History,
-  Info
+  Info,
+  Pencil
 } from "lucide-react";
 import { SubTasksList } from "./SubTasksList";
 import { TaskHistoryPanel } from "./TaskHistoryPanel";
 import { TaskTimeMetrics } from "./TaskTimeMetrics";
 import { InfoBlocksViewer } from "./InfoBlocksViewer";
+import { EditTaskDialog } from "./EditTaskDialog";
 import type { InfoBlock } from "./InfoBlocksEditor";
 import type { Database, Tables } from "@/integrations/supabase/types";
 import { useSubTasks } from "@/hooks/useSubTasks";
+import { useProjectRole } from "@/hooks/useProjectRole";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"] & {
   assigned_to_profile?: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -69,6 +74,8 @@ const statusColors: Record<string, string> = {
 
 export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialogProps) {
   const { totalCount, completedCount, progress } = useSubTasks(task?.id);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const { canCreateTasks } = useProjectRole(task?.project_id);
 
   if (!task) return null;
 
@@ -174,7 +181,7 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
                   </div>
                   <span className="text-sm">
                     {task.due_date
-                      ? format(new Date(task.due_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                      ? format(new Date(task.due_date + "T12:00:00"), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
                       : "Sem prazo definido"}
                   </span>
                 </div>
@@ -201,6 +208,26 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
                   </span>
                 </div>
               </div>
+
+              {/* Edit Button */}
+              {canCreateTasks && (
+                <>
+                  <Separator />
+                  <div className="flex justify-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsEditOpen(true);
+                      }}
+                      className="gap-2"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Editar Tarefa
+                    </Button>
+                  </div>
+                </>
+              )}
 
               {/* Created by */}
               {task.created_by_profile && (
@@ -245,6 +272,14 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
           </Tabs>
         </div>
       </DialogContent>
+
+      {task && (
+        <EditTaskDialog
+          task={task}
+          open={isEditOpen}
+          onOpenChange={setIsEditOpen}
+        />
+      )}
     </Dialog>
   );
 }

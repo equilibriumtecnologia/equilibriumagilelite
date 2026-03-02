@@ -236,6 +236,35 @@ export const useTasks = (projectId?: string) => {
               }
             }
           }
+
+          // Send notification to task creator (if different from changer and assignee)
+          if (currentTask.created_by && currentTask.created_by !== user.id && currentTask.created_by !== currentTask.assigned_to) {
+            const { data: creatorProfile } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("id", currentTask.created_by)
+              .single();
+
+            if (creatorProfile) {
+              try {
+                await supabase.functions.invoke("send-task-notification", {
+                  body: {
+                    taskId: id,
+                    taskTitle: currentTask.title,
+                    projectName: (currentTask as any).project?.name || "",
+                    notificationType: "status_changed",
+                    recipientUserId: currentTask.created_by,
+                    recipientName: creatorProfile.full_name,
+                    changedByName: changerProfile?.full_name || "Um usuário",
+                    oldStatus: currentTask.status,
+                    newStatus: updates.status,
+                  },
+                });
+              } catch (e) {
+                console.error("Failed to send creator status notification:", e);
+              }
+            }
+          }
         }
 
         // Check what changed - Priority
@@ -282,6 +311,33 @@ export const useTasks = (projectId?: string) => {
                 });
               } catch (e) {
                 console.error("Failed to send assignment notification:", e);
+              }
+            }
+          }
+
+          // Notify task creator about assignment change (if different from changer and new assignee)
+          if (currentTask.created_by && currentTask.created_by !== user.id && currentTask.created_by !== updates.assigned_to) {
+            const { data: creatorProfile } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("id", currentTask.created_by)
+              .single();
+
+            if (creatorProfile) {
+              try {
+                await supabase.functions.invoke("send-task-notification", {
+                  body: {
+                    taskId: id,
+                    taskTitle: currentTask.title,
+                    projectName: (currentTask as any).project?.name || "",
+                    notificationType: "assigned",
+                    recipientUserId: currentTask.created_by,
+                    recipientName: creatorProfile.full_name,
+                    changedByName: changerProfile?.full_name || "Um usuário",
+                  },
+                });
+              } catch (e) {
+                console.error("Failed to send creator assignment notification:", e);
               }
             }
           }

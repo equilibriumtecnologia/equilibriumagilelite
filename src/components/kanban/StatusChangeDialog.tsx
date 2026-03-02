@@ -11,7 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, MessageSquare } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowRight, MessageSquare, UserPlus } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
 
 type TaskStatus = "todo" | "in_progress" | "review" | "completed";
 
@@ -21,8 +29,10 @@ interface StatusChangeDialogProps {
   taskTitle: string;
   oldStatus: TaskStatus;
   newStatus: TaskStatus;
-  onConfirm: (comment: string) => void;
+  onConfirm: (comment: string, newAssignee?: string | null) => void;
   isPending?: boolean;
+  members?: { user_id: string; profiles: Database["public"]["Tables"]["profiles"]["Row"] }[];
+  currentAssignee?: string | null;
 }
 
 const statusLabels: Record<TaskStatus, { label: string; color: string }> = {
@@ -40,9 +50,12 @@ export function StatusChangeDialog({
   newStatus,
   onConfirm,
   isPending = false,
+  members = [],
+  currentAssignee,
 }: StatusChangeDialogProps) {
   const [comment, setComment] = useState("");
   const [error, setError] = useState("");
+  const [selectedAssignee, setSelectedAssignee] = useState<string>("keep");
 
   const handleConfirm = () => {
     if (!comment.trim()) {
@@ -53,15 +66,22 @@ export function StatusChangeDialog({
       setError("Comentário deve ter pelo menos 10 caracteres");
       return;
     }
-    onConfirm(comment.trim());
+    const newAssignee = selectedAssignee === "keep" 
+      ? undefined 
+      : selectedAssignee === "unassigned" 
+        ? null 
+        : selectedAssignee;
+    onConfirm(comment.trim(), newAssignee);
     setComment("");
     setError("");
+    setSelectedAssignee("keep");
   };
 
   const handleClose = (isOpen: boolean) => {
     if (!isOpen) {
       setComment("");
       setError("");
+      setSelectedAssignee("keep");
     }
     onOpenChange(isOpen);
   };
@@ -101,6 +121,31 @@ export function StatusChangeDialog({
               {statusLabels[newStatus].label}
             </Badge>
           </div>
+
+          {/* Optional assignee change */}
+          {members.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <UserPlus className="h-4 w-4 text-muted-foreground" />
+                <Label>Reatribuir tarefa (opcional)</Label>
+              </div>
+              <Select value={selectedAssignee} onValueChange={setSelectedAssignee}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Manter responsável atual" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="keep">Manter responsável atual</SelectItem>
+                  <SelectItem value="unassigned">Remover atribuição</SelectItem>
+                  {members.map((member) => (
+                    <SelectItem key={member.user_id} value={member.user_id}>
+                      {member.profiles.full_name}
+                      {member.user_id === currentAssignee ? " (atual)" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="comment">

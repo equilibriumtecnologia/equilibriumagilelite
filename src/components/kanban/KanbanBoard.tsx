@@ -85,7 +85,7 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
 
     // Due date filter
     if (filters.dueDate) {
-      const dueDate = task.due_date ? new Date(task.due_date) : null;
+      const dueDate = task.due_date ? new Date(task.due_date + "T12:00:00") : null;
       const today = startOfDay(new Date());
 
       switch (filters.dueDate) {
@@ -152,7 +152,7 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
     });
   };
 
-  const handleConfirmStatusChange = async (comment: string) => {
+  const handleConfirmStatusChange = async (comment: string, newAssignee?: string | null) => {
     if (!pendingChange) return;
 
     setIsUpdating(true);
@@ -164,15 +164,21 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
         return;
       }
 
-      // Update task status
+      // Build update payload
+      const updatePayload: Record<string, any> = { status: pendingChange.newStatus };
+      if (newAssignee !== undefined) {
+        updatePayload.assigned_to = newAssignee;
+      }
+
+      // Update task status (and optionally assignee)
       const { error: updateError } = await supabase
         .from("tasks")
-        .update({ status: pendingChange.newStatus })
+        .update(updatePayload)
         .eq("id", pendingChange.taskId);
 
       if (updateError) throw updateError;
 
-      // Add history entry with comment
+      // Add status change history entry
       const { error: historyError } = await supabase
         .from("task_history")
         .insert({
@@ -186,6 +192,110 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
 
       if (historyError) {
         console.error("Error adding history:", historyError);
+      }
+
+      // Add assignment history entry if assignee changed
+      const currentTask = tasks.find(t => t.id === pendingChange.taskId);
+      if (newAssignee !== undefined && newAssignee !== currentTask?.assigned_to) {
+        await supabase.from("task_history").insert({
+          task_id: pendingChange.taskId,
+          user_id: user.id,
+          action: newAssignee ? "assigned" : "unassigned",
+          old_value: currentTask?.assigned_to || null,
+          new_value: newAssignee,
+        });
+      }
+
+      // Send email notifications
+      const { data: changerProfile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+
+      // Notify assigned user about status change
+      if (currentTask?.assigned_to && currentTask.assigned_to !== user.id) {
+        const { data: assigneeProfile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", currentTask.assigned_to)
+          .single();
+
+        if (assigneeProfile) {
+          try {
+            await supabase.functions.invoke("send-task-notification", {
+              body: {
+                taskId: pendingChange.taskId,
+                taskTitle: pendingChange.taskTitle,
+                projectName: "",
+                notificationType: "status_changed",
+                recipientUserId: currentTask.assigned_to,
+                recipientName: assigneeProfile.full_name,
+                changedByName: changerProfile?.full_name || "Um usuário",
+                oldStatus: pendingChange.oldStatus,
+                newStatus: pendingChange.newStatus,
+              },
+            });
+          } catch (e) {
+            console.error("Failed to send status notification:", e);
+          }
+        }
+      }
+
+      // Notify task creator about status change (if different from changer and assignee)
+      if (currentTask?.created_by && currentTask.created_by !== user.id && currentTask.created_by !== currentTask?.assigned_to) {
+        const { data: creatorProfile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", currentTask.created_by)
+          .single();
+
+        if (creatorProfile) {
+          try {
+            await supabase.functions.invoke("send-task-notification", {
+              body: {
+                taskId: pendingChange.taskId,
+                taskTitle: pendingChange.taskTitle,
+                projectName: "",
+                notificationType: "status_changed",
+                recipientUserId: currentTask.created_by,
+                recipientName: creatorProfile.full_name,
+                changedByName: changerProfile?.full_name || "Um usuário",
+                oldStatus: pendingChange.oldStatus,
+                newStatus: pendingChange.newStatus,
+              },
+            });
+          } catch (e) {
+            console.error("Failed to send creator notification:", e);
+          }
+        }
+      }
+
+      // Notify newly assigned user
+      if (newAssignee && newAssignee !== user.id && newAssignee !== currentTask?.assigned_to) {
+        const { data: newAssigneeProfile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", newAssignee)
+          .single();
+
+        if (newAssigneeProfile) {
+          try {
+            await supabase.functions.invoke("send-task-notification", {
+              body: {
+                taskId: pendingChange.taskId,
+                taskTitle: pendingChange.taskTitle,
+                projectName: "",
+                notificationType: "assigned",
+                recipientUserId: newAssignee,
+                recipientName: newAssigneeProfile.full_name,
+                changedByName: changerProfile?.full_name || "Um usuário",
+              },
+            });
+          } catch (e) {
+            console.error("Failed to send assignment notification:", e);
+          }
+        }
       }
 
       toast.success("Status da tarefa atualizado!");
@@ -255,6 +365,8 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
         newStatus={pendingChange?.newStatus || "todo"}
         onConfirm={handleConfirmStatusChange}
         isPending={isUpdating}
+        members={members}
+        currentAssignee={pendingChange ? tasks.find(t => t.id === pendingChange.taskId)?.assigned_to : null}
       />
     </>
   );
