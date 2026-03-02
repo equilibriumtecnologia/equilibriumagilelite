@@ -6,13 +6,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Bell, BellOff } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CategoriesManagement } from "@/components/settings/CategoriesManagement";
 import { PermissionsManagement } from "@/components/settings/PermissionsManagement";
 import { PendingInvitations } from "@/components/settings/PendingInvitations";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { usePushSubscription } from "@/hooks/usePushSubscription";
 
 const roleLabels: Record<string, string> = {
   master: "Proprietário",
@@ -27,6 +29,7 @@ export default function Settings() {
   const [userRole, setUserRole] = useState<string>("user");
   const [profile, setProfile] = useState({ full_name: "", avatar_url: "" });
   const [saving, setSaving] = useState(false);
+  const { isSupported, isSubscribed, permission, loading: pushLoading, subscribe, unsubscribe } = usePushSubscription();
 
   useEffect(() => {
     fetchUserData();
@@ -100,6 +103,7 @@ export default function Settings() {
             {canAccessPermissions && (
               <TabsTrigger value="permissions" className="text-xs sm:text-sm">Permissões</TabsTrigger>
             )}
+            <TabsTrigger value="notifications" className="text-xs sm:text-sm">Notificações</TabsTrigger>
           </TabsList>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
@@ -162,6 +166,57 @@ export default function Settings() {
         {canAccessPermissions && (
           <TabsContent value="permissions"><PermissionsManagement /></TabsContent>
         )}
+
+        <TabsContent value="notifications">
+          <Card>
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="text-lg sm:text-xl">Notificações Push</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                Receba alertas de tarefas e atualizações diretamente no seu dispositivo
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 px-4 sm:px-6">
+              {!isSupported ? (
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <BellOff className="h-5 w-5" />
+                  <p className="text-sm">Notificações push não são suportadas neste navegador.</p>
+                </div>
+              ) : permission === "denied" ? (
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <BellOff className="h-5 w-5" />
+                  <div>
+                    <p className="text-sm font-medium">Notificações bloqueadas</p>
+                    <p className="text-xs">As notificações foram bloqueadas pelo navegador. Altere nas configurações do seu navegador para reativar.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Bell className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="text-sm font-medium">Notificações Push</p>
+                      <p className="text-xs text-muted-foreground">
+                        {isSubscribed ? "Ativadas — você receberá alertas neste dispositivo" : "Ative para receber alertas neste dispositivo"}
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={isSubscribed}
+                    disabled={pushLoading}
+                    onCheckedChange={async (checked) => {
+                      const success = checked ? await subscribe() : await unsubscribe();
+                      if (success) {
+                        toast.success(checked ? "Notificações push ativadas!" : "Notificações push desativadas.");
+                      } else if (checked) {
+                        toast.error("Não foi possível ativar as notificações. Verifique as permissões do navegador.");
+                      }
+                    }}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
