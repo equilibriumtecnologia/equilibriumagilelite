@@ -106,7 +106,7 @@ function PlanUsageBar({
 }
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, setOpenMobile } = useSidebar();
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { role, workspaceRole, canManageInvitations } = useUserRole();
@@ -263,10 +263,11 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
+                      onClick={() => setOpenMobile(false)}
                       className={({ isActive }) =>
                         isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                          : "hover:bg-sidebar-accent/50"
+                          ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary rounded-l-none"
+                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
                       }
                     >
                       <item.icon className="h-4 w-4" />
