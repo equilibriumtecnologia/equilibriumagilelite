@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { NotificationsPopover } from "@/components/notifications/NotificationsPopover";
+import { InstallBanner } from "@/components/pwa/InstallBanner";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -16,6 +17,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <SidebarTrigger />
             <NotificationsPopover />
           </header>
+          <InstallBanner />
           <main className="flex-1 bg-background overflow-x-hidden safe-bottom">{children}</main>
         </div>
       </div>

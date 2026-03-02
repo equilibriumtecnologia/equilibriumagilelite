@@ -245,7 +245,58 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Email sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify(emailResponse), {
+    // === SEND PUSH NOTIFICATION ===
+    let pushSent = 0;
+    try {
+      const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY");
+      const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY");
+
+      if (vapidPublicKey && vapidPrivateKey) {
+        const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+        const { data: subs } = await serviceClient
+          .from("push_subscriptions")
+          .select("*")
+          .eq("user_id", recipientUserId);
+
+        if (subs && subs.length > 0) {
+          const webPush = await import("https://esm.sh/web-push@3.6.7");
+          webPush.setVapidDetails("mailto:suporte@agileiteequilibrium.com.br", vapidPublicKey, vapidPrivateKey);
+
+          const pushBody = notificationType === "assigned"
+            ? `${changedByName} atribuiu uma tarefa para você: ${taskTitle}`
+            : `${changedByName} alterou o status de "${taskTitle}" para ${statusLabels[newStatus || ""] || newStatus}`;
+
+          const pushPayload = JSON.stringify({
+            title: notificationType === "assigned" ? "Nova tarefa atribuída" : "Status atualizado",
+            body: pushBody,
+            url: `${appUrl}/dashboard`,
+            icon: "/pwa-192x192.png",
+          });
+
+          const expiredEndpoints: string[] = [];
+          for (const sub of subs) {
+            try {
+              await webPush.sendNotification(
+                { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_key } },
+                pushPayload
+              );
+              pushSent++;
+            } catch (pushErr: any) {
+              if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
+                expiredEndpoints.push(sub.endpoint);
+              }
+            }
+          }
+          if (expiredEndpoints.length > 0) {
+            await serviceClient.from("push_subscriptions").delete().in("endpoint", expiredEndpoints);
+          }
+        }
+      }
+    } catch (pushError) {
+      console.error("Push notification error (non-fatal):", pushError);
+    }
+
+    return new Response(JSON.stringify({ ...emailResponse, pushSent }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
