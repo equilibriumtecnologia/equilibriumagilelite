@@ -85,7 +85,7 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
 
     // Due date filter
     if (filters.dueDate) {
-      const dueDate = task.due_date ? new Date(task.due_date) : null;
+      const dueDate = task.due_date ? new Date(task.due_date + "T12:00:00") : null;
       const today = startOfDay(new Date());
 
       switch (filters.dueDate) {

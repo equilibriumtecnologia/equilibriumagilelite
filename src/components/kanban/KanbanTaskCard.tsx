@@ -181,7 +181,7 @@ export function KanbanTaskCard({
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Calendar className="h-3 w-3 flex-shrink-0" />
                 <span className="truncate">
-                  {format(new Date(task.due_date), "dd/MM/yyyy", { locale: ptBR })}
+                  {format(new Date(task.due_date + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR })}
                 </span>
               </div>
             )}
