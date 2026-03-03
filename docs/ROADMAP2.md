@@ -150,24 +150,20 @@ ADD COLUMN color TEXT DEFAULT NULL;
 
 ---
 
-### Fase B - Swimlanes e UX Avançada (2-3 semanas)
+### ✅ Fase B - Swimlanes e UX Avançada (100% Concluída)
 
-#### B.1 Swimlanes por Sprint no Kanban
+#### B.1 Swimlanes por Sprint no Kanban ✅
 
-**Prioridade:** Média | **Esforço:** Médio
+**Prioridade:** Média | **Esforço:** Médio | **Status:** ✅ Concluído
 
-**O que falta:**
-- Opção de agrupar tarefas por sprint no board
-
-**Componentes a criar/modificar:**
-- Modificar `KanbanBoard.tsx` — Adicionar toggle de modo (flat vs swimlane)
-- `src/components/kanban/KanbanSwimlane.tsx` — Container de swimlane (expandível/colapsável)
-- Cada swimlane = uma sprint (+ "Sem Sprint" para órfãs)
-
-**Comportamento:**
-- Toggle no header do board: "Agrupar por Sprint"
-- Cada swimlane mostra nome da sprint, progresso e pode ser colapsada
-- Persistir preferência no localStorage
+**Implementado:**
+- Toggle "Flat / Swimlanes" no toolbar do Kanban
+- `KanbanSwimlane.tsx` — Seções expansíveis/colapsáveis por sprint
+- Grupo "Sem Sprint" para tarefas órfãs
+- Badges de status da sprint (Ativa, Planejamento, Concluída)
+- Contadores de tarefas e story points por swimlane
+- Preferência persistida no `localStorage`
+- Sprints ativas e "Sem Sprint" expandidas por padrão
 
 ---
 
@@ -467,8 +463,8 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 5. ~~A.1 Colunas Customizáveis~~ ✅
 6. ~~A.4 Sprint Planning Dialog~~ ✅
 
-### Sprint 2 (Semanas 3-4): Swimlanes + UX
-1. B.1 Swimlanes por Sprint no Kanban
+### Sprint 2 (Semanas 3-4): Swimlanes + UX ✅ CONCLUÍDA
+1. ~~B.1 Swimlanes por Sprint no Kanban~~ ✅
 
 ### Sprint 3 (Semanas 5-7): Push + IA
 1. B.2 PWA Push Notifications
@@ -509,11 +505,10 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 
 ## 🏁 Conclusão
 
-O projeto está em **estágio avançado** com ~85% do roadmap original concluído. Sprint 1 foi totalmente entregue. O foco agora é:
+O projeto está em **estágio avançado** com ~90% do roadmap original concluído. Sprints 1 e 2 foram totalmente entregues. O foco agora é:
 
-1. **Swimlanes por Sprint** no Kanban (Sprint 2)
-2. **Push Notifications** (diferencial forte para PWA)
-3. **IA e Analytics** (diferenciais competitivos — Priorização, Previsão, Bottleneck)
-4. **Monetização** (Stripe para receita)
+1. **IA para Priorização** com streaming (Sprint 3)
+2. **Previsão de Entrega e Bottleneck Detection** (Sprint 3)
+3. **Monetização via Stripe** conforme STRIPE.md (Sprint 4)
 
-A estimativa restante é de ~2-3 meses para as sprints 2-5.
+A estimativa restante é de ~1-2 meses para as sprints 3-4.
