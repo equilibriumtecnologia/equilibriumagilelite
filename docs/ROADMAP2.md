@@ -46,13 +46,13 @@
 | 4.3 Notificações In-App | ✅ Feito | `NotificationsPopover.tsx`, `useNotifications.ts`, tabela `notifications` |
 | 4.4 Activity Feed | ✅ Feito | `ActivityFeed.tsx`, `ActivityItem.tsx`, `useActivityFeed.ts` — feed cronológico real |
 
-### ❌ Fase 5 - Diferenciais Competitivos (0% Concluída)
+### ⚠️ Fase 5 - Diferenciais Competitivos (33% Concluída)
 
 | Feature | Status |
 |---------|--------|
 | 5.1 IA para Priorização | ❌ Não feito |
 | 5.2 Previsão de Entrega | ❌ Não feito |
-| 5.3 Bottleneck Detection | ❌ Não feito |
+| 5.3 Bottleneck Detection | ✅ Feito |
 | 5.4 Templates de Projeto | ❌ Não feito |
 | 5.5 Integrações (Webhooks) | ❌ Não feito |
 
@@ -254,25 +254,22 @@ ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 
 ---
 
-#### C.3 Bottleneck Detection
+#### C.3 Bottleneck Detection ✅
 
-**Prioridade:** Média | **Esforço:** Médio
+**Prioridade:** Média | **Esforço:** Médio | **Status:** ✅ Concluído
 
-**Componentes a criar:**
-- `src/components/kanban/ColumnHealthIndicator.tsx` — Indicador visual na coluna
-- `src/components/reports/BottleneckAlert.tsx` — Alert no Reports
-- `src/hooks/useBottleneckDetection.ts` — Lógica de detecção
+**Implementado:**
+- `src/hooks/useBottleneckDetection.ts` — Hook com 4 critérios de detecção
+- `src/components/kanban/BottleneckIndicator.tsx` — Badge animado nas colunas do Kanban com tooltip detalhado
+- `src/components/dashboard/BottleneckAlerts.tsx` — Card de alertas no Dashboard
 
-**Regras de detecção:**
-- Coluna com WIP > limite por 3+ dias consecutivos
-- Tarefas paradas (sem mudança de status) há mais de 5 dias úteis
-- Membro com mais de 5 tarefas em andamento
-- Coluna crescendo sem saída (entradas > saídas nos últimos 7 dias)
+**Critérios de Detecção:**
+1. **WIP excedido** — Coluna com mais tarefas que o limite configurado
+2. **Tarefas paradas** — Sem atualização há 3+ dias (configurável)
+3. **Coluna sem saída** — Acúmulo sem conclusões nos últimos 7 dias
+4. **Assignee sobrecarregado** — Membro com 5+ tarefas em progresso/revisão
 
-**UI:**
-- Indicador amarelo/vermelho na coluna do Kanban
-- Card de alerta no Dashboard
-- Detalhes expandidos nos Reports
+**Severidades:** warning (amarelo) e critical (vermelho) com thresholds progressivos
 
 ---
 
@@ -466,13 +463,13 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 ### Sprint 2 (Semanas 3-4): Swimlanes + UX ✅ CONCLUÍDA
 1. ~~B.1 Swimlanes por Sprint no Kanban~~ ✅
 
-### Sprint 3 (Semanas 5-7): Push + IA
-1. B.2 PWA Push Notifications
-2. C.1 IA para Priorização
+### Sprint 3 (Semanas 5-7): IA + Analytics — EM ANDAMENTO
+1. C.3 Bottleneck Detection ✅
+2. C.1 IA para Priorização ❌
+3. C.2 Previsão de Entrega ❌
 
-### Sprint 4 (Semanas 8-10): Analytics Avançado
-1. C.2 Previsão de Entrega
-2. C.3 Bottleneck Detection
+### Sprint 4 (Semanas 8-10): Push + Monetização
+1. B.2 PWA Push Notifications
 3. D.2 UI de Upselling
 
 ### Sprint 5 (Semanas 11-14): Monetização + Extras

@@ -2,7 +2,9 @@ import { useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
 import { KanbanTaskCard } from "./KanbanTaskCard";
 import { WIPLimitBadge } from "./WIPLimitBadge";
+import { BottleneckIndicator } from "./BottleneckIndicator";
 import type { Database } from "@/integrations/supabase/types";
+import type { Bottleneck } from "@/hooks/useBottleneckDetection";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"] & {
   assigned_to_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -17,6 +19,7 @@ interface KanbanColumnProps {
   count: number;
   wipLimit: number | null;
   wipStatus: "normal" | "warning" | "exceeded";
+  bottlenecks?: Bottleneck[];
 }
 
 export function KanbanColumn({
@@ -27,6 +30,7 @@ export function KanbanColumn({
   count,
   wipLimit,
   wipStatus,
+  bottlenecks = [],
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
@@ -39,7 +43,10 @@ export function KanbanColumn({
           <div className={`w-3 h-3 rounded-full ${color}`} />
           <h3 className="font-semibold">{title}</h3>
         </div>
-        <WIPLimitBadge count={count} limit={wipLimit} status={wipStatus} />
+        <div className="flex items-center gap-1.5">
+          <BottleneckIndicator bottlenecks={bottlenecks} />
+          <WIPLimitBadge count={count} limit={wipLimit} status={wipStatus} />
+        </div>
       </div>
 
       <div

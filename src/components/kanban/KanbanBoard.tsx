@@ -23,6 +23,7 @@ import { ColumnCustomizeDialog } from "./ColumnCustomizeDialog";
 import { KanbanFilters, FilterState } from "./KanbanFilters";
 import { useBoardSettings } from "@/hooks/useBoardSettings";
 import { useProjectRole } from "@/hooks/useProjectRole";
+import { useBottleneckDetection } from "@/hooks/useBottleneckDetection";
 import { isToday, isThisWeek, isBefore, startOfDay } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -77,6 +78,19 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
 
   const { getWipLimit, getWipStatus, getColumnLabel, getColumnColor } = useBoardSettings(projectId);
   const { canCreateTasks } = useProjectRole(projectId);
+
+  // Build WIP limits map for bottleneck detection
+  const wipLimitsMap = columns.reduce((acc, col) => {
+    acc[col.id] = getWipLimit(col.id);
+    return acc;
+  }, {} as Record<string, number | null>);
+
+  const bottlenecks = useBottleneckDetection({
+    tasks,
+    wipLimits: wipLimitsMap,
+    stalledThresholdDays: 3,
+    overloadThreshold: 5,
+  });
 
   useEffect(() => {
     try {
@@ -405,6 +419,7 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
                 const count = tasksByStatus[column.id].length;
                 const wipLimit = getWipLimit(column.id);
                 const wipStatus = getWipStatus(column.id, count);
+                const columnBottlenecks = bottlenecks.filter((b) => b.columnId === column.id);
 
                 return (
                   <KanbanColumn
@@ -416,6 +431,7 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
                     count={count}
                     wipLimit={wipLimit}
                     wipStatus={wipStatus}
+                    bottlenecks={columnBottlenecks}
                   />
                 );
               })}
