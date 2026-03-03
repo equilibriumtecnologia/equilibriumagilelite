@@ -116,7 +116,6 @@ export function AppSidebar() {
   const { members } = useWorkspaceMembers();
   const [profileName, setProfileName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [ownerPlan, setOwnerPlan] = useState<any>(null);
 
   const isCollapsed = state === "collapsed";
 
@@ -125,35 +124,9 @@ export function AppSidebar() {
     (m) => m.user_id === user?.id && m.role === "owner"
   );
 
-  // Find workspace owner's user_id
-  const workspaceOwnerId = members.find((m) => m.role === "owner")?.user_id;
-
-  // Fetch workspace owner's plan when user is NOT the owner
-  useEffect(() => {
-    if (!workspaceOwnerId || isWorkspaceOwner || !currentWorkspace) {
-      setOwnerPlan(null);
-      return;
-    }
-    supabase
-      .rpc("get_user_plan", { _user_id: workspaceOwnerId })
-      .then(({ data, error }) => {
-        if (!error && data) setOwnerPlan(data);
-        else setOwnerPlan(null);
-      });
-  }, [workspaceOwnerId, isWorkspaceOwner, currentWorkspace?.id]);
-
-  // Use owner's plan when viewing someone else's workspace, own plan otherwise
-  const plan = isWorkspaceOwner ? userPlan : ownerPlan || userPlan;
-
-  // Check if user has any permission that warrants seeing usage
-  const userPermissions = members.find((m) => m.user_id === user?.id);
-  const hasRelevantPermission =
-    isMaster ||
-    isWorkspaceOwner ||
-    workspaceRole === "admin" ||
-    role === "admin";
-
-  const showPlanUsage = !!plan && hasRelevantPermission;
+  // PlanUsage only visible to workspace owner or master
+  const plan = userPlan;
+  const showPlanUsage = !!plan && (isMaster || isWorkspaceOwner);
 
   const menuItems = [
     ...baseMenuItems,
