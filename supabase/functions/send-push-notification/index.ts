@@ -41,6 +41,22 @@ Deno.serve(async (req) => {
     const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY")!;
     const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY")!;
 
+    // === AUTHENTICATION: Only service role key allowed ===
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const providedKey = authHeader.replace("Bearer ", "");
+    if (providedKey !== serviceRoleKey) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: Only service role can call this function" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { user_id, title, body, url, icon } = await req.json();
 
     if (!user_id || !title) {
