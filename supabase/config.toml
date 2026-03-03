@@ -1,16 +1,15 @@
 project_id = "oteqziddtpjosoacjfwq"
 
-[functions.send-invitation-email]
-verify_jwt = false
-
-[functions.send-task-notification]
-verify_jwt = false
-
-[functions.check-due-tasks]
-verify_jwt = false
-
-[functions.send-push-notification]
-verify_jwt = false
-
-[functions.ai-prioritize]
-verify_jwt = false
+[functions]
+  [functions.ai-prioritize]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.check-due-tasks]
+    verify_jwt = false
+  [functions.send-invitation-email]
+    verify_jwt = false
+  [functions.send-push-notification]
+    verify_jwt = false
+  [functions.send-task-notification]
+    verify_jwt = false
