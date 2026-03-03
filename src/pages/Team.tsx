@@ -17,7 +17,7 @@ import { TeamMemberCard } from "@/components/team/TeamMemberCard";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const Team = () => {
-  const { members, loading, refetch } = useTeam();
+  const { members, loading, uniqueProjectCount, refetch } = useTeam();
   const { canManageInvitations } = useUserRole();
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -33,7 +33,7 @@ const Team = () => {
   });
 
   const totalMembers = members.length;
-  const totalProjects = members.reduce((sum, m) => sum + m.project_count, 0);
+  const totalProjects = uniqueProjectCount;
   const totalTasks = members.reduce((sum, m) => sum + m.task_count, 0);
   const totalCompleted = members.reduce((sum, m) => sum + m.completed_task_count, 0);
   const avgCompletionRate = totalTasks > 0 ? (totalCompleted / totalTasks) * 100 : 0;
