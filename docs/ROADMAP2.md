@@ -46,11 +46,11 @@
 | 4.3 Notificações In-App | ✅ Feito | `NotificationsPopover.tsx`, `useNotifications.ts`, tabela `notifications` |
 | 4.4 Activity Feed | ✅ Feito | `ActivityFeed.tsx`, `ActivityItem.tsx`, `useActivityFeed.ts` — feed cronológico real |
 
-### ⚠️ Fase 5 - Diferenciais Competitivos (50% Concluída)
+### ✅ Fase 5 - Diferenciais Competitivos (60% Concluída)
 
 | Feature | Status |
 |---------|--------|
-| 5.1 IA para Priorização | ❌ Não feito |
+| 5.1 IA para Priorização | ✅ Feito |
 | 5.2 Previsão de Entrega | ✅ Feito |
 | 5.3 Bottleneck Detection | ✅ Feito |
 | 5.4 Templates de Projeto | ❌ Não feito |
@@ -208,30 +208,29 @@ ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 
 ### Fase C - Diferenciais Competitivos (4-6 semanas)
 
-#### C.1 IA para Priorização
+#### C.1 IA para Priorização ✅
 
-**Prioridade:** Alta | **Esforço:** Alto
+**Prioridade:** Alta | **Esforço:** Alto | **Status:** ✅ Concluído
 
-**Componentes a criar:**
-- `supabase/functions/ai-prioritize/index.ts` — Recebe lista de tarefas, retorna sugestões
-- `src/components/ai/PrioritySuggestion.tsx` — Badge/tooltip na tarefa
-- `src/components/ai/PrioritizeButton.tsx` — Botão "Sugerir Prioridades" no backlog
-- `src/hooks/useAIPrioritization.ts` — Chamada à edge function
-
-**Modelo:** Usar Lovable AI (google/gemini-2.5-flash) sem necessidade de API key
+**Implementado:**
+- `supabase/functions/ai-prioritize/index.ts` — Edge function com Lovable AI (google/gemini-3-flash-preview) e tool calling para saída estruturada
+- `src/hooks/useAIPrioritization.ts` — Hook com state management para chamada e resultado
+- `src/components/ai/AIPrioritizeButton.tsx` — Botão "🤖 Sugerir Prioridades" com tooltip
+- `src/components/ai/AISuggestionsPanel.tsx` — Painel de sugestões com reordenação, badges de prioridade e tooltips de raciocínio
+- Integrado no Backlog e no SprintBoardHeader
 
 **Algoritmo (prompt) considera:**
 - Prazo (due_date) e proximidade
 - Prioridade atual e story points
 - Status e tempo parado
-- Criticidade do projeto (criticality_level)
-- Padrões históricos (task_history)
+- Criticidade do projeto
+- Padrões de nomes e dependências implícitas
 
 **UI:**
-- Botão no Backlog: "🤖 Sugerir Prioridades"
-- Exibe lista reordenada com badges "IA Suggest"
-- Tooltip explica raciocínio
-- Botão para aceitar (reordena backlog) ou rejeitar
+- Botão no Backlog e Sprint Board: "🤖 Sugerir Prioridades"
+- Lista reordenada com setas ↑↓ indicando movimentação
+- Tooltip por tarefa explica o raciocínio da IA
+- Botões Aceitar (reordena) ou Descartar
 
 ---
 
@@ -461,10 +460,10 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 ### Sprint 2 (Semanas 3-4): Swimlanes + UX ✅ CONCLUÍDA
 1. ~~B.1 Swimlanes por Sprint no Kanban~~ ✅
 
-### Sprint 3 (Semanas 5-7): IA + Analytics — EM ANDAMENTO
+### Sprint 3 (Semanas 5-7): IA + Analytics — ✅ CONCLUÍDA
 1. C.3 Bottleneck Detection ✅
 2. C.2 Previsão de Entrega ✅
-3. C.1 IA para Priorização ❌
+3. C.1 IA para Priorização ✅
 
 ### Sprint 4 (Semanas 8-10): Push + Monetização
 1. B.2 PWA Push Notifications
@@ -484,7 +483,7 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 ## 📝 Notas Técnicas
 
 ### Decisões de Arquitetura
-- **IA:** Usar Lovable AI (gemini-2.5-flash) via edge function — sem custo de API key para o usuário
+- **IA:** Usar Lovable AI (google/gemini-3-flash-preview) via edge function com tool calling — sem custo de API key para o usuário
 - **Push Notifications:** VAPID + Web Push API — funciona em Android e iOS 16.4+ (PWA instalado)
 - **Export CSV:** 100% client-side — sem edge function necessária
 - **Stripe:** Checkout Sessions (hosted) — menor PCI scope

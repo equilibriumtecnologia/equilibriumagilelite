@@ -15,6 +15,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { ArrowLeft, Plus, Filter, ListFilter } from "lucide-react";
+import { AIPrioritizeButton } from "@/components/ai/AIPrioritizeButton";
+import { AISuggestionsPanel } from "@/components/ai/AISuggestionsPanel";
+import { useAIPrioritization } from "@/hooks/useAIPrioritization";
+import { useTeam } from "@/hooks/useTeam";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -48,6 +53,29 @@ export default function Backlog() {
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+  const { prioritize, isLoading: aiLoading, result: aiResult, clear: clearAI } = useAIPrioritization();
+  const { members } = useTeam();
+
+  const assigneeNames = useMemo(() => {
+    const map: Record<string, string> = {};
+    members?.forEach((m: any) => { if (m.id && m.full_name) map[m.id] = m.full_name; });
+    return map;
+  }, [members]);
+
+  const handleAIPrioritize = () => {
+    if (!project) return;
+    prioritize(backlogTasks, project.name, undefined, assigneeNames);
+  };
+
+  const handleAcceptAI = async () => {
+    if (!aiResult) return;
+    const sorted = [...aiResult.suggestions].sort((a, b) => a.new_position - b.new_position);
+    for (let i = 0; i < sorted.length; i++) {
+      await updateTask.mutateAsync({ id: sorted[i].task_id, backlog_order: i });
+    }
+    clearAI();
+    toast.success("Backlog reordenado pela IA!");
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -162,6 +190,7 @@ export default function Backlog() {
           <Input placeholder="Buscar no backlog..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="flex gap-2">
+          <AIPrioritizeButton onClick={handleAIPrioritize} isLoading={aiLoading} taskCount={backlogTasks.length} />
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
             <SelectTrigger className="w-[130px] sm:w-[150px]">
               <Filter className="h-4 w-4 mr-1.5" />
@@ -181,6 +210,14 @@ export default function Backlog() {
         </div>
       </div>
 
+      {aiResult && (
+        <AISuggestionsPanel
+          suggestions={aiResult.suggestions}
+          summary={aiResult.summary}
+          onAccept={handleAcceptAI}
+          onDismiss={clearAI}
+        />
+      )}
       {backlogTasks.length === 0 ? (
         <div className="text-center py-12 border rounded-lg">
           <ListFilter className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
