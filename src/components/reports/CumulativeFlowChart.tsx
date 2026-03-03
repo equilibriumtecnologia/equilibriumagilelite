@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card } from "@/components/ui/card";
+import { ExportButton } from "./ExportButton";
 import type { CumulativeFlowDataPoint } from "@/hooks/useReportData";
 
 interface CumulativeFlowChartProps {
@@ -43,7 +44,14 @@ export function CumulativeFlowChart({ data }: CumulativeFlowChartProps) {
 
   return (
     <Card className="p-4 sm:p-6">
-      <h3 className="text-base sm:text-lg font-semibold mb-4">Fluxo Cumulativo (CFD)</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base sm:text-lg font-semibold">Fluxo Cumulativo (CFD)</h3>
+        <ExportButton
+          data={data}
+          filename="fluxo-cumulativo"
+          headers={{ date: "Data", todo: "A Fazer", in_progress: "Em Andamento", review: "Revisão", completed: "Concluído" }}
+        />
+      </div>
       <div className="h-[250px] sm:h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>

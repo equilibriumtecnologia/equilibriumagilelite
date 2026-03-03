@@ -1,6 +1,6 @@
 # ROADMAP 2.0 - Agile Lite Equilibrium
 
-> Atualizado em: 25/02/2026  
+> Atualizado em: 03/03/2026  
 > Documento gerado a partir da análise do ROADMAP.md original vs. estado atual do projeto.
 
 ---
@@ -14,7 +14,7 @@
 | 1.1 WIP Limits por Coluna | ✅ Feito | `WIPLimitBadge.tsx`, `WIPLimitSettings.tsx`, `useBoardSettings.ts`, tabela `board_settings` |
 | 1.2 Story Points nas Tarefas | ✅ Feito | `StoryPointsBadge.tsx`, `StoryPointsSelector.tsx`, coluna `story_points` em `tasks` |
 | 1.3 Filtros Avançados no Kanban | ✅ Feito | `KanbanFilters.tsx` |
-| 1.4 Colunas Customizáveis (Labels) | ⚠️ Parcial | `board_settings` existe mas sem colunas `label`/`color` |
+| 1.4 Colunas Customizáveis (Labels) | ✅ Feito | `ColumnCustomizeDialog.tsx`, colunas `label`/`color` em `board_settings` |
 
 ### ✅ Fase 2 - Sistema de Sprints (95% Concluída)
 
@@ -22,7 +22,7 @@
 |---------|--------|-----------|
 | 2.1 Tabela de Sprints | ✅ Feito | Tabela `sprints`, `useSprints.ts`, CRUD completo |
 | 2.2 Página de Backlog | ✅ Feito | `Backlog.tsx`, `BacklogItem.tsx`, `MoveToSprintDialog.tsx` |
-| 2.3 Sprint Planning View | ⚠️ Parcial | Existe `SprintBoardHeader.tsx` mas falta planning dialog dedicado |
+| 2.3 Sprint Planning View | ✅ Feito | `SprintPlanningDialog.tsx` com split-view e drag-and-drop |
 | 2.4 Swimlanes por Sprint | ❌ Não feito | Kanban não agrupa por sprint |
 
 ### ✅ Fase 3 - Analytics e Reports (85% Concluída)
@@ -35,7 +35,7 @@
 | 3.4 Cumulative Flow Diagram | ✅ Feito | `CumulativeFlowChart.tsx` |
 | 3.5 Cycle Time | ✅ Feito | `CycleTimeChart.tsx` |
 | 3.6 Team Performance | ✅ Feito | `TeamPerformance.tsx` |
-| 3.7 Export de Relatórios | ❌ Não feito | Nenhum componente de export |
+| 3.7 Export de Relatórios | ✅ Feito | `ExportButton.tsx`, `exportCsv.ts` — CSV client-side em todas as abas |
 
 ### ⚠️ Fase 4 - Colaboração Avançada (70% Concluída)
 
@@ -44,7 +44,7 @@
 | 4.1 Comentários em Tarefas | ✅ Feito | `MentionTextarea.tsx`, `TaskHistoryPanel.tsx` (via `comment_added`) |
 | 4.2 Sistema de @Menções | ✅ Feito | `useMentions.ts`, `MentionTextarea.tsx` |
 | 4.3 Notificações In-App | ✅ Feito | `NotificationsPopover.tsx`, `useNotifications.ts`, tabela `notifications` |
-| 4.4 Activity Feed | ⚠️ Parcial | `Activities.tsx` existe, mas é listagem de tarefas, não feed de atividades |
+| 4.4 Activity Feed | ✅ Feito | `ActivityFeed.tsx`, `ActivityItem.tsx`, `useActivityFeed.ts` — feed cronológico real |
 
 ### ❌ Fase 5 - Diferenciais Competitivos (0% Concluída)
 
@@ -459,16 +459,16 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 
 ## 🎯 Prioridade de Implementação Sugerida
 
-### Sprint 1 (Semanas 1-2): Quick Wins
-1. A.2 Export CSV
-2. A.3 Activity Feed Real
-3. E.1 PWA Install Page
-4. E.3 Error Boundaries
+### Sprint 1 (Semanas 1-2): Quick Wins ✅ CONCLUÍDA
+1. ~~A.2 Export CSV~~ ✅
+2. ~~A.3 Activity Feed Real~~ ✅
+3. E.1 PWA Install Page ✅ (já existia)
+4. ~~E.3 Error Boundaries~~ ✅
+5. ~~A.1 Colunas Customizáveis~~ ✅
+6. ~~A.4 Sprint Planning Dialog~~ ✅
 
-### Sprint 2 (Semanas 3-4): Sprint Planning + Labels
-1. A.4 Sprint Planning Dialog
-2. A.1 Colunas Customizáveis
-3. B.1 Swimlanes
+### Sprint 2 (Semanas 3-4): Swimlanes + UX
+1. B.1 Swimlanes por Sprint no Kanban
 
 ### Sprint 3 (Semanas 5-7): Push + IA
 1. B.2 PWA Push Notifications
@@ -500,7 +500,7 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 
 ### Débitos Técnicos Identificados
 1. ~~Refatorar hooks de tarefas~~ — Já organizados em hooks compostos
-2. Error Boundaries — Pendente (Fase E)
+2. ~~Error Boundaries~~ — ✅ Implementado (`ErrorBoundary.tsx` envolvendo rotas)
 3. Loading Skeletons — Pendente (Fase E)
 4. Tipagem de responses — OK (types.ts auto-gerado)
 5. ~~Documentação de componentes~~ — Deprioritizado (foco em features)
@@ -509,11 +509,11 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 
 ## 🏁 Conclusão
 
-O projeto está em **estágio avançado** com ~75% do roadmap original concluído. As fases 1-4 estão substancialmente implementadas. O foco agora deve ser:
+O projeto está em **estágio avançado** com ~85% do roadmap original concluído. Sprint 1 foi totalmente entregue. O foco agora é:
 
-1. **Completar gaps** (labels, export, activity feed, sprint planning)
+1. **Swimlanes por Sprint** no Kanban (Sprint 2)
 2. **Push Notifications** (diferencial forte para PWA)
-3. **IA e Analytics** (diferenciais competitivos)
+3. **IA e Analytics** (diferenciais competitivos — Priorização, Previsão, Bottleneck)
 4. **Monetização** (Stripe para receita)
 
-A estimativa de 3-4 meses é conservadora e pode ser acelerada priorizando as features de maior impacto para os usuários.
+A estimativa restante é de ~2-3 meses para as sprints 2-5.

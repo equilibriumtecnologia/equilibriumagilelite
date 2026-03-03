@@ -16,25 +16,31 @@ export type Database = {
     Tables: {
       board_settings: {
         Row: {
+          color: string | null
           column_id: string
           created_at: string
           id: string
+          label: string | null
           project_id: string
           updated_at: string
           wip_limit: number | null
         }
         Insert: {
+          color?: string | null
           column_id: string
           created_at?: string
           id?: string
+          label?: string | null
           project_id: string
           updated_at?: string
           wip_limit?: number | null
         }
         Update: {
+          color?: string | null
           column_id?: string
           created_at?: string
           id?: string
+          label?: string | null
           project_id?: string
           updated_at?: string
           wip_limit?: number | null
