@@ -56,13 +56,13 @@
 | 5.4 Templates de Projeto | ❌ Não feito |
 | 5.5 Integrações (Webhooks) | ❌ Não feito |
 
-### ⚠️ Fase 6 - Monetização (60% Concluída)
+### ⚠️ Fase 6 - Monetização (80% Concluída)
 
 | Feature | Status | Evidência |
 |---------|--------|-----------|
 | 6.1 Sistema de Planos | ✅ Feito | `subscription_plans`, `user_subscriptions`, `useUserPlan.ts` |
 | 6.2 Integração Stripe | ❌ Não feito | Sem edge functions de checkout/webhook |
-| 6.3 Limite de Uso e Upselling | ⚠️ Parcial | Funções `check_*_limit` existem, falta UI de upselling |
+| 6.3 Limite de Uso e Upselling | ✅ Feito | `useUserPlan.ts`, indicadores no Sidebar, verificação em `CreateProjectDialog`, `InviteUserDialog`, botão upgrade para owner |
 
 ---
 
@@ -167,42 +167,20 @@ ADD COLUMN color TEXT DEFAULT NULL;
 
 ---
 
-#### B.2 PWA Push Notifications
+#### B.2 PWA Push Notifications ✅
 
-**Prioridade:** Alta | **Esforço:** Alto
+**Prioridade:** Alta | **Esforço:** Alto | **Status:** ✅ Concluído
 
-**O que falta:**
-- Notificações push nativas no celular/desktop via PWA
+**Implementado:**
+- Tabela `push_subscriptions` com RLS (SELECT/INSERT/DELETE por user)
+- Chaves VAPID geradas e armazenadas como secrets (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`)
+- `supabase/functions/send-push-notification/index.ts` — Disparo via Web Push com autenticação service_role
+- `supabase/functions/send-task-notification/index.ts` — Notificação multicanal (e-mail Resend + Web Push)
+- `src/sw.ts` — Service Worker com `injectManifest`, handlers de `push` e `notificationclick`
+- `src/hooks/usePushSubscription.ts` — Registro de subscription, pedido de permissão, unsubscribe
+- Limpeza automática de endpoints expirados (410/404)
+- Suporte iOS 16.4+ (PWA instalado na Tela de Início)
 
-**Mudanças no Banco:**
-```sql
-CREATE TABLE public.push_subscriptions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  endpoint TEXT NOT NULL,
-  p256dh TEXT NOT NULL,
-  auth TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(user_id, endpoint)
-);
-ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
-```
-
-**Infraestrutura:**
-- Gerar VAPID keys e armazenar como secrets
-- `supabase/functions/send-push-notification/index.ts` — Envia via Web Push protocol
-- Migrar `vite-plugin-pwa` para `injectManifest` com service worker customizado
-
-**Componentes a criar:**
-- `src/hooks/usePushNotifications.ts` — Registra subscription e pede permissão
-- `src/components/notifications/PushPermissionBanner.tsx` — Banner pedindo permissão
-- `public/sw.js` — Service worker com handlers de `push` e `notificationclick`
-
-**Fluxo:**
-1. Usuário instala PWA → banner aparece pedindo permissão
-2. Aceita → subscription salva no banco
-3. Eventos (tarefa atribuída, menção, etc.) disparam edge function
-4. Edge function envia push via VAPID
 
 ---
 
@@ -381,20 +359,17 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 
 ---
 
-#### D.2 UI de Upselling e Limites
+#### D.2 UI de Upselling e Limites ✅
 
-**Prioridade:** Média | **Esforço:** Baixo
+**Prioridade:** Média | **Esforço:** Baixo | **Status:** ✅ Concluído
 
-**Componentes a criar:**
-- `src/components/billing/UpgradePrompt.tsx` — Modal quando atinge limite
-- `src/components/billing/UsageMeter.tsx` — Barra de uso (projetos, membros)
-- Modificar `CreateProjectDialog.tsx` — Verificar limite antes de criar
-- Modificar `InviteUserDialog.tsx` — Verificar limite antes de convidar
-
-**Comportamento:**
-- Soft block: exibe prompt de upgrade quando atinge 100%
-- Warning: exibe badge quando atinge 80%
-- Funções `check_*_limit` já existem no banco
+**Implementado:**
+- `useUserPlan.ts` — Hook centralizado com validação de limites via RPCs `check_*_limit`
+- Indicadores de consumo no Sidebar (PlanUsage) — visíveis apenas para Master e Owner
+- Verificação de limites em `CreateProjectDialog.tsx` e `InviteUserDialog.tsx`
+- Botão de upgrade permanente para Owner no sidebar (plano Free)
+- Bloqueio preventivo na UI ao atingir 100% do limite
+- Funções `check_can_create_workspace`, `check_can_join_workspace`, `check_project_limit`, `check_invite_limit` no banco
 
 ---
 
@@ -465,9 +440,9 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 2. C.2 Previsão de Entrega ✅
 3. C.1 IA para Priorização ✅
 
-### Sprint 4 (Semanas 8-10): Push + Monetização
-1. B.2 PWA Push Notifications
-3. D.2 UI de Upselling
+### Sprint 4 (Semanas 8-10): Push + Monetização ✅ CONCLUÍDA
+1. ~~B.2 PWA Push Notifications~~ ✅
+2. ~~D.2 UI de Upselling~~ ✅
 
 ### Sprint 5 (Semanas 11-14): Monetização + Extras
 1. D.1 Integração Stripe
