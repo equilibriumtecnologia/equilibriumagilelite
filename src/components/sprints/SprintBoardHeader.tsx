@@ -3,6 +3,7 @@ import { ptBR } from "date-fns/locale";
 import { Target, Clock, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { AIPrioritizeButton } from "@/components/ai/AIPrioritizeButton";
 import { Database } from "@/integrations/supabase/types";
 
 type Sprint = Database["public"]["Tables"]["sprints"]["Row"];
@@ -13,6 +14,8 @@ interface SprintBoardHeaderProps {
   completedTaskCount: number;
   totalPoints: number;
   completedPoints: number;
+  onAIPrioritize?: () => void;
+  aiLoading?: boolean;
 }
 
 export function SprintBoardHeader({
@@ -21,6 +24,8 @@ export function SprintBoardHeader({
   completedTaskCount,
   totalPoints,
   completedPoints,
+  onAIPrioritize,
+  aiLoading,
 }: SprintBoardHeaderProps) {
   const endDate = new Date(sprint.end_date);
   const today = new Date();
@@ -73,6 +78,14 @@ export function SprintBoardHeader({
             </div>
             <Progress value={taskProgress} className="h-2" />
           </div>
+
+          {onAIPrioritize && (
+            <AIPrioritizeButton
+              onClick={onAIPrioritize}
+              isLoading={aiLoading || false}
+              taskCount={taskCount - completedTaskCount}
+            />
+          )}
         </div>
       </div>
     </div>
