@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-type WorkspaceMember = Database["public"]["Tables"]["workspace_members"]["Row"];
 
 export type TeamMember = Profile & {
   roles: { role: string; user_id: string }[];
@@ -20,14 +19,17 @@ export function useTeam() {
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchTeam = async () => {
+  const fetchTeam = useCallback(async () => {
     if (!currentWorkspace) { setMembers([]); setLoading(false); return; }
     try {
+      setLoading(true);
+      const workspaceId = currentWorkspace.id;
+
       // Buscar membros do workspace
       const { data: wsMembers, error: wsMembersError } = await supabase
         .from("workspace_members")
         .select("user_id")
-        .eq("workspace_id", currentWorkspace.id);
+        .eq("workspace_id", workspaceId);
 
       if (wsMembersError) throw wsMembersError;
       const memberIds = wsMembers.map((m) => m.user_id);
@@ -46,7 +48,7 @@ export function useTeam() {
       const { data: wsRoles, error: wsRolesError } = await supabase
         .from("workspace_members")
         .select("user_id, role")
-        .eq("workspace_id", currentWorkspace.id);
+        .eq("workspace_id", workspaceId);
 
       if (wsRolesError) throw wsRolesError;
 
@@ -54,18 +56,22 @@ export function useTeam() {
       const { data: wsProjects, error: wsProjectsError } = await supabase
         .from("projects")
         .select("id")
-        .eq("workspace_id", currentWorkspace.id);
+        .eq("workspace_id", workspaceId);
 
       if (wsProjectsError) throw wsProjectsError;
       const wsProjectIds = (wsProjects || []).map((p) => p.id);
 
       // Buscar contagem de projetos por usuário (filtrado pelo workspace)
-      const { data: projectCounts, error: projectCountsError } = await supabase
-        .from("project_members")
-        .select("user_id")
-        .in("project_id", wsProjectIds.length > 0 ? wsProjectIds : ["00000000-0000-0000-0000-000000000000"]);
+      let projectCounts: { user_id: string }[] = [];
+      if (wsProjectIds.length > 0) {
+        const { data: projectCountsData, error: projectCountsError } = await supabase
+          .from("project_members")
+          .select("user_id")
+          .in("project_id", wsProjectIds);
 
-      if (projectCountsError) throw projectCountsError;
+        if (projectCountsError) throw projectCountsError;
+        projectCounts = projectCountsData || [];
+      }
 
       // Buscar contagem de tarefas por usuário (filtrado pelo workspace)
       let tasks: { assigned_to: string | null; status: string }[] = [];
@@ -103,12 +109,11 @@ export function useTeam() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentWorkspace?.id]);
 
   useEffect(() => {
     fetchTeam();
 
-    // Realtime updates
     const profilesChannel = supabase
       .channel("profiles-changes")
       .on(
@@ -131,7 +136,7 @@ export function useTeam() {
       supabase.removeChannel(profilesChannel);
       supabase.removeChannel(rolesChannel);
     };
-  }, [currentWorkspace?.id]);
+  }, [fetchTeam]);
 
   return { members, loading, refetch: fetchTeam };
 }
