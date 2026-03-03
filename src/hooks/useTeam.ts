@@ -17,6 +17,7 @@ export type TeamMember = Profile & {
 export function useTeam() {
   const { currentWorkspace } = useWorkspace();
   const [members, setMembers] = useState<TeamMember[]>([]);
+  const [uniqueProjectCount, setUniqueProjectCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const fetchTeam = useCallback(async () => {
@@ -104,6 +105,7 @@ export function useTeam() {
       });
 
       setMembers(teamMembers);
+      setUniqueProjectCount(wsProjectIds.length);
     } catch (error: any) {
       toast.error("Erro ao carregar equipe: " + error.message);
     } finally {
@@ -138,5 +140,5 @@ export function useTeam() {
     };
   }, [fetchTeam]);
 
-  return { members, loading, refetch: fetchTeam };
+  return { members, loading, uniqueProjectCount, refetch: fetchTeam };
 }
