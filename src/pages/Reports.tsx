@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BarChart3, TrendingUp, Layers, Clock, Users } from "lucide-react";
+import { BarChart3, TrendingUp, Layers, Clock, Users, CalendarClock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -10,6 +10,7 @@ import { VelocityChart } from "@/components/reports/VelocityChart";
 import { CumulativeFlowChart } from "@/components/reports/CumulativeFlowChart";
 import { CycleTimeChart } from "@/components/reports/CycleTimeChart";
 import { TeamPerformance } from "@/components/reports/TeamPerformance";
+import { DeliveryForecastReport } from "@/components/reports/DeliveryForecastReport";
 
 const Reports = () => {
   const { projects } = useProjects();
@@ -83,6 +84,11 @@ const Reports = () => {
                 <span className="hidden sm:inline">Equipe</span>
                 <span className="sm:hidden">Team</span>
               </TabsTrigger>
+              <TabsTrigger value="forecast" className="gap-1.5 text-xs sm:text-sm">
+                <CalendarClock className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Previsão</span>
+                <span className="sm:hidden">Prev</span>
+              </TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -105,6 +111,10 @@ const Reports = () => {
 
           <TabsContent value="team">
             <TeamPerformance data={teamData} />
+          </TabsContent>
+
+          <TabsContent value="forecast">
+            <DeliveryForecastReport projectId={projectId} />
           </TabsContent>
         </Tabs>
       )}
