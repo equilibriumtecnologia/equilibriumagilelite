@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Target, Clock, Zap } from "lucide-react";
+import { ExportButton } from "./ExportButton";
 import type { TeamMemberPerformance } from "@/hooks/useReportData";
 
 interface TeamPerformanceProps {
@@ -22,7 +23,14 @@ export function TeamPerformance({ data }: TeamPerformanceProps) {
 
   return (
     <Card className="p-4 sm:p-6">
-      <h3 className="text-base sm:text-lg font-semibold mb-4">Performance da Equipe</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base sm:text-lg font-semibold">Performance da Equipe</h3>
+        <ExportButton
+          data={data.map(m => ({ nome: m.name, tarefas_concluidas: m.tasksCompleted, pontos: m.storyPointsDelivered, cycle_time_medio: m.avgCycleTime, taxa_conclusao: m.completionRate }))}
+          filename="performance-equipe"
+          headers={{ nome: "Nome", tarefas_concluidas: "Tarefas Concluídas", pontos: "Story Points", cycle_time_medio: "Cycle Time Médio (dias)", taxa_conclusao: "Taxa Conclusão (%)" }}
+        />
+      </div>
       <div className="space-y-4">
         {data.map((member, index) => (
           <div key={member.id} className="p-3 sm:p-4 bg-muted/50 rounded-lg space-y-3">

@@ -7,6 +7,8 @@ interface BoardSetting {
   project_id: string;
   column_id: string;
   wip_limit: number | null;
+  label: string | null;
+  color: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -34,21 +36,28 @@ export function useBoardSettings(projectId: string | undefined) {
     mutationFn: async ({
       columnId,
       wipLimit,
+      label,
+      color,
     }: {
       columnId: string;
-      wipLimit: number | null;
+      wipLimit?: number | null;
+      label?: string | null;
+      color?: string | null;
     }) => {
       if (!projectId) throw new Error("Project ID is required");
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const payload: any = {
+        project_id: projectId,
+        column_id: columnId,
+      };
+      if (wipLimit !== undefined) payload.wip_limit = wipLimit;
+      if (label !== undefined) payload.label = label;
+      if (color !== undefined) payload.color = color;
+
       const { data, error } = await supabase
         .from("board_settings")
-        .upsert(
-          {
-            project_id: projectId,
-            column_id: columnId,
-            wip_limit: wipLimit,
-          },
-          {
+        .upsert(payload, {
             onConflict: "project_id,column_id",
           },
         )
@@ -62,7 +71,7 @@ export function useBoardSettings(projectId: string | undefined) {
       queryClient.invalidateQueries({
         queryKey: ["board-settings", projectId],
       });
-      toast.success("Limite WIP atualizado");
+      toast.success("Configuração atualizada");
     },
     onError: (error: Error) => {
       toast.error("Erro ao atualizar limite: " + error.message);
@@ -72,6 +81,16 @@ export function useBoardSettings(projectId: string | undefined) {
   const getWipLimit = (columnId: string): number | null => {
     const setting = settings?.find((s) => s.column_id === columnId);
     return setting?.wip_limit ?? null;
+  };
+
+  const getColumnLabel = (columnId: string): string | null => {
+    const setting = settings?.find((s) => s.column_id === columnId);
+    return setting?.label ?? null;
+  };
+
+  const getColumnColor = (columnId: string): string | null => {
+    const setting = settings?.find((s) => s.column_id === columnId);
+    return setting?.color ?? null;
   };
 
   const getWipStatus = (
@@ -91,5 +110,7 @@ export function useBoardSettings(projectId: string | undefined) {
     upsertSetting,
     getWipLimit,
     getWipStatus,
+    getColumnLabel,
+    getColumnColor,
   };
 }

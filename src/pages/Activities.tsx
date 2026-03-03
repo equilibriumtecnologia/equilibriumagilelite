@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, Activity } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
 import { useProjectRole } from "@/hooks/useProjectRole";
+import { useActivityFeed } from "@/hooks/useActivityFeed";
 import { TaskCard } from "@/components/tasks/TaskCard";
+import { ActivityFeed } from "@/components/activity/ActivityFeed";
 import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,8 +19,10 @@ const Activities = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<string>("feed");
   const { tasks, isLoading } = useTasks(projectId || undefined);
   const { canCreateTasks } = useProjectRole(projectId || undefined);
+  const { activities, isLoading: feedLoading } = useActivityFeed(projectId || undefined);
 
   const filteredTasks = tasks?.filter((task) => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -54,76 +58,96 @@ const Activities = () => {
         )}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4 sm:mb-6">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar atividades..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <Filter className="mr-2 h-4 w-4" />
-            <SelectValue placeholder="Prioridade" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas Prioridades</SelectItem>
-            <SelectItem value="low">Baixa</SelectItem>
-            <SelectItem value="medium">Média</SelectItem>
-            <SelectItem value="high">Alta</SelectItem>
-            <SelectItem value="urgent">Urgente</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Main tabs: Feed vs Tasks */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="feed" className="gap-1.5">
+            <Activity className="h-3.5 w-3.5" />
+            Feed
+          </TabsTrigger>
+          <TabsTrigger value="tasks" className="gap-1.5">
+            <Search className="h-3.5 w-3.5" />
+            Tarefas
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Tasks by Status */}
-      <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full">
-        <ScrollArea className="w-full">
-          <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-5">
-            <TabsTrigger value="all" className="text-xs sm:text-sm whitespace-nowrap">Todas ({filteredTasks?.length || 0})</TabsTrigger>
-            <TabsTrigger value="todo" className="text-xs sm:text-sm whitespace-nowrap">A Fazer ({tasksByStatus.todo.length})</TabsTrigger>
-            <TabsTrigger value="in_progress" className="text-xs sm:text-sm whitespace-nowrap">Em Progresso ({tasksByStatus.in_progress.length})</TabsTrigger>
-            <TabsTrigger value="review" className="text-xs sm:text-sm whitespace-nowrap">Revisão ({tasksByStatus.review.length})</TabsTrigger>
-            <TabsTrigger value="completed" className="text-xs sm:text-sm whitespace-nowrap">Concluídas ({tasksByStatus.completed.length})</TabsTrigger>
-          </TabsList>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-
-        <TabsContent value="all" className="mt-4 sm:mt-6">
-          {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">Carregando atividades...</div>
-          ) : filteredTasks && filteredTasks.length > 0 ? (
-            <div className="grid gap-3 sm:gap-4">
-              {filteredTasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              Nenhuma atividade encontrada
-            </div>
-          )}
+        <TabsContent value="feed">
+          <ActivityFeed activities={activities} isLoading={feedLoading} />
         </TabsContent>
 
-        {(["todo", "in_progress", "review", "completed"] as const).map((status) => (
-          <TabsContent key={status} value={status} className="mt-4 sm:mt-6">
-            {tasksByStatus[status].length > 0 ? (
-              <div className="grid gap-3 sm:gap-4">
-                {tasksByStatus[status].map((task) => (
-                  <TaskCard key={task.id} task={task} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                Nenhuma atividade nesta categoria
-              </div>
-            )}
-          </TabsContent>
-        ))}
+        <TabsContent value="tasks" className="space-y-4">
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar atividades..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <Filter className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Prioridade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas Prioridades</SelectItem>
+                <SelectItem value="low">Baixa</SelectItem>
+                <SelectItem value="medium">Média</SelectItem>
+                <SelectItem value="high">Alta</SelectItem>
+                <SelectItem value="urgent">Urgente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Tasks by Status */}
+          <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full">
+            <ScrollArea className="w-full">
+              <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-5">
+                <TabsTrigger value="all" className="text-xs sm:text-sm whitespace-nowrap">Todas ({filteredTasks?.length || 0})</TabsTrigger>
+                <TabsTrigger value="todo" className="text-xs sm:text-sm whitespace-nowrap">A Fazer ({tasksByStatus.todo.length})</TabsTrigger>
+                <TabsTrigger value="in_progress" className="text-xs sm:text-sm whitespace-nowrap">Em Progresso ({tasksByStatus.in_progress.length})</TabsTrigger>
+                <TabsTrigger value="review" className="text-xs sm:text-sm whitespace-nowrap">Revisão ({tasksByStatus.review.length})</TabsTrigger>
+                <TabsTrigger value="completed" className="text-xs sm:text-sm whitespace-nowrap">Concluídas ({tasksByStatus.completed.length})</TabsTrigger>
+              </TabsList>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+
+            <TabsContent value="all" className="mt-4 sm:mt-6">
+              {isLoading ? (
+                <div className="text-center py-12 text-muted-foreground">Carregando atividades...</div>
+              ) : filteredTasks && filteredTasks.length > 0 ? (
+                <div className="grid gap-3 sm:gap-4">
+                  {filteredTasks.map((task) => (
+                    <TaskCard key={task.id} task={task} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  Nenhuma atividade encontrada
+                </div>
+              )}
+            </TabsContent>
+
+            {(["todo", "in_progress", "review", "completed"] as const).map((status) => (
+              <TabsContent key={status} value={status} className="mt-4 sm:mt-6">
+                {tasksByStatus[status].length > 0 ? (
+                  <div className="grid gap-3 sm:gap-4">
+                    {tasksByStatus[status].map((task) => (
+                      <TaskCard key={task.id} task={task} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    Nenhuma atividade nesta categoria
+                  </div>
+                )}
+              </TabsContent>
+            ))}
+          </Tabs>
+        </TabsContent>
       </Tabs>
     </div>
   );

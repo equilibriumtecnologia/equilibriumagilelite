@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ExportButton } from "./ExportButton";
 import { useState } from "react";
 import type { Tables } from "@/integrations/supabase/types";
 import type { BurndownDataPoint } from "@/hooks/useReportData";
@@ -28,7 +29,16 @@ export function BurndownChart({ sprints, getBurndownData }: BurndownChartProps) 
   return (
     <Card className="p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-        <h3 className="text-base sm:text-lg font-semibold">Burndown Chart</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-base sm:text-lg font-semibold">Burndown Chart</h3>
+          {data.length > 0 && (
+            <ExportButton
+              data={data}
+              filename="burndown"
+              headers={{ date: "Data", ideal: "Ideal", actual: "Real" }}
+            />
+          )}
+        </div>
         <Select value={selectedSprint} onValueChange={setSelectedSprint}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Selecionar Sprint" />

@@ -16,6 +16,7 @@ import { KanbanColumn } from "./KanbanColumn";
 import { KanbanTaskCard } from "./KanbanTaskCard";
 import { StatusChangeDialog } from "./StatusChangeDialog";
 import { WIPLimitSettings } from "./WIPLimitSettings";
+import { ColumnCustomizeDialog } from "./ColumnCustomizeDialog";
 import { KanbanFilters, FilterState } from "./KanbanFilters";
 import { useBoardSettings } from "@/hooks/useBoardSettings";
 import { useProjectRole } from "@/hooks/useProjectRole";
@@ -61,7 +62,7 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
     sprint: null,
   });
 
-  const { getWipLimit, getWipStatus } = useBoardSettings(projectId);
+  const { getWipLimit, getWipStatus, getColumnLabel, getColumnColor } = useBoardSettings(projectId);
   const { canCreateTasks } = useProjectRole(projectId);
 
   const sensors = useSensors(
@@ -318,7 +319,10 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <KanbanFilters members={members} sprints={sprints} onFiltersChange={handleFiltersChange} />
-          {projectId && <WIPLimitSettings projectId={projectId} columns={columns} />}
+          <div className="flex gap-2">
+            {projectId && <ColumnCustomizeDialog projectId={projectId} columns={columns.map(c => ({ id: c.id, defaultTitle: c.title, defaultColor: c.color }))} />}
+            {projectId && <WIPLimitSettings projectId={projectId} columns={columns} />}
+          </div>
         </div>
 
         <DndContext
@@ -336,8 +340,8 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
                 <KanbanColumn
                   key={column.id}
                   id={column.id}
-                  title={column.title}
-                  color={column.color}
+                  title={getColumnLabel(column.id) || column.title}
+                  color={getColumnColor(column.id) || column.color}
                   tasks={tasksByStatus[column.id]}
                   count={count}
                   wipLimit={wipLimit}
