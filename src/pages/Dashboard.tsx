@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
 import { DashboardReportCards } from "@/components/dashboard/DashboardReportCards";
+import { DeliveryForecastCard } from "@/components/dashboard/DeliveryForecastCard";
 import { BottleneckAlerts } from "@/components/dashboard/BottleneckAlerts";
 import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTasks";
@@ -288,6 +289,9 @@ const Dashboard = () => {
             </div>
           </Card>
         </div>
+
+        {/* Delivery Forecast */}
+        <DeliveryForecastCard />
 
         {/* Bottleneck Alerts */}
         {bottlenecks.length > 0 && (

@@ -46,12 +46,12 @@
 | 4.3 Notificações In-App | ✅ Feito | `NotificationsPopover.tsx`, `useNotifications.ts`, tabela `notifications` |
 | 4.4 Activity Feed | ✅ Feito | `ActivityFeed.tsx`, `ActivityItem.tsx`, `useActivityFeed.ts` — feed cronológico real |
 
-### ⚠️ Fase 5 - Diferenciais Competitivos (33% Concluída)
+### ⚠️ Fase 5 - Diferenciais Competitivos (50% Concluída)
 
 | Feature | Status |
 |---------|--------|
 | 5.1 IA para Priorização | ❌ Não feito |
-| 5.2 Previsão de Entrega | ❌ Não feito |
+| 5.2 Previsão de Entrega | ✅ Feito |
 | 5.3 Bottleneck Detection | ✅ Feito |
 | 5.4 Templates de Projeto | ❌ Não feito |
 | 5.5 Integrações (Webhooks) | ❌ Não feito |
@@ -235,22 +235,20 @@ ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 
 ---
 
-#### C.2 Previsão de Entrega
+#### C.2 Previsão de Entrega ✅
 
-**Prioridade:** Média | **Esforço:** Médio
+**Prioridade:** Média | **Esforço:** Médio | **Status:** ✅ Concluído
 
-**Componentes a criar:**
-- `src/components/reports/DeliveryForecast.tsx` — Card com data estimada
-- Adicionar como nova aba no Reports ou widget no Dashboard
+**Implementado:**
+- `src/hooks/useDeliveryForecast.ts` — Hook com cálculo baseado em velocity média/min/max
+- `src/components/dashboard/DeliveryForecastCard.tsx` — Card no Dashboard com progresso e 3 cenários
+- `src/components/reports/DeliveryForecastReport.tsx` — Aba "Previsão" nos Reports com gráfico de projeção
 
 **Cálculo:**
-- Story points restantes na sprint / velocity média = sprints restantes
+- Story points restantes / velocity (min, média, max) = sprints restantes
 - Data estimada = hoje + (sprints_restantes × duração_média_sprint)
-- Intervalo: pessimista (velocity mínima) / otimista (velocity máxima)
-
-**Dados necessários:**
-- `getVelocityData()` do `useReportData` (já existe)
-- Total de story points não concluídos por sprint
+- 3 cenários: Otimista (velocity máxima), Realista (velocity média), Pessimista (velocity mínima)
+- Requer pelo menos 2 sprints concluídas com velocity registrada
 
 ---
 
@@ -465,8 +463,8 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 
 ### Sprint 3 (Semanas 5-7): IA + Analytics — EM ANDAMENTO
 1. C.3 Bottleneck Detection ✅
-2. C.1 IA para Priorização ❌
-3. C.2 Previsão de Entrega ❌
+2. C.2 Previsão de Entrega ✅
+3. C.1 IA para Priorização ❌
 
 ### Sprint 4 (Semanas 8-10): Push + Monetização
 1. B.2 PWA Push Notifications
