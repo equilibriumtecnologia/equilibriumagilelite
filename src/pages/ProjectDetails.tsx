@@ -30,9 +30,15 @@ import { AddMemberDialog } from "@/components/projects/AddMemberDialog";
 import { RemoveMemberDialog } from "@/components/projects/RemoveMemberDialog";
 import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
 import { DeleteProjectDialog } from "@/components/projects/DeleteProjectDialog";
+import { SaveAsTemplateDialog } from "@/components/projects/SaveAsTemplateDialog";
 import { TaskCard } from "@/components/tasks/TaskCard";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
 import { SprintBoardHeader } from "@/components/sprints/SprintBoardHeader";
+import { AISuggestionsPanel } from "@/components/ai/AISuggestionsPanel";
+import { useAIPrioritization } from "@/hooks/useAIPrioritization";
+import { useTasks } from "@/hooks/useTasks";
+import { useTeam } from "@/hooks/useTeam";
+import { toast } from "sonner";
 
 const statusLabels: Record<string, string> = {
   planning: "Planejamento",
@@ -56,6 +62,31 @@ const ProjectDetails = () => {
   const { activeSprint, sprints } = useSprints(id);
   const { canManageProject, canCreateTasks, canManageMembers, canDeleteAnyTask } = useProjectRole(id);
   const [listSearch, setListSearch] = useState("");
+  const { tasks: allTasks, updateTask } = useTasks(id);
+  const { members } = useTeam();
+  const { prioritize, isLoading: aiLoading, result: aiResult, clear: clearAI, isAIAvailable } = useAIPrioritization();
+
+  const assigneeNames = useMemo(() => {
+    const map: Record<string, string> = {};
+    members?.forEach((m: any) => { if (m.id && m.full_name) map[m.id] = m.full_name; });
+    return map;
+  }, [members]);
+
+  const handleSprintAIPrioritize = () => {
+    if (!project || !activeSprint) return;
+    const sprintTasks = (allTasks ?? []).filter(t => t.sprint_id === activeSprint.id && t.status !== "completed");
+    prioritize(sprintTasks, project.name, activeSprint.name, assigneeNames);
+  };
+
+  const handleAcceptAI = async () => {
+    if (!aiResult) return;
+    const sorted = [...aiResult.suggestions].sort((a, b) => a.new_position - b.new_position);
+    for (let i = 0; i < sorted.length; i++) {
+      await updateTask.mutateAsync({ id: sorted[i].task_id, backlog_order: i });
+    }
+    clearAI();
+    toast.success("Tarefas reordenadas pela IA!");
+  };
 
   // Filter and sort tasks for list view
   const filteredSortedTasks = useMemo(() => {
@@ -124,6 +155,7 @@ const ProjectDetails = () => {
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold truncate">{project.name}</h1>
               {canManageProject && (
                 <div className="flex items-center gap-1">
+                  <SaveAsTemplateDialog projectId={project.id} projectName={project.name} />
                   <EditProjectDialog project={project} onSuccess={refetch} />
                   <DeleteProjectDialog
                     projectId={project.id}
@@ -176,6 +208,18 @@ const ProjectDetails = () => {
           completedTaskCount={project.tasks?.filter((t) => t.sprint_id === activeSprint.id && t.status === "completed").length || 0}
           totalPoints={project.tasks?.filter((t) => t.sprint_id === activeSprint.id).reduce((sum, t) => sum + (t.story_points || 0), 0) || 0}
           completedPoints={project.tasks?.filter((t) => t.sprint_id === activeSprint.id && t.status === "completed").reduce((sum, t) => sum + (t.story_points || 0), 0) || 0}
+          onAIPrioritize={handleSprintAIPrioritize}
+          aiLoading={aiLoading}
+          isAIAvailable={isAIAvailable}
+        />
+      )}
+
+      {aiResult && (
+        <AISuggestionsPanel
+          suggestions={aiResult.suggestions}
+          summary={aiResult.summary}
+          onAccept={handleAcceptAI}
+          onDismiss={clearAI}
         />
       )}
 

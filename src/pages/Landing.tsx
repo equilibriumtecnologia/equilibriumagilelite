@@ -65,8 +65,9 @@ const features = [
 
 const planPreview = [
   { name: "Free", price: "R$ 0", highlight: "1 projeto · uso pessoal", popular: false },
-  { name: "Starter", price: "R$ 29", period: "/mês", highlight: "2 projetos · 1 convite", popular: true },
-  { name: "Professional", price: "R$ 79", period: "/mês", highlight: "5 projetos · 5 convites", popular: false },
+  { name: "Starter", price: "R$ 19", period: "/mês", highlight: "1 projeto · 1 convite", popular: false },
+  { name: "Standard", price: "R$ 49", period: "/mês", highlight: "2 projetos · 2 convites", popular: true },
+  { name: "Pro", price: "R$ 119", period: "/mês", highlight: "4 projetos · 4 convites", popular: false },
   { name: "Enterprise", price: "Sob consulta", highlight: "Limites customizados", popular: false },
 ];
 

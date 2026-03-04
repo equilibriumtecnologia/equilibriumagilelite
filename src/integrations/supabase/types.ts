@@ -16,25 +16,31 @@ export type Database = {
     Tables: {
       board_settings: {
         Row: {
+          color: string | null
           column_id: string
           created_at: string
           id: string
+          label: string | null
           project_id: string
           updated_at: string
           wip_limit: number | null
         }
         Insert: {
+          color?: string | null
           column_id: string
           created_at?: string
           id?: string
+          label?: string | null
           project_id: string
           updated_at?: string
           wip_limit?: number | null
         }
         Update: {
+          color?: string | null
           column_id?: string
           created_at?: string
           id?: string
+          label?: string | null
           project_id?: string
           updated_at?: string
           wip_limit?: number | null
@@ -305,6 +311,60 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_templates: {
+        Row: {
+          category: string | null
+          config: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          category?: string | null
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          category?: string | null
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_templates_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]

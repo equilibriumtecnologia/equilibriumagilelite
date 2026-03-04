@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -9,17 +9,23 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Layers, LayoutGrid } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import { KanbanColumn } from "./KanbanColumn";
 import { KanbanTaskCard } from "./KanbanTaskCard";
+import { KanbanSwimlane } from "./KanbanSwimlane";
 import { StatusChangeDialog } from "./StatusChangeDialog";
 import { WIPLimitSettings } from "./WIPLimitSettings";
+import { ColumnCustomizeDialog } from "./ColumnCustomizeDialog";
 import { KanbanFilters, FilterState } from "./KanbanFilters";
 import { useBoardSettings } from "@/hooks/useBoardSettings";
 import { useProjectRole } from "@/hooks/useProjectRole";
+import { useBottleneckDetection } from "@/hooks/useBottleneckDetection";
 import { isToday, isThisWeek, isBefore, startOfDay } from "date-fns";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"] & {
   assigned_to_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -50,10 +56,19 @@ const columns: { id: TaskStatus; title: string; color: string }[] = [
   { id: "completed", title: "Concluído", color: "bg-green-500" },
 ];
 
+const SWIMLANE_STORAGE_KEY = "kanban-swimlane-mode";
+
 export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints = [] }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [pendingChange, setPendingChange] = useState<PendingStatusChange | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [swimlaneMode, setSwimlaneMode] = useState(() => {
+    try {
+      return localStorage.getItem(SWIMLANE_STORAGE_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
   const [filters, setFilters] = useState<FilterState>({
     assignee: null,
     priority: null,
@@ -61,8 +76,27 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
     sprint: null,
   });
 
-  const { getWipLimit, getWipStatus } = useBoardSettings(projectId);
+  const { getWipLimit, getWipStatus, getColumnLabel, getColumnColor } = useBoardSettings(projectId);
   const { canCreateTasks } = useProjectRole(projectId);
+
+  // Build WIP limits map for bottleneck detection
+  const wipLimitsMap = columns.reduce((acc, col) => {
+    acc[col.id] = getWipLimit(col.id);
+    return acc;
+  }, {} as Record<string, number | null>);
+
+  const bottlenecks = useBottleneckDetection({
+    tasks,
+    wipLimits: wipLimitsMap,
+    stalledThresholdDays: 3,
+    overloadThreshold: 5,
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SWIMLANE_STORAGE_KEY, String(swimlaneMode));
+    } catch {}
+  }, [swimlaneMode]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -74,20 +108,14 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
 
   // Apply filters to tasks
   const filteredTasks = tasks.filter((task) => {
-    // Assignee filter
     if (filters.assignee) {
       if (filters.assignee === "unassigned" && task.assigned_to) return false;
       if (filters.assignee !== "unassigned" && task.assigned_to !== filters.assignee) return false;
     }
-
-    // Priority filter
     if (filters.priority && task.priority !== filters.priority) return false;
-
-    // Due date filter
     if (filters.dueDate) {
       const dueDate = task.due_date ? new Date(task.due_date + "T12:00:00") : null;
       const today = startOfDay(new Date());
-
       switch (filters.dueDate) {
         case "overdue":
           if (!dueDate || !isBefore(dueDate, today)) return false;
@@ -103,13 +131,10 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
           break;
       }
     }
-
-    // Sprint filter
     if (filters.sprint) {
       if (filters.sprint === "no_sprint" && task.sprint_id) return false;
       if (filters.sprint !== "no_sprint" && task.sprint_id !== filters.sprint) return false;
     }
-
     return true;
   });
 
@@ -117,6 +142,36 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
     acc[column.id] = filteredTasks.filter((task) => task.status === column.id);
     return acc;
   }, {} as Record<TaskStatus, Task[]>);
+
+  // Group tasks by sprint for swimlane mode
+  const swimlaneGroups = (() => {
+    if (!swimlaneMode) return [];
+
+    const sprintMap = new Map<string | null, { sprint: Database["public"]["Tables"]["sprints"]["Row"] | null; tasks: Task[] }>();
+
+    // Active sprints first, then planning, then completed, then no-sprint
+    const sortedSprints = [...sprints].sort((a, b) => {
+      const order = { active: 0, planning: 1, completed: 2, cancelled: 3 };
+      return (order[a.status as keyof typeof order] ?? 4) - (order[b.status as keyof typeof order] ?? 4);
+    });
+
+    for (const sprint of sortedSprints) {
+      sprintMap.set(sprint.id, { sprint, tasks: [] });
+    }
+    sprintMap.set(null, { sprint: null, tasks: [] });
+
+    for (const task of filteredTasks) {
+      const group = sprintMap.get(task.sprint_id);
+      if (group) {
+        group.tasks.push(task);
+      } else {
+        // Task references a sprint not in the list — put in "no sprint"
+        sprintMap.get(null)!.tasks.push(task);
+      }
+    }
+
+    return Array.from(sprintMap.values());
+  })();
 
   const handleDragStart = (event: DragStartEvent) => {
     const task = tasks.find((t) => t.id === event.active.id);
@@ -135,7 +190,6 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
     const task = tasks.find((t) => t.id === taskId);
     if (!task || task.status === newStatus || !canCreateTasks) return;
 
-    // Check WIP limit before allowing drop
     const newColumnCount = tasksByStatus[newStatus].length;
     const wipLimit = getWipLimit(newStatus);
     if (wipLimit && newColumnCount >= wipLimit) {
@@ -143,7 +197,6 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
       return;
     }
 
-    // Open dialog to require comment
     setPendingChange({
       taskId,
       taskTitle: task.title,
@@ -157,20 +210,17 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
 
     setIsUpdating(true);
     try {
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Usuário não autenticado");
         return;
       }
 
-      // Build update payload
       const updatePayload: Record<string, any> = { status: pendingChange.newStatus };
       if (newAssignee !== undefined) {
         updatePayload.assigned_to = newAssignee;
       }
 
-      // Update task status (and optionally assignee)
       const { error: updateError } = await supabase
         .from("tasks")
         .update(updatePayload)
@@ -178,7 +228,6 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
 
       if (updateError) throw updateError;
 
-      // Add status change history entry
       const { error: historyError } = await supabase
         .from("task_history")
         .insert({
@@ -194,7 +243,6 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
         console.error("Error adding history:", historyError);
       }
 
-      // Add assignment history entry if assignee changed
       const currentTask = tasks.find(t => t.id === pendingChange.taskId);
       if (newAssignee !== undefined && newAssignee !== currentTask?.assigned_to) {
         await supabase.from("task_history").insert({
@@ -206,14 +254,12 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
         });
       }
 
-      // Send email notifications
       const { data: changerProfile } = await supabase
         .from("profiles")
         .select("full_name")
         .eq("id", user.id)
         .single();
 
-      // Notify assigned user about status change
       if (currentTask?.assigned_to && currentTask.assigned_to !== user.id) {
         const { data: assigneeProfile } = await supabase
           .from("profiles")
@@ -242,7 +288,6 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
         }
       }
 
-      // Notify task creator about status change (if different from changer and assignee)
       if (currentTask?.created_by && currentTask.created_by !== user.id && currentTask.created_by !== currentTask?.assigned_to) {
         const { data: creatorProfile } = await supabase
           .from("profiles")
@@ -271,7 +316,6 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
         }
       }
 
-      // Notify newly assigned user
       if (newAssignee && newAssignee !== user.id && newAssignee !== currentTask?.assigned_to) {
         const { data: newAssigneeProfile } = await supabase
           .from("profiles")
@@ -318,7 +362,28 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <KanbanFilters members={members} sprints={sprints} onFiltersChange={handleFiltersChange} />
-          {projectId && <WIPLimitSettings projectId={projectId} columns={columns} />}
+          <div className="flex gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={swimlaneMode ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSwimlaneMode(!swimlaneMode)}
+                    className="gap-2"
+                  >
+                    {swimlaneMode ? <Layers className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}
+                    <span className="hidden sm:inline">{swimlaneMode ? "Swimlanes" : "Flat"}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {swimlaneMode ? "Desativar agrupamento por Sprint" : "Agrupar por Sprint"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {projectId && <ColumnCustomizeDialog projectId={projectId} columns={columns.map(c => ({ id: c.id, defaultTitle: c.title, defaultColor: c.color }))} />}
+            {projectId && <WIPLimitSettings projectId={projectId} columns={columns} />}
+          </div>
         </div>
 
         <DndContext
@@ -326,26 +391,52 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {columns.map((column) => {
-              const count = tasksByStatus[column.id].length;
-              const wipLimit = getWipLimit(column.id);
-              const wipStatus = getWipStatus(column.id, count);
-
-              return (
-                <KanbanColumn
-                  key={column.id}
-                  id={column.id}
-                  title={column.title}
-                  color={column.color}
-                  tasks={tasksByStatus[column.id]}
-                  count={count}
-                  wipLimit={wipLimit}
-                  wipStatus={wipStatus}
+          {swimlaneMode ? (
+            <div className="space-y-4">
+              {swimlaneGroups.map(({ sprint, tasks: groupTasks }) => (
+                <KanbanSwimlane
+                  key={sprint?.id || "no-sprint"}
+                  title={sprint?.name || "Sem Sprint"}
+                  sprintStatus={sprint?.status}
+                  tasks={groupTasks}
+                  columns={columns}
+                  getWipLimit={getWipLimit}
+                  getWipStatus={getWipStatus}
+                  getColumnLabel={getColumnLabel}
+                  getColumnColor={getColumnColor}
+                  defaultExpanded={sprint?.status === "active" || !sprint}
                 />
-              );
-            })}
-          </div>
+              ))}
+              {swimlaneGroups.length === 0 && (
+                <div className="text-center text-muted-foreground py-12">
+                  Nenhuma tarefa encontrada
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {columns.map((column) => {
+                const count = tasksByStatus[column.id].length;
+                const wipLimit = getWipLimit(column.id);
+                const wipStatus = getWipStatus(column.id, count);
+                const columnBottlenecks = bottlenecks.filter((b) => b.columnId === column.id);
+
+                return (
+                  <KanbanColumn
+                    key={column.id}
+                    id={column.id}
+                    title={getColumnLabel(column.id) || column.title}
+                    color={getColumnColor(column.id) || column.color}
+                    tasks={tasksByStatus[column.id]}
+                    count={count}
+                    wipLimit={wipLimit}
+                    wipStatus={wipStatus}
+                    bottlenecks={columnBottlenecks}
+                  />
+                );
+              })}
+            </div>
+          )}
 
           <DragOverlay>
             {activeTask ? (

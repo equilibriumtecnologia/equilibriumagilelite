@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card } from "@/components/ui/card";
+import { ExportButton } from "./ExportButton";
 import type { CycleTimeDataPoint } from "@/hooks/useReportData";
 
 interface CycleTimeChartProps {
@@ -34,7 +35,12 @@ export function CycleTimeChart({ data }: CycleTimeChartProps) {
     <Card className="p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
         <h3 className="text-base sm:text-lg font-semibold">Cycle Time & Lead Time</h3>
-        <div className="flex gap-3 text-xs">
+        <div className="flex items-center gap-3 text-xs">
+          <ExportButton
+            data={data}
+            filename="cycle-time"
+            headers={{ task: "Tarefa", leadTime: "Lead Time (dias)", cycleTime: "Cycle Time (dias)", completedAt: "Concluída em" }}
+          />
           <span className="text-muted-foreground">
             Média Lead: <strong className="text-foreground">{avgLeadTime}d</strong>
           </span>

@@ -1,6 +1,6 @@
 # ROADMAP 2.0 - Agile Lite Equilibrium
 
-> Atualizado em: 25/02/2026  
+> Atualizado em: 03/03/2026  
 > Documento gerado a partir da análise do ROADMAP.md original vs. estado atual do projeto.
 
 ---
@@ -14,7 +14,7 @@
 | 1.1 WIP Limits por Coluna | ✅ Feito | `WIPLimitBadge.tsx`, `WIPLimitSettings.tsx`, `useBoardSettings.ts`, tabela `board_settings` |
 | 1.2 Story Points nas Tarefas | ✅ Feito | `StoryPointsBadge.tsx`, `StoryPointsSelector.tsx`, coluna `story_points` em `tasks` |
 | 1.3 Filtros Avançados no Kanban | ✅ Feito | `KanbanFilters.tsx` |
-| 1.4 Colunas Customizáveis (Labels) | ⚠️ Parcial | `board_settings` existe mas sem colunas `label`/`color` |
+| 1.4 Colunas Customizáveis (Labels) | ✅ Feito | `ColumnCustomizeDialog.tsx`, colunas `label`/`color` em `board_settings` |
 
 ### ✅ Fase 2 - Sistema de Sprints (95% Concluída)
 
@@ -22,7 +22,7 @@
 |---------|--------|-----------|
 | 2.1 Tabela de Sprints | ✅ Feito | Tabela `sprints`, `useSprints.ts`, CRUD completo |
 | 2.2 Página de Backlog | ✅ Feito | `Backlog.tsx`, `BacklogItem.tsx`, `MoveToSprintDialog.tsx` |
-| 2.3 Sprint Planning View | ⚠️ Parcial | Existe `SprintBoardHeader.tsx` mas falta planning dialog dedicado |
+| 2.3 Sprint Planning View | ✅ Feito | `SprintPlanningDialog.tsx` com split-view e drag-and-drop |
 | 2.4 Swimlanes por Sprint | ❌ Não feito | Kanban não agrupa por sprint |
 
 ### ✅ Fase 3 - Analytics e Reports (85% Concluída)
@@ -35,7 +35,7 @@
 | 3.4 Cumulative Flow Diagram | ✅ Feito | `CumulativeFlowChart.tsx` |
 | 3.5 Cycle Time | ✅ Feito | `CycleTimeChart.tsx` |
 | 3.6 Team Performance | ✅ Feito | `TeamPerformance.tsx` |
-| 3.7 Export de Relatórios | ❌ Não feito | Nenhum componente de export |
+| 3.7 Export de Relatórios | ✅ Feito | `ExportButton.tsx`, `exportCsv.ts` — CSV client-side em todas as abas |
 
 ### ⚠️ Fase 4 - Colaboração Avançada (70% Concluída)
 
@@ -44,25 +44,25 @@
 | 4.1 Comentários em Tarefas | ✅ Feito | `MentionTextarea.tsx`, `TaskHistoryPanel.tsx` (via `comment_added`) |
 | 4.2 Sistema de @Menções | ✅ Feito | `useMentions.ts`, `MentionTextarea.tsx` |
 | 4.3 Notificações In-App | ✅ Feito | `NotificationsPopover.tsx`, `useNotifications.ts`, tabela `notifications` |
-| 4.4 Activity Feed | ⚠️ Parcial | `Activities.tsx` existe, mas é listagem de tarefas, não feed de atividades |
+| 4.4 Activity Feed | ✅ Feito | `ActivityFeed.tsx`, `ActivityItem.tsx`, `useActivityFeed.ts` — feed cronológico real |
 
-### ❌ Fase 5 - Diferenciais Competitivos (0% Concluída)
+### ✅ Fase 5 - Diferenciais Competitivos (60% Concluída)
 
 | Feature | Status |
 |---------|--------|
-| 5.1 IA para Priorização | ❌ Não feito |
-| 5.2 Previsão de Entrega | ❌ Não feito |
-| 5.3 Bottleneck Detection | ❌ Não feito |
+| 5.1 IA para Priorização | ✅ Feito |
+| 5.2 Previsão de Entrega | ✅ Feito |
+| 5.3 Bottleneck Detection | ✅ Feito |
 | 5.4 Templates de Projeto | ❌ Não feito |
 | 5.5 Integrações (Webhooks) | ❌ Não feito |
 
-### ⚠️ Fase 6 - Monetização (60% Concluída)
+### ⚠️ Fase 6 - Monetização (80% Concluída)
 
 | Feature | Status | Evidência |
 |---------|--------|-----------|
 | 6.1 Sistema de Planos | ✅ Feito | `subscription_plans`, `user_subscriptions`, `useUserPlan.ts` |
 | 6.2 Integração Stripe | ❌ Não feito | Sem edge functions de checkout/webhook |
-| 6.3 Limite de Uso e Upselling | ⚠️ Parcial | Funções `check_*_limit` existem, falta UI de upselling |
+| 6.3 Limite de Uso e Upselling | ✅ Feito | `useUserPlan.ts`, indicadores no Sidebar, verificação em `CreateProjectDialog`, `InviteUserDialog`, botão upgrade para owner |
 
 ---
 
@@ -150,133 +150,101 @@ ADD COLUMN color TEXT DEFAULT NULL;
 
 ---
 
-### Fase B - Swimlanes e UX Avançada (2-3 semanas)
+### ✅ Fase B - Swimlanes e UX Avançada (100% Concluída)
 
-#### B.1 Swimlanes por Sprint no Kanban
+#### B.1 Swimlanes por Sprint no Kanban ✅
 
-**Prioridade:** Média | **Esforço:** Médio
+**Prioridade:** Média | **Esforço:** Médio | **Status:** ✅ Concluído
 
-**O que falta:**
-- Opção de agrupar tarefas por sprint no board
-
-**Componentes a criar/modificar:**
-- Modificar `KanbanBoard.tsx` — Adicionar toggle de modo (flat vs swimlane)
-- `src/components/kanban/KanbanSwimlane.tsx` — Container de swimlane (expandível/colapsável)
-- Cada swimlane = uma sprint (+ "Sem Sprint" para órfãs)
-
-**Comportamento:**
-- Toggle no header do board: "Agrupar por Sprint"
-- Cada swimlane mostra nome da sprint, progresso e pode ser colapsada
-- Persistir preferência no localStorage
+**Implementado:**
+- Toggle "Flat / Swimlanes" no toolbar do Kanban
+- `KanbanSwimlane.tsx` — Seções expansíveis/colapsáveis por sprint
+- Grupo "Sem Sprint" para tarefas órfãs
+- Badges de status da sprint (Ativa, Planejamento, Concluída)
+- Contadores de tarefas e story points por swimlane
+- Preferência persistida no `localStorage`
+- Sprints ativas e "Sem Sprint" expandidas por padrão
 
 ---
 
-#### B.2 PWA Push Notifications
+#### B.2 PWA Push Notifications ✅
 
-**Prioridade:** Alta | **Esforço:** Alto
+**Prioridade:** Alta | **Esforço:** Alto | **Status:** ✅ Concluído
 
-**O que falta:**
-- Notificações push nativas no celular/desktop via PWA
+**Implementado:**
+- Tabela `push_subscriptions` com RLS (SELECT/INSERT/DELETE por user)
+- Chaves VAPID geradas e armazenadas como secrets (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`)
+- `supabase/functions/send-push-notification/index.ts` — Disparo via Web Push com autenticação service_role
+- `supabase/functions/send-task-notification/index.ts` — Notificação multicanal (e-mail Resend + Web Push)
+- `src/sw.ts` — Service Worker com `injectManifest`, handlers de `push` e `notificationclick`
+- `src/hooks/usePushSubscription.ts` — Registro de subscription, pedido de permissão, unsubscribe
+- Limpeza automática de endpoints expirados (410/404)
+- Suporte iOS 16.4+ (PWA instalado na Tela de Início)
 
-**Mudanças no Banco:**
-```sql
-CREATE TABLE public.push_subscriptions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  endpoint TEXT NOT NULL,
-  p256dh TEXT NOT NULL,
-  auth TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(user_id, endpoint)
-);
-ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
-```
-
-**Infraestrutura:**
-- Gerar VAPID keys e armazenar como secrets
-- `supabase/functions/send-push-notification/index.ts` — Envia via Web Push protocol
-- Migrar `vite-plugin-pwa` para `injectManifest` com service worker customizado
-
-**Componentes a criar:**
-- `src/hooks/usePushNotifications.ts` — Registra subscription e pede permissão
-- `src/components/notifications/PushPermissionBanner.tsx` — Banner pedindo permissão
-- `public/sw.js` — Service worker com handlers de `push` e `notificationclick`
-
-**Fluxo:**
-1. Usuário instala PWA → banner aparece pedindo permissão
-2. Aceita → subscription salva no banco
-3. Eventos (tarefa atribuída, menção, etc.) disparam edge function
-4. Edge function envia push via VAPID
 
 ---
 
 ### Fase C - Diferenciais Competitivos (4-6 semanas)
 
-#### C.1 IA para Priorização
+#### C.1 IA para Priorização ✅
 
-**Prioridade:** Alta | **Esforço:** Alto
+**Prioridade:** Alta | **Esforço:** Alto | **Status:** ✅ Concluído
 
-**Componentes a criar:**
-- `supabase/functions/ai-prioritize/index.ts` — Recebe lista de tarefas, retorna sugestões
-- `src/components/ai/PrioritySuggestion.tsx` — Badge/tooltip na tarefa
-- `src/components/ai/PrioritizeButton.tsx` — Botão "Sugerir Prioridades" no backlog
-- `src/hooks/useAIPrioritization.ts` — Chamada à edge function
-
-**Modelo:** Usar Lovable AI (google/gemini-2.5-flash) sem necessidade de API key
+**Implementado:**
+- `supabase/functions/ai-prioritize/index.ts` — Edge function com Lovable AI (google/gemini-3-flash-preview) e tool calling para saída estruturada
+- `src/hooks/useAIPrioritization.ts` — Hook com state management para chamada e resultado
+- `src/components/ai/AIPrioritizeButton.tsx` — Botão "🤖 Sugerir Prioridades" com tooltip
+- `src/components/ai/AISuggestionsPanel.tsx` — Painel de sugestões com reordenação, badges de prioridade e tooltips de raciocínio
+- Integrado no Backlog e no SprintBoardHeader
 
 **Algoritmo (prompt) considera:**
 - Prazo (due_date) e proximidade
 - Prioridade atual e story points
 - Status e tempo parado
-- Criticidade do projeto (criticality_level)
-- Padrões históricos (task_history)
+- Criticidade do projeto
+- Padrões de nomes e dependências implícitas
 
 **UI:**
-- Botão no Backlog: "🤖 Sugerir Prioridades"
-- Exibe lista reordenada com badges "IA Suggest"
-- Tooltip explica raciocínio
-- Botão para aceitar (reordena backlog) ou rejeitar
+- Botão no Backlog e Sprint Board: "🤖 Sugerir Prioridades"
+- Lista reordenada com setas ↑↓ indicando movimentação
+- Tooltip por tarefa explica o raciocínio da IA
+- Botões Aceitar (reordena) ou Descartar
 
 ---
 
-#### C.2 Previsão de Entrega
+#### C.2 Previsão de Entrega ✅
 
-**Prioridade:** Média | **Esforço:** Médio
+**Prioridade:** Média | **Esforço:** Médio | **Status:** ✅ Concluído
 
-**Componentes a criar:**
-- `src/components/reports/DeliveryForecast.tsx` — Card com data estimada
-- Adicionar como nova aba no Reports ou widget no Dashboard
+**Implementado:**
+- `src/hooks/useDeliveryForecast.ts` — Hook com cálculo baseado em velocity média/min/max
+- `src/components/dashboard/DeliveryForecastCard.tsx` — Card no Dashboard com progresso e 3 cenários
+- `src/components/reports/DeliveryForecastReport.tsx` — Aba "Previsão" nos Reports com gráfico de projeção
 
 **Cálculo:**
-- Story points restantes na sprint / velocity média = sprints restantes
+- Story points restantes / velocity (min, média, max) = sprints restantes
 - Data estimada = hoje + (sprints_restantes × duração_média_sprint)
-- Intervalo: pessimista (velocity mínima) / otimista (velocity máxima)
-
-**Dados necessários:**
-- `getVelocityData()` do `useReportData` (já existe)
-- Total de story points não concluídos por sprint
+- 3 cenários: Otimista (velocity máxima), Realista (velocity média), Pessimista (velocity mínima)
+- Requer pelo menos 2 sprints concluídas com velocity registrada
 
 ---
 
-#### C.3 Bottleneck Detection
+#### C.3 Bottleneck Detection ✅
 
-**Prioridade:** Média | **Esforço:** Médio
+**Prioridade:** Média | **Esforço:** Médio | **Status:** ✅ Concluído
 
-**Componentes a criar:**
-- `src/components/kanban/ColumnHealthIndicator.tsx` — Indicador visual na coluna
-- `src/components/reports/BottleneckAlert.tsx` — Alert no Reports
-- `src/hooks/useBottleneckDetection.ts` — Lógica de detecção
+**Implementado:**
+- `src/hooks/useBottleneckDetection.ts` — Hook com 4 critérios de detecção
+- `src/components/kanban/BottleneckIndicator.tsx` — Badge animado nas colunas do Kanban com tooltip detalhado
+- `src/components/dashboard/BottleneckAlerts.tsx` — Card de alertas no Dashboard
 
-**Regras de detecção:**
-- Coluna com WIP > limite por 3+ dias consecutivos
-- Tarefas paradas (sem mudança de status) há mais de 5 dias úteis
-- Membro com mais de 5 tarefas em andamento
-- Coluna crescendo sem saída (entradas > saídas nos últimos 7 dias)
+**Critérios de Detecção:**
+1. **WIP excedido** — Coluna com mais tarefas que o limite configurado
+2. **Tarefas paradas** — Sem atualização há 3+ dias (configurável)
+3. **Coluna sem saída** — Acúmulo sem conclusões nos últimos 7 dias
+4. **Assignee sobrecarregado** — Membro com 5+ tarefas em progresso/revisão
 
-**UI:**
-- Indicador amarelo/vermelho na coluna do Kanban
-- Card de alerta no Dashboard
-- Detalhes expandidos nos Reports
+**Severidades:** warning (amarelo) e critical (vermelho) com thresholds progressivos
 
 ---
 
@@ -391,20 +359,17 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 
 ---
 
-#### D.2 UI de Upselling e Limites
+#### D.2 UI de Upselling e Limites ✅
 
-**Prioridade:** Média | **Esforço:** Baixo
+**Prioridade:** Média | **Esforço:** Baixo | **Status:** ✅ Concluído
 
-**Componentes a criar:**
-- `src/components/billing/UpgradePrompt.tsx` — Modal quando atinge limite
-- `src/components/billing/UsageMeter.tsx` — Barra de uso (projetos, membros)
-- Modificar `CreateProjectDialog.tsx` — Verificar limite antes de criar
-- Modificar `InviteUserDialog.tsx` — Verificar limite antes de convidar
-
-**Comportamento:**
-- Soft block: exibe prompt de upgrade quando atinge 100%
-- Warning: exibe badge quando atinge 80%
-- Funções `check_*_limit` já existem no banco
+**Implementado:**
+- `useUserPlan.ts` — Hook centralizado com validação de limites via RPCs `check_*_limit`
+- Indicadores de consumo no Sidebar (PlanUsage) — visíveis apenas para Master e Owner
+- Verificação de limites em `CreateProjectDialog.tsx` e `InviteUserDialog.tsx`
+- Botão de upgrade permanente para Owner no sidebar (plano Free)
+- Bloqueio preventivo na UI ao atingir 100% do limite
+- Funções `check_can_create_workspace`, `check_can_join_workspace`, `check_project_limit`, `check_invite_limit` no banco
 
 ---
 
@@ -459,25 +424,25 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 
 ## 🎯 Prioridade de Implementação Sugerida
 
-### Sprint 1 (Semanas 1-2): Quick Wins
-1. A.2 Export CSV
-2. A.3 Activity Feed Real
-3. E.1 PWA Install Page
-4. E.3 Error Boundaries
+### Sprint 1 (Semanas 1-2): Quick Wins ✅ CONCLUÍDA
+1. ~~A.2 Export CSV~~ ✅
+2. ~~A.3 Activity Feed Real~~ ✅
+3. E.1 PWA Install Page ✅ (já existia)
+4. ~~E.3 Error Boundaries~~ ✅
+5. ~~A.1 Colunas Customizáveis~~ ✅
+6. ~~A.4 Sprint Planning Dialog~~ ✅
 
-### Sprint 2 (Semanas 3-4): Sprint Planning + Labels
-1. A.4 Sprint Planning Dialog
-2. A.1 Colunas Customizáveis
-3. B.1 Swimlanes
+### Sprint 2 (Semanas 3-4): Swimlanes + UX ✅ CONCLUÍDA
+1. ~~B.1 Swimlanes por Sprint no Kanban~~ ✅
 
-### Sprint 3 (Semanas 5-7): Push + IA
-1. B.2 PWA Push Notifications
-2. C.1 IA para Priorização
+### Sprint 3 (Semanas 5-7): IA + Analytics — ✅ CONCLUÍDA
+1. C.3 Bottleneck Detection ✅
+2. C.2 Previsão de Entrega ✅
+3. C.1 IA para Priorização ✅
 
-### Sprint 4 (Semanas 8-10): Analytics Avançado
-1. C.2 Previsão de Entrega
-2. C.3 Bottleneck Detection
-3. D.2 UI de Upselling
+### Sprint 4 (Semanas 8-10): Push + Monetização ✅ CONCLUÍDA
+1. ~~B.2 PWA Push Notifications~~ ✅
+2. ~~D.2 UI de Upselling~~ ✅
 
 ### Sprint 5 (Semanas 11-14): Monetização + Extras
 1. D.1 Integração Stripe
@@ -493,14 +458,14 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 ## 📝 Notas Técnicas
 
 ### Decisões de Arquitetura
-- **IA:** Usar Lovable AI (gemini-2.5-flash) via edge function — sem custo de API key para o usuário
+- **IA:** Usar Lovable AI (google/gemini-3-flash-preview) via edge function com tool calling — sem custo de API key para o usuário
 - **Push Notifications:** VAPID + Web Push API — funciona em Android e iOS 16.4+ (PWA instalado)
 - **Export CSV:** 100% client-side — sem edge function necessária
 - **Stripe:** Checkout Sessions (hosted) — menor PCI scope
 
 ### Débitos Técnicos Identificados
 1. ~~Refatorar hooks de tarefas~~ — Já organizados em hooks compostos
-2. Error Boundaries — Pendente (Fase E)
+2. ~~Error Boundaries~~ — ✅ Implementado (`ErrorBoundary.tsx` envolvendo rotas)
 3. Loading Skeletons — Pendente (Fase E)
 4. Tipagem de responses — OK (types.ts auto-gerado)
 5. ~~Documentação de componentes~~ — Deprioritizado (foco em features)
@@ -509,11 +474,10 @@ ALTER TABLE public.webhooks ENABLE ROW LEVEL SECURITY;
 
 ## 🏁 Conclusão
 
-O projeto está em **estágio avançado** com ~75% do roadmap original concluído. As fases 1-4 estão substancialmente implementadas. O foco agora deve ser:
+O projeto está em **estágio avançado** com ~90% do roadmap original concluído. Sprints 1 e 2 foram totalmente entregues. O foco agora é:
 
-1. **Completar gaps** (labels, export, activity feed, sprint planning)
-2. **Push Notifications** (diferencial forte para PWA)
-3. **IA e Analytics** (diferenciais competitivos)
-4. **Monetização** (Stripe para receita)
+1. **IA para Priorização** com streaming (Sprint 3)
+2. **Previsão de Entrega e Bottleneck Detection** (Sprint 3)
+3. **Monetização via Stripe** conforme STRIPE.md (Sprint 4)
 
-A estimativa de 3-4 meses é conservadora e pode ser acelerada priorizando as features de maior impacto para os usuários.
+A estimativa restante é de ~1-2 meses para as sprints 3-4.

@@ -44,6 +44,7 @@ interface SprintCardProps {
   onStart?: () => void;
   onComplete?: () => void;
   onSelect?: () => void;
+  onPlan?: () => void;
 }
 
 const statusConfig: Record<
@@ -67,6 +68,7 @@ export function SprintCard({
   onStart,
   onComplete,
   onSelect,
+  onPlan,
 }: SprintCardProps) {
   const startDate = new Date(sprint.start_date);
   const endDate = new Date(sprint.end_date);
@@ -109,7 +111,7 @@ export function SprintCard({
             </CardDescription>
           </div>
 
-          {(onEdit || onDelete || onStart || onComplete) && (
+          {(onEdit || onDelete || onStart || onComplete || onPlan) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -117,6 +119,12 @@ export function SprintCard({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                {sprint.status === "planning" && onPlan && (
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onPlan(); }}>
+                    <Target className="h-4 w-4 mr-2" />
+                    Planejar Sprint
+                  </DropdownMenuItem>
+                )}
                 {sprint.status === "planning" && onStart && (
                   <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStart(); }}>
                     <Play className="h-4 w-4 mr-2" />

@@ -16,11 +16,15 @@ import {
 } from "lucide-react";
 import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
 import { DashboardReportCards } from "@/components/dashboard/DashboardReportCards";
+import { DeliveryForecastCard } from "@/components/dashboard/DeliveryForecastCard";
+import { BottleneckAlerts } from "@/components/dashboard/BottleneckAlerts";
 import { useProjects } from "@/hooks/useProjects";
+import { useTasks } from "@/hooks/useTasks";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useWorkspaceMembers } from "@/hooks/useWorkspaceMembers";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBottleneckDetection } from "@/hooks/useBottleneckDetection";
 
 function usePlanWarnings() {
   const { plan, isMaster } = useUserPlan();
@@ -91,10 +95,17 @@ function useDismissedWarnings() {
 
 const Dashboard = () => {
   const { projects, loading } = useProjects();
+  const { tasks } = useTasks();
   const navigate = useNavigate();
   const warnings = usePlanWarnings();
   const { dismissed, dismiss } = useDismissedWarnings();
   const visibleWarnings = warnings.filter((w) => !dismissed.has(w));
+
+  const bottlenecks = useBottleneckDetection({
+    tasks: tasks || [],
+    stalledThresholdDays: 3,
+    overloadThreshold: 5,
+  });
 
   const totalProjects = projects.length;
   const completedTasks = projects.reduce((acc, p) => 
@@ -278,6 +289,14 @@ const Dashboard = () => {
             </div>
           </Card>
         </div>
+
+        {/* Delivery Forecast */}
+        <DeliveryForecastCard />
+
+        {/* Bottleneck Alerts */}
+        {bottlenecks.length > 0 && (
+          <BottleneckAlerts bottlenecks={bottlenecks} />
+        )}
 
         {/* Report Cards - conditional rendering */}
         <DashboardReportCards />

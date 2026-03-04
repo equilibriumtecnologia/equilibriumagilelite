@@ -9,7 +9,9 @@ import { SprintCard } from "@/components/sprints/SprintCard";
 import { CreateSprintDialog } from "@/components/sprints/CreateSprintDialog";
 import { EditSprintDialog } from "@/components/sprints/EditSprintDialog";
 import { DeleteSprintDialog } from "@/components/sprints/DeleteSprintDialog";
+import { SprintPlanningDialog } from "@/components/sprints/SprintPlanningDialog";
 import { useSprints } from "@/hooks/useSprints";
+import { useReportData } from "@/hooks/useReportData";
 import { useTasks } from "@/hooks/useTasks";
 import { useProject } from "@/hooks/useProject";
 import { useProjectRole } from "@/hooks/useProjectRole";
@@ -35,7 +37,14 @@ export default function Sprints() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [planningDialogOpen, setPlanningDialogOpen] = useState(false);
   const [selectedSprint, setSelectedSprint] = useState<Sprint | null>(null);
+
+  const { getVelocityData } = useReportData(projectId);
+  const velocityData = getVelocityData();
+  const avgVelocity = velocityData.length > 0 ? Math.round(velocityData.reduce((s, v) => s + v.velocity, 0) / velocityData.length) : 0;
+
+  const handlePlan = (sprint: Sprint) => { setSelectedSprint(sprint); setPlanningDialogOpen(true); };
 
   const getSprintStats = (sprintId: string) => {
     const sprintTasks = tasks.filter((t) => t.sprint_id === sprintId);
@@ -116,6 +125,7 @@ export default function Sprints() {
                     onDelete={canManageSprints ? () => handleDelete(sprint) : undefined}
                     onStart={canManageSprints && sprint.status === "planning" ? () => startSprint.mutate(sprint.id) : undefined}
                     onComplete={canManageSprints && sprint.status === "active" ? () => completeSprint.mutate(sprint.id) : undefined}
+                    onPlan={canManageSprints && sprint.status === "planning" ? () => handlePlan(sprint) : undefined}
                   />
                 );
               })}
@@ -183,6 +193,7 @@ export default function Sprints() {
         <>
           <EditSprintDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} sprint={selectedSprint} />
           <DeleteSprintDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} sprint={selectedSprint} />
+          <SprintPlanningDialog open={planningDialogOpen} onOpenChange={setPlanningDialogOpen} sprint={selectedSprint} tasks={tasks} averageVelocity={avgVelocity} />
         </>
       )}
     </div>
