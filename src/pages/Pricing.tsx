@@ -138,6 +138,91 @@ const plans = [
     ctaLink: "mailto:contato@agilelite.equilibriumtecnologia.com.br",
   },
 ];
+function PlanCard({ plan }: { plan: typeof plans[number] }) {
+  return (
+    <Card
+      className={`relative flex flex-col transition-all hover:shadow-lg ${
+        plan.popular
+          ? "border-primary shadow-md ring-1 ring-primary/20"
+          : "border-border"
+      }`}
+    >
+      {plan.popular && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <Badge className="bg-primary text-primary-foreground px-3 py-0.5 text-xs font-semibold">
+            Mais Popular
+          </Badge>
+        </div>
+      )}
+
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+            plan.popular ? "bg-primary" : "bg-muted"
+          }`}>
+            <plan.icon className={`h-5 w-5 ${
+              plan.popular ? "text-primary-foreground" : "text-muted-foreground"
+            }`} />
+          </div>
+          <CardTitle className="text-xl">{plan.name}</CardTitle>
+          {"hasAI" in plan && plan.hasAI && (
+            <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0.5">
+              <Bot className="h-3 w-3" />
+              IA inclusa
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-baseline gap-1">
+          <span className="text-3xl sm:text-4xl font-bold">{plan.price}</span>
+          {plan.period && (
+            <span className="text-muted-foreground text-sm">{plan.period}</span>
+          )}
+        </div>
+        <CardDescription className="text-sm mt-1">{plan.description}</CardDescription>
+      </CardHeader>
+
+      <CardContent className="flex-1">
+        <ul className="space-y-2.5">
+          {plan.features.map((feature, i) => (
+            <li key={i} className="flex items-start gap-2 text-sm">
+              <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+
+      <CardFooter className="pt-4">
+        {plan.ctaLink.startsWith("mailto:") ? (
+          <a href={plan.ctaLink} className="w-full">
+            <Button
+              variant={plan.ctaVariant}
+              className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90" : ""}`}
+            >
+              {plan.cta}
+            </Button>
+          </a>
+        ) : plan.ctaLink.startsWith("#") ? (
+          <Button
+            variant={plan.ctaVariant}
+            className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90 text-primary-foreground" : ""}`}
+            onClick={() => {
+              window.location.href = "/signup";
+            }}
+          >
+            {plan.cta}
+          </Button>
+        ) : (
+          <Link to={plan.ctaLink} className="w-full">
+            <Button variant={plan.ctaVariant} className="w-full">
+              {plan.cta}
+            </Button>
+          </Link>
+        )}
+      </CardFooter>
+    </Card>
+  );
+}
 
 export default function Pricing() {
   return (
@@ -184,92 +269,23 @@ export default function Pricing() {
       {/* Plans Grid */}
       <section className="pb-16 sm:pb-24">
         <div className="container mx-auto px-3 sm:px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 max-w-[1400px] mx-auto">
-            {plans.map((plan) => (
-              <Card
-                key={plan.slug}
-                className={`relative flex flex-col transition-all hover:shadow-lg ${
-                  plan.popular
-                    ? "border-primary shadow-md ring-1 ring-primary/20"
-                    : "border-border"
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-primary text-primary-foreground px-3 py-0.5 text-xs font-semibold">
-                      Mais Popular
-                    </Badge>
-                  </div>
-                )}
+          <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
+            {/* Free - solo row */}
+            <div className="max-w-md mx-auto">
+              <PlanCard plan={plans[0]} />
+            </div>
 
-                <CardHeader className="pb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                      plan.popular ? "bg-primary" : "bg-muted"
-                    }`}>
-                      <plan.icon className={`h-5 w-5 ${
-                        plan.popular ? "text-primary-foreground" : "text-muted-foreground"
-                      }`} />
-                    </div>
-                    <CardTitle className="text-xl">{plan.name}</CardTitle>
-                    {"hasAI" in plan && plan.hasAI && (
-                      <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0.5">
-                        <Bot className="h-3 w-3" />
-                        IA inclusa
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl sm:text-4xl font-bold">{plan.price}</span>
-                    {plan.period && (
-                      <span className="text-muted-foreground text-sm">{plan.period}</span>
-                    )}
-                  </div>
-                  <CardDescription className="text-sm mt-1">{plan.description}</CardDescription>
-                </CardHeader>
+            {/* Starter, Standard, Pro - 3 columns */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              {plans.slice(1, 4).map((plan) => (
+                <PlanCard key={plan.slug} plan={plan} />
+              ))}
+            </div>
 
-                <CardContent className="flex-1">
-                  <ul className="space-y-2.5">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-
-                <CardFooter className="pt-4">
-                  {plan.ctaLink.startsWith("mailto:") ? (
-                    <a href={plan.ctaLink} className="w-full">
-                      <Button
-                        variant={plan.ctaVariant}
-                        className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90" : ""}`}
-                      >
-                        {plan.cta}
-                      </Button>
-                    </a>
-                  ) : plan.ctaLink.startsWith("#") ? (
-                    <Button
-                      variant={plan.ctaVariant}
-                      className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90 text-primary-foreground" : ""}`}
-                      onClick={() => {
-                        // TODO: Integrate with Stripe checkout
-                        window.location.href = "/signup";
-                      }}
-                    >
-                      {plan.cta}
-                    </Button>
-                  ) : (
-                    <Link to={plan.ctaLink} className="w-full">
-                      <Button variant={plan.ctaVariant} className="w-full">
-                        {plan.cta}
-                      </Button>
-                    </Link>
-                  )}
-                </CardFooter>
-              </Card>
-            ))}
+            {/* Enterprise - solo row */}
+            <div className="max-w-md mx-auto">
+              <PlanCard plan={plans[4]} />
+            </div>
           </div>
 
           {/* Annual discount note */}
