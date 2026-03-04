@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -18,6 +19,13 @@ type Project = Database["public"]["Tables"]["projects"]["Row"] & {
 export function useProjects() {
   const { currentWorkspace } = useWorkspace();
   const queryClient = useQueryClient();
+
+  // Listen for project-created events from CreateProjectDialog
+  useEffect(() => {
+    const handler = () => queryClient.invalidateQueries({ queryKey: ["projects"] });
+    window.addEventListener("project-created", handler);
+    return () => window.removeEventListener("project-created", handler);
+  }, [queryClient]);
 
   const { data: projects = [], isLoading: loading } = useQuery({
     queryKey: ["projects", currentWorkspace?.id],
