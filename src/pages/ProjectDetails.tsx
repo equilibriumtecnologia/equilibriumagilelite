@@ -30,6 +30,7 @@ import { AddMemberDialog } from "@/components/projects/AddMemberDialog";
 import { RemoveMemberDialog } from "@/components/projects/RemoveMemberDialog";
 import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
 import { DeleteProjectDialog } from "@/components/projects/DeleteProjectDialog";
+import { SaveAsTemplateDialog } from "@/components/projects/SaveAsTemplateDialog";
 import { TaskCard } from "@/components/tasks/TaskCard";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
 import { SprintBoardHeader } from "@/components/sprints/SprintBoardHeader";
@@ -154,6 +155,7 @@ const ProjectDetails = () => {
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold truncate">{project.name}</h1>
               {canManageProject && (
                 <div className="flex items-center gap-1">
+                  <SaveAsTemplateDialog projectId={project.id} projectName={project.name} />
                   <EditProjectDialog project={project} onSuccess={refetch} />
                   <DeleteProjectDialog
                     projectId={project.id}
