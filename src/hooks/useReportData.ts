@@ -45,6 +45,8 @@ export interface TeamMemberPerformance {
   avatar_url: string | null;
   tasksCompleted: number;
   storyPointsDelivered: number;
+  executorPoints: number;
+  reviewerPoints: number;
   avgCycleTime: number;
   completionRate: number;
 }
@@ -62,6 +64,38 @@ export function useReportData(projectId?: string) {
       .eq("workspace_id", currentWorkspace.id);
     return (data || []).map(p => p.id);
   };
+
+  // Helper to get project split config
+  const getProjectSplitPercent = async (pId: string): Promise<number> => {
+    const { data } = await supabase
+      .from("projects")
+      .select("executor_split_percent")
+      .eq("id", pId)
+      .maybeSingle();
+    return (data as any)?.executor_split_percent ?? 70;
+  };
+
+  // Cache project split configs
+  const { data: projectSplitConfigs = new Map<string, number>() } = useQuery({
+    queryKey: ["project-split-configs", projectId, currentWorkspace?.id],
+    queryFn: async () => {
+      let query = supabase.from("projects").select("id, executor_split_percent");
+      if (projectId) {
+        query = query.eq("id", projectId);
+      } else {
+        const wsProjectIds = await getWorkspaceProjectIds();
+        if (wsProjectIds.length === 0) return new Map<string, number>();
+        query = query.in("id", wsProjectIds);
+      }
+      const { data } = await query;
+      const map = new Map<string, number>();
+      for (const p of data || []) {
+        map.set(p.id, (p as any).executor_split_percent ?? 70);
+      }
+      return map;
+    },
+    enabled: !!user && (!!projectId || !!currentWorkspace?.id),
+  });
 
   const { data: tasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ["report-tasks", projectId, currentWorkspace?.id],
@@ -346,7 +380,6 @@ export function useReportData(projectId?: string) {
 
     const ensureMember = (userId: string) => {
       if (!memberMap.has(userId)) {
-        // Try to find profile info from tasks
         const taskWithUser = tasks.find((t) => t.assigned_to === userId && t.assigned_user);
         memberMap.set(userId, {
           id: userId,
@@ -354,6 +387,8 @@ export function useReportData(projectId?: string) {
           avatar_url: taskWithUser ? (taskWithUser.assigned_user as any).avatar_url || null : null,
           tasksCompleted: 0,
           storyPointsDelivered: 0,
+          executorPoints: 0,
+          reviewerPoints: 0,
           avgCycleTime: 0,
           completionRate: 0,
         });
@@ -374,22 +409,30 @@ export function useReportData(projectId?: string) {
       const points = task.story_points || 0;
       if (points === 0) continue;
 
+      // Get project-specific split percentage
+      const splitPercent = projectSplitConfigs.get(task.project_id) ?? 70;
+      const executorRatio = splitPercent / 100;
+      const reviewerRatio = 1 - executorRatio;
+
       const { executorId, reviewerId } = getTaskContributors(task.id);
 
       if (executorId && reviewerId) {
-        // 70/30 split between executor and reviewer
         ensureMember(executorId);
         ensureMember(reviewerId);
-        memberMap.get(executorId)!.storyPointsDelivered += Math.round(points * 0.7 * 10) / 10;
-        memberMap.get(reviewerId)!.storyPointsDelivered += Math.round(points * 0.3 * 10) / 10;
+        const execPts = Math.round(points * executorRatio * 10) / 10;
+        const revPts = Math.round(points * reviewerRatio * 10) / 10;
+        memberMap.get(executorId)!.storyPointsDelivered += execPts;
+        memberMap.get(executorId)!.executorPoints += execPts;
+        memberMap.get(reviewerId)!.storyPointsDelivered += revPts;
+        memberMap.get(reviewerId)!.reviewerPoints += revPts;
       } else if (executorId) {
-        // No reviewer, executor gets 100%
         ensureMember(executorId);
         memberMap.get(executorId)!.storyPointsDelivered += points;
+        memberMap.get(executorId)!.executorPoints += points;
       } else if (task.assigned_to) {
-        // Fallback: current assignee gets 100% (no history to derive from)
         ensureMember(task.assigned_to);
         memberMap.get(task.assigned_to)!.storyPointsDelivered += points;
+        memberMap.get(task.assigned_to)!.executorPoints += points;
       }
     }
 

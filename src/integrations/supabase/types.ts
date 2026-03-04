@@ -377,6 +377,7 @@ export type Database = {
           criticality_level: number | null
           deadline: string | null
           description: string | null
+          executor_split_percent: number
           id: string
           name: string
           status: Database["public"]["Enums"]["project_status"]
@@ -390,6 +391,7 @@ export type Database = {
           criticality_level?: number | null
           deadline?: string | null
           description?: string | null
+          executor_split_percent?: number
           id?: string
           name: string
           status?: Database["public"]["Enums"]["project_status"]
@@ -403,6 +405,7 @@ export type Database = {
           criticality_level?: number | null
           deadline?: string | null
           description?: string | null
+          executor_split_percent?: number
           id?: string
           name?: string
           status?: Database["public"]["Enums"]["project_status"]
