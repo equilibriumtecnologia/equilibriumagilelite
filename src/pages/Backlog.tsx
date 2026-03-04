@@ -53,7 +53,7 @@ export default function Backlog() {
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
-  const { prioritize, isLoading: aiLoading, result: aiResult, clear: clearAI } = useAIPrioritization();
+  const { prioritize, isLoading: aiLoading, result: aiResult, clear: clearAI, isAIAvailable } = useAIPrioritization();
   const { members } = useTeam();
 
   const assigneeNames = useMemo(() => {
@@ -190,7 +190,7 @@ export default function Backlog() {
           <Input placeholder="Buscar no backlog..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="flex gap-2">
-          <AIPrioritizeButton onClick={handleAIPrioritize} isLoading={aiLoading} taskCount={backlogTasks.length} />
+          <AIPrioritizeButton onClick={handleAIPrioritize} isLoading={aiLoading} taskCount={backlogTasks.length} isAIAvailable={isAIAvailable} />
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
             <SelectTrigger className="w-[130px] sm:w-[150px]">
               <Filter className="h-4 w-4 mr-1.5" />

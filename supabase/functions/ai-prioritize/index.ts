@@ -27,6 +27,25 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const userId = claimsData.claims.sub as string;
+
+    // Check user plan - only Standard, Pro, Master allowed
+    const serviceClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const { data: planData } = await serviceClient.rpc("get_user_plan", { _user_id: userId });
+    const plan = planData as any;
+    const allowedPlans = ["standard", "pro", "master"];
+
+    if (!plan || !allowedPlans.includes(plan.plan_slug)) {
+      return new Response(
+        JSON.stringify({ error: "Funcionalidade de IA disponível a partir do plano Standard. Faça upgrade para utilizar." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { tasks, projectName, sprintName } = await req.json();
 
     if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
