@@ -302,8 +302,8 @@ const Dashboard = () => {
           <BottleneckAlerts bottlenecks={bottlenecks} />
         )}
 
-        {/* Report Cards - conditional rendering */}
-        <DashboardReportCards />
+        {/* Report Cards - only for owners/admins */}
+        {canViewAdvancedMetrics && <DashboardReportCards />}
       </div>
   );
 };

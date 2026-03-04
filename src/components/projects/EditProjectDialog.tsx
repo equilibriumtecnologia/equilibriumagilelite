@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Pencil } from "lucide-react";
+import { Pencil, Hammer } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -30,6 +30,7 @@ const formSchema = z.object({
   status: z.enum(["planning", "active", "on_hold", "completed", "cancelled"]),
   deadline: z.string().optional(),
   criticality_level: z.coerce.number().min(1).max(5).default(3),
+  executor_split_percent: z.coerce.number().min(50).max(100).default(70),
 });
 
 interface EditProjectDialogProps {
@@ -51,6 +52,7 @@ export function EditProjectDialog({ project, onSuccess }: EditProjectDialogProps
       status: project.status,
       deadline: project.deadline || "",
       criticality_level: project.criticality_level ?? 3,
+      executor_split_percent: (project as any).executor_split_percent ?? 70,
     },
   });
 
@@ -63,7 +65,8 @@ export function EditProjectDialog({ project, onSuccess }: EditProjectDialogProps
       status: values.status,
       deadline: values.deadline || null,
       criticality_level: values.criticality_level,
-    });
+      executor_split_percent: values.executor_split_percent,
+    } as any);
     setOpen(false);
     onSuccess?.();
   }
@@ -123,6 +126,25 @@ export function EditProjectDialog({ project, onSuccess }: EditProjectDialogProps
                     <SelectItem value="5">5 - Crítica</SelectItem>
                   </SelectContent>
                 </Select><FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="executor_split_percent" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1.5">
+                  <Hammer className="h-3.5 w-3.5" />
+                  Divisão Executor/Revisor
+                </FormLabel>
+                <Select onValueChange={(v) => field.onChange(Number(v))} value={String(field.value)}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Selecione a proporção" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="100">100/0 — Executor recebe tudo</SelectItem>
+                    <SelectItem value="80">80/20 — Executor 80%, Revisor 20%</SelectItem>
+                    <SelectItem value="70">70/30 — Executor 70%, Revisor 30%</SelectItem>
+                    <SelectItem value="60">60/40 — Executor 60%, Revisor 40%</SelectItem>
+                    <SelectItem value="50">50/50 — Divisão igualitária</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
               </FormItem>
             )} />
             <DialogFooter>
