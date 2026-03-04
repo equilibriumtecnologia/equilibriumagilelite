@@ -45,6 +45,8 @@ export interface TeamMemberPerformance {
   avatar_url: string | null;
   tasksCompleted: number;
   storyPointsDelivered: number;
+  executorPoints: number;
+  reviewerPoints: number;
   avgCycleTime: number;
   completionRate: number;
 }
@@ -62,6 +64,38 @@ export function useReportData(projectId?: string) {
       .eq("workspace_id", currentWorkspace.id);
     return (data || []).map(p => p.id);
   };
+
+  // Helper to get project split config
+  const getProjectSplitPercent = async (pId: string): Promise<number> => {
+    const { data } = await supabase
+      .from("projects")
+      .select("executor_split_percent")
+      .eq("id", pId)
+      .maybeSingle();
+    return (data as any)?.executor_split_percent ?? 70;
+  };
+
+  // Cache project split configs
+  const { data: projectSplitConfigs = new Map<string, number>() } = useQuery({
+    queryKey: ["project-split-configs", projectId, currentWorkspace?.id],
+    queryFn: async () => {
+      let query = supabase.from("projects").select("id, executor_split_percent");
+      if (projectId) {
+        query = query.eq("id", projectId);
+      } else {
+        const wsProjectIds = await getWorkspaceProjectIds();
+        if (wsProjectIds.length === 0) return new Map<string, number>();
+        query = query.in("id", wsProjectIds);
+      }
+      const { data } = await query;
+      const map = new Map<string, number>();
+      for (const p of data || []) {
+        map.set(p.id, (p as any).executor_split_percent ?? 70);
+      }
+      return map;
+    },
+    enabled: !!user && (!!projectId || !!currentWorkspace?.id),
+  });
 
   const { data: tasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ["report-tasks", projectId, currentWorkspace?.id],
@@ -297,37 +331,125 @@ export function useReportData(projectId?: string) {
       .slice(-20);
   };
 
-  // Team Performance
+  // Helper: find executor (assigned during in_progress) and reviewer (assigned during review→completed)
+  const getTaskContributors = (taskId: string): { executorId: string | null; reviewerId: string | null } => {
+    const history = taskHistory.filter((h) => h.task_id === taskId);
+    let executorId: string | null = null;
+    let reviewerId: string | null = null;
+
+    // Find who was assigned when task moved to in_progress
+    // Strategy: look at assignments and status changes chronologically
+    const assignments = history.filter((h) => h.action === "assigned");
+    const statusChanges = history.filter((h) => h.action === "status_changed");
+
+    // The executor is whoever was assigned when status changed to in_progress
+    const toInProgress = statusChanges.find((h) => h.new_value === "in_progress");
+    if (toInProgress) {
+      // Find the most recent assignment before or at the in_progress change
+      const assignmentsBefore = assignments
+        .filter((a) => new Date(a.created_at) <= new Date(toInProgress.created_at))
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      
+      if (assignmentsBefore.length > 0 && assignmentsBefore[0].new_value) {
+        executorId = assignmentsBefore[0].new_value;
+      }
+    }
+
+    // The reviewer is whoever was assigned when status changed to completed (via review)
+    const toCompleted = statusChanges.find((h) => h.new_value === "completed");
+    if (toCompleted) {
+      const assignmentsBeforeComplete = assignments
+        .filter((a) => new Date(a.created_at) <= new Date(toCompleted.created_at))
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      
+      if (assignmentsBeforeComplete.length > 0 && assignmentsBeforeComplete[0].new_value) {
+        const lastAssigned = assignmentsBeforeComplete[0].new_value;
+        // Only set reviewer if different from executor
+        if (lastAssigned !== executorId) {
+          reviewerId = lastAssigned;
+        }
+      }
+    }
+
+    return { executorId, reviewerId };
+  };
+
+  // Team Performance with 70/30 split
   const getTeamPerformance = (): TeamMemberPerformance[] => {
     const memberMap = new Map<string, TeamMemberPerformance>();
 
-    for (const task of tasks) {
-      if (!task.assigned_to || !task.assigned_user) continue;
-
-      if (!memberMap.has(task.assigned_to)) {
-        memberMap.set(task.assigned_to, {
-          id: task.assigned_to,
-          name: (task.assigned_user as any).full_name || "Sem nome",
-          avatar_url: (task.assigned_user as any).avatar_url || null,
+    const ensureMember = (userId: string) => {
+      if (!memberMap.has(userId)) {
+        const taskWithUser = tasks.find((t) => t.assigned_to === userId && t.assigned_user);
+        memberMap.set(userId, {
+          id: userId,
+          name: taskWithUser ? (taskWithUser.assigned_user as any).full_name || "Sem nome" : "Sem nome",
+          avatar_url: taskWithUser ? (taskWithUser.assigned_user as any).avatar_url || null : null,
           tasksCompleted: 0,
           storyPointsDelivered: 0,
+          executorPoints: 0,
+          reviewerPoints: 0,
           avgCycleTime: 0,
           completionRate: 0,
         });
       }
+    };
 
-      const member = memberMap.get(task.assigned_to)!;
-      const totalTasks = tasks.filter((t) => t.assigned_to === task.assigned_to).length;
+    // First pass: register all assigned members
+    for (const task of tasks) {
+      if (task.assigned_to && task.assigned_user) {
+        ensureMember(task.assigned_to);
+      }
+    }
+
+    // Second pass: distribute points for completed tasks
+    for (const task of tasks) {
+      if (task.status !== "completed") continue;
+
+      const points = task.story_points || 0;
+      if (points === 0) continue;
+
+      // Get project-specific split percentage
+      const splitPercent = projectSplitConfigs.get(task.project_id) ?? 70;
+      const executorRatio = splitPercent / 100;
+      const reviewerRatio = 1 - executorRatio;
+
+      const { executorId, reviewerId } = getTaskContributors(task.id);
+
+      if (executorId && reviewerId) {
+        ensureMember(executorId);
+        ensureMember(reviewerId);
+        const execPts = Math.round(points * executorRatio * 10) / 10;
+        const revPts = Math.round(points * reviewerRatio * 10) / 10;
+        memberMap.get(executorId)!.storyPointsDelivered += execPts;
+        memberMap.get(executorId)!.executorPoints += execPts;
+        memberMap.get(reviewerId)!.storyPointsDelivered += revPts;
+        memberMap.get(reviewerId)!.reviewerPoints += revPts;
+      } else if (executorId) {
+        ensureMember(executorId);
+        memberMap.get(executorId)!.storyPointsDelivered += points;
+        memberMap.get(executorId)!.executorPoints += points;
+      } else if (task.assigned_to) {
+        ensureMember(task.assigned_to);
+        memberMap.get(task.assigned_to)!.storyPointsDelivered += points;
+        memberMap.get(task.assigned_to)!.executorPoints += points;
+      }
+    }
+
+    // Calculate completion rates and cycle times
+    for (const task of tasks) {
+      if (!task.assigned_to) continue;
+      if (!memberMap.has(task.assigned_to)) continue;
 
       if (task.status === "completed") {
-        member.tasksCompleted++;
-        member.storyPointsDelivered += task.story_points || 0;
+        memberMap.get(task.assigned_to)!.tasksCompleted++;
       }
-
-      member.completionRate = totalTasks > 0 ? Math.round((member.tasksCompleted / totalTasks) * 100) : 0;
     }
 
     for (const [memberId, member] of memberMap) {
+      const totalTasks = tasks.filter((t) => t.assigned_to === memberId).length;
+      member.completionRate = totalTasks > 0 ? Math.round((member.tasksCompleted / totalTasks) * 100) : 0;
+
       const completedTasks = tasks.filter(
         (t) => t.assigned_to === memberId && t.status === "completed"
       );

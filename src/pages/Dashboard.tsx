@@ -25,6 +25,7 @@ import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useWorkspaceMembers } from "@/hooks/useWorkspaceMembers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBottleneckDetection } from "@/hooks/useBottleneckDetection";
+import { useUserRole } from "@/hooks/useUserRole";
 
 function usePlanWarnings() {
   const { plan, isMaster } = useUserPlan();
@@ -100,6 +101,9 @@ const Dashboard = () => {
   const warnings = usePlanWarnings();
   const { dismissed, dismiss } = useDismissedWarnings();
   const visibleWarnings = warnings.filter((w) => !dismissed.has(w));
+
+  const { isAdmin, isMaster, isWorkspaceOwner, isWorkspaceAdmin } = useUserRole();
+  const canViewAdvancedMetrics = isMaster || isAdmin || isWorkspaceOwner || isWorkspaceAdmin;
 
   const bottlenecks = useBottleneckDetection({
     tasks: tasks || [],
@@ -290,16 +294,16 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Delivery Forecast */}
-        <DeliveryForecastCard />
+        {/* Delivery Forecast - only for owners/admins */}
+        {canViewAdvancedMetrics && <DeliveryForecastCard />}
 
-        {/* Bottleneck Alerts */}
-        {bottlenecks.length > 0 && (
+        {/* Bottleneck Alerts - only for owners/admins */}
+        {canViewAdvancedMetrics && bottlenecks.length > 0 && (
           <BottleneckAlerts bottlenecks={bottlenecks} />
         )}
 
-        {/* Report Cards - conditional rendering */}
-        <DashboardReportCards />
+        {/* Report Cards - only for owners/admins */}
+        {canViewAdvancedMetrics && <DashboardReportCards />}
       </div>
   );
 };

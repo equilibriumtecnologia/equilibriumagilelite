@@ -258,6 +258,7 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          theme: string
           updated_at: string
         }
         Insert: {
@@ -265,6 +266,7 @@ export type Database = {
           created_at?: string
           full_name: string
           id: string
+          theme?: string
           updated_at?: string
         }
         Update: {
@@ -272,6 +274,7 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          theme?: string
           updated_at?: string
         }
         Relationships: []
@@ -377,6 +380,7 @@ export type Database = {
           criticality_level: number | null
           deadline: string | null
           description: string | null
+          executor_split_percent: number
           id: string
           name: string
           status: Database["public"]["Enums"]["project_status"]
@@ -390,6 +394,7 @@ export type Database = {
           criticality_level?: number | null
           deadline?: string | null
           description?: string | null
+          executor_split_percent?: number
           id?: string
           name: string
           status?: Database["public"]["Enums"]["project_status"]
@@ -403,6 +408,7 @@ export type Database = {
           criticality_level?: number | null
           deadline?: string | null
           description?: string | null
+          executor_split_percent?: number
           id?: string
           name?: string
           status?: Database["public"]["Enums"]["project_status"]
