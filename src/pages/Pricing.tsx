@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, ArrowRight, ArrowLeft, Crown, Zap, Rocket, Building2, LayoutDashboard } from "lucide-react";
+import { CheckCircle2, ArrowRight, ArrowLeft, Crown, Zap, Rocket, Building2, LayoutDashboard, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PoweredByEquilibrium } from "@/components/layout/PoweredByEquilibrium";
 
@@ -33,21 +33,22 @@ const plans = [
   {
     name: "Starter",
     slug: "starter",
-    price: "R$ 29",
+    price: "R$ 19",
     period: "/mês",
-    description: "Para profissionais e pequenas equipes",
+    description: "Para profissionais individuais",
     icon: Rocket,
-    popular: true,
+    popular: false,
     features: [
       "1 workspace padrão + 1 criado",
       "Participar de 1 workspace como convidado",
-      "2 projetos por workspace",
+      "1 projeto por workspace",
       "1 convite por workspace",
+      "Até 2 usuários por workspace",
       "Suporte por email",
     ],
     limits: {
       workspaces: "Até 3 simultâneos",
-      projects: "2 por workspace",
+      projects: "1 por workspace",
       invites: "1 por workspace",
     },
     cta: "Assinar Starter",
@@ -55,29 +56,56 @@ const plans = [
     ctaLink: "#upgrade-starter",
   },
   {
-    name: "Professional",
-    slug: "professional",
-    price: "R$ 79",
+    name: "Standard",
+    slug: "standard",
+    price: "R$ 49",
     period: "/mês",
-    description: "Para equipes em crescimento",
-    icon: Crown,
-    popular: false,
+    description: "Para pequenas equipes em crescimento",
+    icon: Star,
+    popular: true,
     features: [
       "1 workspace padrão + 2 criados",
       "Participar de 2 workspaces como convidado",
-      "5 projetos por workspace",
-      "5 convites por workspace",
+      "2 projetos por workspace",
+      "2 convites por workspace",
+      "Até 4 usuários por workspace",
+      "Relatórios avançados",
+      "Suporte por email",
+    ],
+    limits: {
+      workspaces: "Até 5 simultâneos",
+      projects: "2 por workspace",
+      invites: "2 por workspace",
+    },
+    cta: "Assinar Standard",
+    ctaVariant: "default" as const,
+    ctaLink: "#upgrade-standard",
+  },
+  {
+    name: "Pro",
+    slug: "pro",
+    price: "R$ 119",
+    period: "/mês",
+    description: "Para equipes grandes e avançadas",
+    icon: Crown,
+    popular: false,
+    features: [
+      "1 workspace padrão + 4 criados",
+      "Participar de 4 workspaces como convidado",
+      "4 projetos por workspace",
+      "4 convites por workspace",
+      "Até 8 usuários por workspace",
       "Relatórios avançados",
       "Suporte prioritário",
     ],
     limits: {
-      workspaces: "Até 5 simultâneos",
-      projects: "5 por workspace",
-      invites: "5 por workspace",
+      workspaces: "Até 9 simultâneos",
+      projects: "4 por workspace",
+      invites: "4 por workspace",
     },
-    cta: "Assinar Professional",
+    cta: "Assinar Pro",
     ctaVariant: "default" as const,
-    ctaLink: "#upgrade-professional",
+    ctaLink: "#upgrade-pro",
   },
   {
     name: "Enterprise",
@@ -152,7 +180,7 @@ export default function Pricing() {
       {/* Plans Grid */}
       <section className="pb-16 sm:pb-24">
         <div className="container mx-auto px-3 sm:px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 max-w-[1400px] mx-auto">
             {plans.map((plan) => (
               <Card
                 key={plan.slug}
