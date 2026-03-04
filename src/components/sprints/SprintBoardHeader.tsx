@@ -16,6 +16,7 @@ interface SprintBoardHeaderProps {
   completedPoints: number;
   onAIPrioritize?: () => void;
   aiLoading?: boolean;
+  isAIAvailable?: boolean;
 }
 
 export function SprintBoardHeader({
@@ -26,6 +27,7 @@ export function SprintBoardHeader({
   completedPoints,
   onAIPrioritize,
   aiLoading,
+  isAIAvailable,
 }: SprintBoardHeaderProps) {
   const endDate = new Date(sprint.end_date);
   const today = new Date();
@@ -84,6 +86,7 @@ export function SprintBoardHeader({
               onClick={onAIPrioritize}
               isLoading={aiLoading || false}
               taskCount={taskCount - completedTaskCount}
+              isAIAvailable={isAIAvailable}
             />
           )}
         </div>

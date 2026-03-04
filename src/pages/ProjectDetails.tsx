@@ -64,7 +64,7 @@ const ProjectDetails = () => {
   const [listSearch, setListSearch] = useState("");
   const { tasks: allTasks, updateTask } = useTasks(id);
   const { members } = useTeam();
-  const { prioritize, isLoading: aiLoading, result: aiResult, clear: clearAI } = useAIPrioritization();
+  const { prioritize, isLoading: aiLoading, result: aiResult, clear: clearAI, isAIAvailable } = useAIPrioritization();
 
   const assigneeNames = useMemo(() => {
     const map: Record<string, string> = {};
@@ -210,6 +210,7 @@ const ProjectDetails = () => {
           completedPoints={project.tasks?.filter((t) => t.sprint_id === activeSprint.id && t.status === "completed").reduce((sum, t) => sum + (t.story_points || 0), 0) || 0}
           onAIPrioritize={handleSprintAIPrioritize}
           aiLoading={aiLoading}
+          isAIAvailable={isAIAvailable}
         />
       )}
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
+import { useUserPlan } from "@/hooks/useUserPlan";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
 
@@ -19,9 +20,14 @@ interface AIPrioritizationResult {
   summary: string;
 }
 
+const AI_ALLOWED_PLANS = ["standard", "pro", "master"];
+
 export function useAIPrioritization() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AIPrioritizationResult | null>(null);
+  const { plan } = useUserPlan();
+
+  const isAIAvailable = plan ? AI_ALLOWED_PLANS.includes(plan.plan_slug) : false;
 
   const prioritize = async (
     tasks: Task[],
@@ -29,6 +35,11 @@ export function useAIPrioritization() {
     sprintName?: string,
     assigneeNames?: Record<string, string>
   ) => {
+    if (!isAIAvailable) {
+      toast.error("Funcionalidade de IA disponível a partir do plano Standard. Faça upgrade para utilizar.");
+      return;
+    }
+
     if (tasks.length === 0) {
       toast.error("Nenhuma tarefa para priorizar");
       return;
@@ -78,5 +89,5 @@ export function useAIPrioritization() {
 
   const clear = () => setResult(null);
 
-  return { prioritize, isLoading, result, clear };
+  return { prioritize, isLoading, result, clear, isAIAvailable };
 }
