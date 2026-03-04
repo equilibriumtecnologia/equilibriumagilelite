@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, ArrowRight, ArrowLeft, Crown, Zap, Rocket, Building2, LayoutDashboard, Star } from "lucide-react";
+import { CheckCircle2, ArrowRight, ArrowLeft, Crown, Zap, Rocket, Building2, LayoutDashboard, Star, Bot } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PoweredByEquilibrium } from "@/components/layout/PoweredByEquilibrium";
 
@@ -69,9 +69,11 @@ const plans = [
       "2 projetos por workspace",
       "2 convites por workspace",
       "Até 4 usuários por workspace",
+      "🤖 Priorização com IA",
       "Relatórios avançados",
       "Suporte por email",
     ],
+    hasAI: true,
     limits: {
       workspaces: "Até 5 simultâneos",
       projects: "2 por workspace",
@@ -95,9 +97,11 @@ const plans = [
       "4 projetos por workspace",
       "4 convites por workspace",
       "Até 8 usuários por workspace",
+      "🤖 Priorização com IA",
       "Relatórios avançados",
       "Suporte prioritário",
     ],
+    hasAI: true,
     limits: {
       workspaces: "Até 9 simultâneos",
       projects: "4 por workspace",
@@ -208,6 +212,12 @@ export default function Pricing() {
                       }`} />
                     </div>
                     <CardTitle className="text-xl">{plan.name}</CardTitle>
+                    {"hasAI" in plan && plan.hasAI && (
+                      <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0.5">
+                        <Bot className="h-3 w-3" />
+                        IA inclusa
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl sm:text-4xl font-bold">{plan.price}</span>
