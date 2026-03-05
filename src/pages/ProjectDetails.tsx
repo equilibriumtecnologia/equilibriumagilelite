@@ -104,8 +104,13 @@ const ProjectDetails = () => {
       );
     }
     
-    // Sort by updated_at descending (recently modified first)
-    filtered.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    // Sort: archived tasks always last, then by updated_at descending
+    filtered.sort((a, b) => {
+      const aArchived = (a as any).is_archived ? 1 : 0;
+      const bArchived = (b as any).is_archived ? 1 : 0;
+      if (aArchived !== bArchived) return aArchived - bArchived;
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+    });
     
     return filtered;
   }, [project?.tasks, listSearch]);

@@ -2,7 +2,8 @@ import { useDraggable } from "@dnd-kit/core";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, GripVertical, Clock, Timer, CheckSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, GripVertical, Clock, Timer, CheckSquare, Archive } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Database } from "@/integrations/supabase/types";
@@ -10,6 +11,10 @@ import { useMemo, useEffect, useState } from "react";
 import { TaskDetailsDialog } from "@/components/tasks/TaskDetailsDialog";
 import { useSubTasks } from "@/hooks/useSubTasks";
 import { StoryPointsBadge } from "@/components/tasks/StoryPointsBadge";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"] & {
   assigned_to_profile: Database["public"]["Tables"]["profiles"]["Row"] | null;
@@ -157,6 +162,10 @@ export function KanbanTaskCard({
           </div>
 
           <div className="flex flex-col gap-2 pt-2 border-t">
+            {/* Archive button for completed tasks */}
+            {task.status === "completed" && (
+              <ArchiveButton taskId={task.id} />
+            )}
             {task.assigned_to_profile ? (
               <div className="flex items-center gap-2 min-w-0">
                 <Avatar className="h-6 w-6 flex-shrink-0">
@@ -195,5 +204,49 @@ export function KanbanTaskCard({
         onOpenChange={setShowDetails} 
       />
     </>
+  );
+}
+
+function ArchiveButton({ taskId }: { taskId: string }) {
+  const queryClient = useQueryClient();
+  const [loading, setLoading] = useState(false);
+
+  const handleArchive = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ is_archived: true } as any)
+        .eq("id", taskId);
+      if (error) throw error;
+      toast.success("Atividade arquivada!");
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["project"] });
+    } catch (err: any) {
+      toast.error("Erro ao arquivar: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1.5 text-xs text-muted-foreground hover:text-foreground w-full justify-start"
+            onClick={handleArchive}
+            disabled={loading}
+          >
+            <Archive className="h-3.5 w-3.5" />
+            Arquivar
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Arquivar atividade (remove do Kanban, mantém na lista)</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
