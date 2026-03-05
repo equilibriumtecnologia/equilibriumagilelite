@@ -139,7 +139,12 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
   });
 
   const tasksByStatus = columns.reduce((acc, column) => {
-    acc[column.id] = filteredTasks.filter((task) => task.status === column.id);
+    acc[column.id] = filteredTasks.filter((task) => {
+      if (task.status !== column.id) return false;
+      // Hide archived tasks from the "completed" column in Kanban
+      if (column.id === "completed" && (task as any).is_archived) return false;
+      return true;
+    });
     return acc;
   }, {} as Record<TaskStatus, Task[]>);
 

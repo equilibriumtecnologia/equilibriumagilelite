@@ -718,6 +718,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          is_archived: boolean
           priority: Database["public"]["Enums"]["task_priority"]
           project_id: string
           sprint_id: string | null
@@ -735,6 +736,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          is_archived?: boolean
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id: string
           sprint_id?: string | null
@@ -752,6 +754,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          is_archived?: boolean
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id?: string
           sprint_id?: string | null
