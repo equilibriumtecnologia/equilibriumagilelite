@@ -15,6 +15,7 @@ import { useReportData } from "@/hooks/useReportData";
 import { useTasks } from "@/hooks/useTasks";
 import { useProject } from "@/hooks/useProject";
 import { useProjectRole } from "@/hooks/useProjectRole";
+import { useReadOnly } from "@/hooks/useReadOnly";
 import { Database } from "@/integrations/supabase/types";
 
 type Sprint = Database["public"]["Tables"]["sprints"]["Row"];
@@ -33,6 +34,8 @@ export default function Sprints() {
   } = useSprints(projectId);
   const { tasks = [] } = useTasks(projectId);
   const { canManageSprints } = useProjectRole(projectId);
+  const { isReadOnly } = useReadOnly(projectId);
+  const canManage = canManageSprints && !isReadOnly;
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -89,7 +92,7 @@ export default function Sprints() {
             <p className="text-sm text-muted-foreground truncate">{project.name}</p>
           </div>
         </div>
-        {canManageSprints && (
+        {canManage && (
           <Button size="sm" onClick={() => setCreateDialogOpen(true)} className="flex-shrink-0">
             <Plus className="h-4 w-4 mr-1.5" />
             <span className="hidden sm:inline">Nova Sprint</span>
@@ -113,7 +116,7 @@ export default function Sprints() {
           {sprints.length === 0 ? (
             <div className="text-center py-12 border rounded-lg">
               <p className="text-muted-foreground mb-4">Nenhuma sprint criada ainda.</p>
-              {canManageSprints && <Button onClick={() => setCreateDialogOpen(true)}><Plus className="h-4 w-4 mr-2" />Criar Primeira Sprint</Button>}
+              {canManage && <Button onClick={() => setCreateDialogOpen(true)}><Plus className="h-4 w-4 mr-2" />Criar Primeira Sprint</Button>}
             </div>
           ) : (
             <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -121,11 +124,11 @@ export default function Sprints() {
                 const stats = getSprintStats(sprint.id);
                 return (
                   <SprintCard key={sprint.id} sprint={sprint} {...stats}
-                    onEdit={canManageSprints ? () => handleEdit(sprint) : undefined}
-                    onDelete={canManageSprints ? () => handleDelete(sprint) : undefined}
-                    onStart={canManageSprints && sprint.status === "planning" ? () => startSprint.mutate(sprint.id) : undefined}
-                    onComplete={canManageSprints && sprint.status === "active" ? () => completeSprint.mutate(sprint.id) : undefined}
-                    onPlan={canManageSprints && sprint.status === "planning" ? () => handlePlan(sprint) : undefined}
+                    onEdit={canManage ? () => handleEdit(sprint) : undefined}
+                    onDelete={canManage ? () => handleDelete(sprint) : undefined}
+                    onStart={canManage && sprint.status === "planning" ? () => startSprint.mutate(sprint.id) : undefined}
+                    onComplete={canManage && sprint.status === "active" ? () => completeSprint.mutate(sprint.id) : undefined}
+                    onPlan={canManage && sprint.status === "planning" ? () => handlePlan(sprint) : undefined}
                   />
                 );
               })}
@@ -137,8 +140,8 @@ export default function Sprints() {
           {activeSprint ? (
             <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               <SprintCard sprint={activeSprint} {...getSprintStats(activeSprint.id)}
-                onEdit={canManageSprints ? () => handleEdit(activeSprint) : undefined}
-                onComplete={canManageSprints ? () => completeSprint.mutate(activeSprint.id) : undefined} />
+                onEdit={canManage ? () => handleEdit(activeSprint) : undefined}
+                onComplete={canManage ? () => completeSprint.mutate(activeSprint.id) : undefined} />
             </div>
           ) : (
             <div className="text-center py-12 border rounded-lg">
@@ -151,17 +154,17 @@ export default function Sprints() {
           {planningSprints.length === 0 ? (
             <div className="text-center py-12 border rounded-lg">
               <p className="text-muted-foreground mb-4">Nenhuma sprint em planejamento.</p>
-              {canManageSprints && <Button onClick={() => setCreateDialogOpen(true)}><Plus className="h-4 w-4 mr-2" />Nova Sprint</Button>}
-            </div>
+              {canManage && <Button onClick={() => setCreateDialogOpen(true)}><Plus className="h-4 w-4 mr-2" />Nova Sprint</Button>}
+          </div>
           ) : (
             <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {planningSprints.map((sprint) => {
                 const stats = getSprintStats(sprint.id);
                 return (
                   <SprintCard key={sprint.id} sprint={sprint} {...stats}
-                    onEdit={canManageSprints ? () => handleEdit(sprint) : undefined}
-                    onDelete={canManageSprints ? () => handleDelete(sprint) : undefined}
-                    onStart={canManageSprints ? () => startSprint.mutate(sprint.id) : undefined} />
+                    onEdit={canManage ? () => handleEdit(sprint) : undefined}
+                    onDelete={canManage ? () => handleDelete(sprint) : undefined}
+                    onStart={canManage ? () => startSprint.mutate(sprint.id) : undefined} />
                 );
               })}
             </div>
@@ -179,8 +182,8 @@ export default function Sprints() {
                 const stats = getSprintStats(sprint.id);
                 return (
                   <SprintCard key={sprint.id} sprint={sprint} {...stats}
-                    onEdit={canManageSprints ? () => handleEdit(sprint) : undefined}
-                    onDelete={canManageSprints ? () => handleDelete(sprint) : undefined} />
+                    onEdit={canManage ? () => handleEdit(sprint) : undefined}
+                    onDelete={canManage ? () => handleDelete(sprint) : undefined} />
                 );
               })}
             </div>

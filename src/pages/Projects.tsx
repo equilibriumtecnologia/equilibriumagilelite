@@ -5,9 +5,11 @@ import { Search, Filter, Loader2 } from "lucide-react";
 import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { useProjects } from "@/hooks/useProjects";
+import { useReadOnly } from "@/hooks/useReadOnly";
 
 export default function Projects() {
   const { projects, loading, refetch } = useProjects();
+  const { isReadOnly, readOnlyReason } = useReadOnly();
   const [search, setSearch] = useState("");
 
   // Ordenação inteligente por criticidade e data
@@ -52,8 +54,14 @@ export default function Projects() {
             Gerencie todos os seus projetos em um só lugar
           </p>
         </div>
-        <CreateProjectDialog />
+        {!isReadOnly && <CreateProjectDialog />}
       </div>
+
+      {isReadOnly && readOnlyReason && (
+        <div className="p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-sm">
+          🔒 {readOnlyReason}
+        </div>
+      )}
 
       <div className="flex gap-2 sm:gap-4">
         <div className="relative flex-1">
