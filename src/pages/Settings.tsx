@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Bell, BellOff, CreditCard, Crown, ExternalLink } from "lucide-react";
+import { Loader2, Bell, BellOff, CreditCard, Crown, ExternalLink, RefreshCw } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CategoriesManagement } from "@/components/settings/CategoriesManagement";
 import { PermissionsManagement } from "@/components/settings/PermissionsManagement";
@@ -20,6 +20,8 @@ import { useStripeCheckout } from "@/hooks/useStripeCheckout";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useQueryClient, } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 
 const roleLabels: Record<string, string> = {
   master: "Proprietário",
