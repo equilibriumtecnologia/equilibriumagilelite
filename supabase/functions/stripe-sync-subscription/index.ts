@@ -59,8 +59,36 @@ serve(async (req) => {
     });
 
     if (subscriptions.data.length === 0) {
-      logStep("No active subscription found");
-      return new Response(JSON.stringify({ synced: false, reason: "no_active_subscription" }), {
+      logStep("No active subscription found, downgrading to free");
+
+      // Find free plan
+      const { data: freePlan } = await supabaseClient
+        .from("subscription_plans")
+        .select("id, name, slug")
+        .eq("slug", "free")
+        .single();
+
+      if (freePlan) {
+        const { error: downgradeError } = await supabaseClient
+          .from("user_subscriptions")
+          .upsert({
+            user_id: user.id,
+            plan_id: freePlan.id,
+            status: "active",
+            stripe_customer_id: customerId,
+            stripe_subscription_id: null,
+            current_period_start: new Date().toISOString(),
+            current_period_end: null,
+          }, { onConflict: "user_id" });
+
+        if (downgradeError) {
+          logStep("Error downgrading to free", { error: downgradeError });
+        } else {
+          logStep("Downgraded to free plan", { userId: user.id });
+        }
+      }
+
+      return new Response(JSON.stringify({ synced: true, plan_name: "Free", plan_slug: "free" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
