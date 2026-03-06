@@ -101,6 +101,15 @@ serve(async (req) => {
     }
 
     // Upsert subscription
+    const periodStart = subscription.current_period_start
+      ? new Date(Number(subscription.current_period_start) * 1000).toISOString()
+      : new Date().toISOString();
+    const periodEnd = subscription.current_period_end
+      ? new Date(Number(subscription.current_period_end) * 1000).toISOString()
+      : null;
+
+    logStep("Period dates", { start: periodStart, end: periodEnd, rawStart: subscription.current_period_start, rawEnd: subscription.current_period_end });
+
     const { error } = await supabaseClient
       .from("user_subscriptions")
       .upsert({
@@ -109,8 +118,8 @@ serve(async (req) => {
         status: "active",
         stripe_customer_id: customerId,
         stripe_subscription_id: subscription.id,
-        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+        current_period_start: periodStart,
+        current_period_end: periodEnd,
       }, { onConflict: "user_id" });
 
     if (error) {
