@@ -331,40 +331,46 @@ export function useReportData(projectId?: string) {
       .slice(-20);
   };
 
-  // Helper: find executor (assigned during in_progress) and reviewer (assigned during review→completed)
+  // Helper: find executor (assigned when task leaves "todo") and reviewer (assigned when task is completed)
   const getTaskContributors = (taskId: string): { executorId: string | null; reviewerId: string | null } => {
     const history = taskHistory.filter((h) => h.task_id === taskId);
+    const task = tasks.find((t) => t.id === taskId);
     let executorId: string | null = null;
     let reviewerId: string | null = null;
 
-    // Find who was assigned when task moved to in_progress
-    // Strategy: look at assignments and status changes chronologically
     const assignments = history.filter((h) => h.action === "assigned");
     const statusChanges = history.filter((h) => h.action === "status_changed");
 
-    // The executor is whoever was assigned when status changed to in_progress
-    const toInProgress = statusChanges.find((h) => h.new_value === "in_progress");
-    if (toInProgress) {
-      // Find the most recent assignment before or at the in_progress change
+    // Executor = whoever was assigned when the task LEFT "todo"
+    // This covers: todo→in_progress, todo→review, todo→completed
+    const firstStatusChange = statusChanges.find(
+      (h) => h.old_value === "todo" && h.new_value !== "todo"
+    );
+
+    if (firstStatusChange) {
+      // Find the most recent assignment at or before the task left todo
       const assignmentsBefore = assignments
-        .filter((a) => new Date(a.created_at) <= new Date(toInProgress.created_at))
+        .filter((a) => new Date(a.created_at) <= new Date(firstStatusChange.created_at))
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      
+
       if (assignmentsBefore.length > 0 && assignmentsBefore[0].new_value) {
         executorId = assignmentsBefore[0].new_value;
+      } else {
+        // If no assignment history before leaving todo, use task's assigned_to at that moment
+        // This handles cases where the task was assigned at creation (no "assigned" history entry)
+        executorId = task?.assigned_to ?? null;
       }
     }
 
-    // The reviewer is whoever was assigned when status changed to completed (via review)
+    // Reviewer = whoever was assigned when the task moved to "completed", if different from executor
     const toCompleted = statusChanges.find((h) => h.new_value === "completed");
     if (toCompleted) {
       const assignmentsBeforeComplete = assignments
         .filter((a) => new Date(a.created_at) <= new Date(toCompleted.created_at))
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      
+
       if (assignmentsBeforeComplete.length > 0 && assignmentsBeforeComplete[0].new_value) {
         const lastAssigned = assignmentsBeforeComplete[0].new_value;
-        // Only set reviewer if different from executor
         if (lastAssigned !== executorId) {
           reviewerId = lastAssigned;
         }

@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, MoreVertical, Pencil, Trash2, Clock, Timer } from "lucide-react";
+import { Calendar, User, MoreVertical, Pencil, Trash2, Clock, Timer, Archive, ArchiveRestore } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,9 @@ import { EditTaskDialog } from "./EditTaskDialog";
 import { DeleteTaskDialog } from "./DeleteTaskDialog";
 import { useState, useMemo, useEffect } from "react";
 import { useProjectRole } from "@/hooks/useProjectRole";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Tables } from "@/integrations/supabase/types";
@@ -46,6 +49,23 @@ export const TaskCard = ({ task }: TaskCardProps) => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [, setTick] = useState(0);
   const { canCreateTasks, canEditAnyTask } = useProjectRole(task.project_id);
+  const queryClient = useQueryClient();
+  const isArchived = (task as any).is_archived === true;
+
+  const handleToggleArchive = async () => {
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ is_archived: !isArchived } as any)
+        .eq("id", task.id);
+      if (error) throw error;
+      toast.success(isArchived ? "Atividade desarquivada!" : "Atividade arquivada!");
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["project"] });
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    }
+  };
 
   // Update every minute
   useEffect(() => {
@@ -93,7 +113,7 @@ export const TaskCard = ({ task }: TaskCardProps) => {
 
   return (
     <>
-      <Card className="p-4 sm:p-6 hover:shadow-md transition-shadow">
+      <Card className={`p-4 sm:p-6 hover:shadow-md transition-shadow ${isArchived ? "opacity-60" : ""}`}>
         <div className="flex items-start justify-between gap-2 sm:gap-4">
           <div className="flex-1 space-y-2 sm:space-y-3 min-w-0">
             <div className="flex items-start justify-between">
@@ -117,6 +137,15 @@ export const TaskCard = ({ task }: TaskCardProps) => {
                       <Pencil className="mr-2 h-4 w-4" />
                       Editar
                     </DropdownMenuItem>
+                    {task.status === "completed" && (
+                      <DropdownMenuItem onClick={handleToggleArchive}>
+                        {isArchived ? (
+                          <><ArchiveRestore className="mr-2 h-4 w-4" />Desarquivar</>
+                        ) : (
+                          <><Archive className="mr-2 h-4 w-4" />Arquivar</>
+                        )}
+                      </DropdownMenuItem>
+                    )}
                     {canEditAnyTask && (
                       <DropdownMenuItem
                         onClick={() => setIsDeleteOpen(true)}
@@ -135,6 +164,12 @@ export const TaskCard = ({ task }: TaskCardProps) => {
               <Badge variant={statusConfig[task.status].variant}>
                 {statusConfig[task.status].label}
               </Badge>
+              {isArchived && (
+                <Badge variant="outline" className="bg-muted text-muted-foreground">
+                  <Archive className="mr-1 h-3 w-3" />
+                  Arquivada
+                </Badge>
+              )}
               <Badge variant={priorityConfig[task.priority].variant}>
                 {priorityConfig[task.priority].label}
               </Badge>
