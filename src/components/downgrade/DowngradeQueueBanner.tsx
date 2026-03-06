@@ -91,6 +91,11 @@ export function DowngradeQueueBanner() {
             )}
 
             <div className="flex gap-2 mt-2">
+              <Link to="/manage-downgrade">
+                <Button variant="outline" size="sm" className="text-xs h-7 border-warning/40 hover:bg-warning/10">
+                  Gerenciar Recursos
+                </Button>
+              </Link>
               <Link to="/pricing">
                 <Button variant="outline" size="sm" className="text-xs h-7 border-warning/40 hover:bg-warning/10">
                   Fazer Upgrade
