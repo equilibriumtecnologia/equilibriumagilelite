@@ -8,13 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Bell, BellOff } from "lucide-react";
+import { Loader2, Bell, BellOff, CreditCard, Crown, ExternalLink } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CategoriesManagement } from "@/components/settings/CategoriesManagement";
 import { PermissionsManagement } from "@/components/settings/PermissionsManagement";
 import { PendingInvitations } from "@/components/settings/PendingInvitations";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
+import { useUserPlan } from "@/hooks/useUserPlan";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const roleLabels: Record<string, string> = {
   master: "Proprietário",
@@ -30,7 +35,8 @@ export default function Settings() {
   const [profile, setProfile] = useState({ full_name: "", avatar_url: "" });
   const [saving, setSaving] = useState(false);
   const { isSupported, isSubscribed, permission, loading: pushLoading, subscribe, unsubscribe } = usePushSubscription();
-
+  const { plan, loading: planLoading } = useUserPlan();
+  const { openPortal, loading: portalLoading } = useStripeCheckout();
   useEffect(() => {
     fetchUserData();
   }, [user]);
@@ -96,6 +102,7 @@ export default function Settings() {
         <ScrollArea className="w-full">
           <TabsList className="inline-flex w-auto">
             <TabsTrigger value="profile" className="text-xs sm:text-sm">Perfil</TabsTrigger>
+            <TabsTrigger value="billing" className="text-xs sm:text-sm">Plano & Faturamento</TabsTrigger>
             <TabsTrigger value="account" className="text-xs sm:text-sm">Conta</TabsTrigger>
             {canAccessSystemSettings && (
               <TabsTrigger value="categories" className="text-xs sm:text-sm">Categorias</TabsTrigger>
@@ -137,6 +144,82 @@ export default function Settings() {
                 {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Salvar Alterações
               </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="billing">
+          <Card>
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Plano & Faturamento
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                Gerencie seu plano e informações de pagamento
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 px-4 sm:px-6">
+              {planLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              ) : plan ? (
+                <>
+                  <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Crown className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-base">{plan.plan_name}</p>
+                          <Badge variant={plan.status === "active" ? "default" : "destructive"} className="text-xs">
+                            {plan.status === "active" ? "Ativo" : plan.status === "past_due" ? "Pagamento pendente" : plan.status}
+                          </Badge>
+                        </div>
+                        {plan.current_period_end && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Renova em {format(new Date(plan.current_period_end), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="p-3 rounded-lg border text-center">
+                      <p className="text-2xl font-bold text-primary">{plan.max_projects_per_workspace}</p>
+                      <p className="text-xs text-muted-foreground">Projetos/WS</p>
+                    </div>
+                    <div className="p-3 rounded-lg border text-center">
+                      <p className="text-2xl font-bold text-primary">{plan.max_invites_per_workspace}</p>
+                      <p className="text-xs text-muted-foreground">Convites/WS</p>
+                    </div>
+                    <div className="p-3 rounded-lg border text-center">
+                      <p className="text-2xl font-bold text-primary">{plan.max_created_workspaces}</p>
+                      <p className="text-xs text-muted-foreground">Workspaces</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {plan.plan_slug !== "free" && !plan.is_master && (
+                      <Button onClick={openPortal} disabled={portalLoading} variant="outline" className="gap-2">
+                        {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
+                        Gerenciar Assinatura
+                      </Button>
+                    )}
+                    {plan.plan_slug === "free" && (
+                      <Button onClick={() => window.location.href = "/pricing"} className="gap-2">
+                        <Crown className="h-4 w-4" />
+                        Fazer Upgrade
+                      </Button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Não foi possível carregar as informações do plano.</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
