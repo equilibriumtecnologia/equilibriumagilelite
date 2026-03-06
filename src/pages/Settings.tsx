@@ -35,7 +35,8 @@ export default function Settings() {
   const [profile, setProfile] = useState({ full_name: "", avatar_url: "" });
   const [saving, setSaving] = useState(false);
   const { isSupported, isSubscribed, permission, loading: pushLoading, subscribe, unsubscribe } = usePushSubscription();
-
+  const { plan, loading: planLoading } = useUserPlan();
+  const { openPortal, loading: portalLoading } = useStripeCheckout();
   useEffect(() => {
     fetchUserData();
   }, [user]);
