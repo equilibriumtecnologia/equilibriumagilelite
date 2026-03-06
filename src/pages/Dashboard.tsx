@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -98,9 +98,15 @@ const Dashboard = () => {
   const { projects, loading } = useProjects();
   const { tasks } = useTasks();
   const navigate = useNavigate();
+  const { plan, syncPlan } = useUserPlan();
   const warnings = usePlanWarnings();
   const { dismissed, dismiss } = useDismissedWarnings();
   const visibleWarnings = warnings.filter((w) => !dismissed.has(w));
+
+  // Sync plan on dashboard load
+  useEffect(() => {
+    syncPlan();
+  }, [syncPlan]);
 
   const { isAdmin, isMaster, isWorkspaceOwner, isWorkspaceAdmin } = useUserRole();
   const canViewAdvancedMetrics = isMaster || isAdmin || isWorkspaceOwner || isWorkspaceAdmin;
