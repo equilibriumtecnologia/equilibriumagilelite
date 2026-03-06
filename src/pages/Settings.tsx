@@ -38,7 +38,30 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const { isSupported, isSubscribed, permission, loading: pushLoading, subscribe, unsubscribe } = usePushSubscription();
   const { plan, loading: planLoading } = useUserPlan();
-  const { openPortal, loading: portalLoading } = useStripeCheckout();
+  const { openPortal, syncSubscription, loading: portalLoading } = useStripeCheckout();
+  const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [syncing, setSyncing] = useState(false);
+
+  // Auto-sync subscription when returning from Stripe checkout
+  useEffect(() => {
+    if (searchParams.get("checkout") === "success" && user) {
+      const doSync = async () => {
+        setSyncing(true);
+        const result = await syncSubscription();
+        if (result?.synced) {
+          toast.success(`Plano atualizado para ${result.plan_name}!`);
+          queryClient.invalidateQueries({ queryKey: ["user-plan"] });
+          // Clean up URL
+          searchParams.delete("checkout");
+          setSearchParams(searchParams, { replace: true });
+        }
+        setSyncing(false);
+      };
+      doSync();
+    }
+  }, [searchParams, user]);
+
   useEffect(() => {
     fetchUserData();
   }, [user]);
