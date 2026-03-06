@@ -46,5 +46,17 @@ export function useStripeCheckout() {
     }
   };
 
-  return { checkout, openPortal, loading };
+  const syncSubscription = async () => {
+    if (!user) return null;
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-sync-subscription");
+      if (error) throw error;
+      return data as { synced: boolean; plan_name?: string; plan_slug?: string; reason?: string };
+    } catch (err: any) {
+      console.error("Sync subscription error:", err);
+      return null;
+    }
+  };
+
+  return { checkout, openPortal, syncSubscription, loading };
 }

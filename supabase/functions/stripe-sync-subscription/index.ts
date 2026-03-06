@@ -1,0 +1,139 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@18.5.0";
+import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+const logStep = (step: string, details?: any) => {
+  console.log(`[STRIPE-SYNC] ${step}${details ? ` - ${JSON.stringify(details)}` : ''}`);
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("No authorization header");
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError) throw new Error(`Auth error: ${userError.message}`);
+    const user = userData.user;
+    if (!user?.email) throw new Error("User not authenticated");
+
+    logStep("Syncing subscription for user", { userId: user.id, email: user.email });
+
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+      apiVersion: "2025-08-27.basil",
+    });
+
+    // Find customer by email
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    if (customers.data.length === 0) {
+      logStep("No Stripe customer found");
+      return new Response(JSON.stringify({ synced: false, reason: "no_customer" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    const customerId = customers.data[0].id;
+    logStep("Found customer", { customerId });
+
+    // Get active subscriptions
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "active",
+      limit: 1,
+    });
+
+    if (subscriptions.data.length === 0) {
+      logStep("No active subscription found");
+      return new Response(JSON.stringify({ synced: false, reason: "no_active_subscription" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    const subscription = subscriptions.data[0];
+    const priceId = subscription.items.data[0]?.price?.id;
+    if (!priceId) throw new Error("No price found in subscription");
+
+    // Get product to find plan_slug
+    const price = await stripe.prices.retrieve(priceId);
+    const product = await stripe.products.retrieve(price.product as string);
+    const planSlug = product.metadata?.plan_slug;
+
+    if (!planSlug) {
+      logStep("Product missing plan_slug metadata", { productId: product.id });
+      return new Response(JSON.stringify({ synced: false, reason: "no_plan_slug" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    logStep("Found subscription", { planSlug, subscriptionId: subscription.id });
+
+    // Find plan in DB
+    const { data: plan } = await supabaseClient
+      .from("subscription_plans")
+      .select("id, name, slug")
+      .eq("slug", planSlug)
+      .single();
+
+    if (!plan) {
+      logStep("Plan not found in DB", { planSlug });
+      return new Response(JSON.stringify({ synced: false, reason: "plan_not_found" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Upsert subscription
+    const { error } = await supabaseClient
+      .from("user_subscriptions")
+      .update({
+        plan_id: plan.id,
+        status: "active",
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscription.id,
+        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      })
+      .eq("user_id", user.id);
+
+    if (error) {
+      logStep("Error updating subscription", { error });
+      throw new Error(`DB error: ${error.message}`);
+    }
+
+    logStep("Subscription synced successfully", { userId: user.id, plan: plan.slug });
+
+    return new Response(JSON.stringify({ 
+      synced: true, 
+      plan_name: plan.name, 
+      plan_slug: plan.slug 
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    logStep("ERROR", { message: msg });
+    return new Response(JSON.stringify({ error: msg }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
+  }
+});

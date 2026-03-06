@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Loader2, Bell, BellOff, CreditCard, Crown, ExternalLink } from "lucide-react";
+import { Loader2, Bell, BellOff, CreditCard, Crown, ExternalLink, RefreshCw } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CategoriesManagement } from "@/components/settings/CategoriesManagement";
 import { PermissionsManagement } from "@/components/settings/PermissionsManagement";
@@ -20,6 +20,8 @@ import { useStripeCheckout } from "@/hooks/useStripeCheckout";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useQueryClient, } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 
 const roleLabels: Record<string, string> = {
   master: "Proprietário",
@@ -36,7 +38,30 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const { isSupported, isSubscribed, permission, loading: pushLoading, subscribe, unsubscribe } = usePushSubscription();
   const { plan, loading: planLoading } = useUserPlan();
-  const { openPortal, loading: portalLoading } = useStripeCheckout();
+  const { openPortal, syncSubscription, loading: portalLoading } = useStripeCheckout();
+  const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [syncing, setSyncing] = useState(false);
+
+  // Auto-sync subscription when returning from Stripe checkout
+  useEffect(() => {
+    if (searchParams.get("checkout") === "success" && user) {
+      const doSync = async () => {
+        setSyncing(true);
+        const result = await syncSubscription();
+        if (result?.synced) {
+          toast.success(`Plano atualizado para ${result.plan_name}!`);
+          queryClient.invalidateQueries({ queryKey: ["user-plan"] });
+          // Clean up URL
+          searchParams.delete("checkout");
+          setSearchParams(searchParams, { replace: true });
+        }
+        setSyncing(false);
+      };
+      doSync();
+    }
+  }, [searchParams, user]);
+
   useEffect(() => {
     fetchUserData();
   }, [user]);
@@ -210,10 +235,31 @@ export default function Settings() {
                       </Button>
                     )}
                     {plan.plan_slug === "free" && (
-                      <Button onClick={() => window.location.href = "/pricing"} className="gap-2">
-                        <Crown className="h-4 w-4" />
-                        Fazer Upgrade
-                      </Button>
+                      <>
+                        <Button onClick={() => window.location.href = "/pricing"} className="gap-2">
+                          <Crown className="h-4 w-4" />
+                          Fazer Upgrade
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="gap-2"
+                          disabled={syncing}
+                          onClick={async () => {
+                            setSyncing(true);
+                            const result = await syncSubscription();
+                            if (result?.synced) {
+                              toast.success(`Plano atualizado para ${result.plan_name}!`);
+                              queryClient.invalidateQueries({ queryKey: ["user-plan"] });
+                            } else {
+                              toast.info("Nenhuma assinatura ativa encontrada no Stripe.");
+                            }
+                            setSyncing(false);
+                          }}
+                        >
+                          {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                          Sincronizar Plano
+                        </Button>
+                      </>
                     )}
                   </div>
                 </>
