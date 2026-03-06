@@ -148,6 +148,82 @@ export default function Settings() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="billing">
+          <Card>
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Plano & Faturamento
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                Gerencie seu plano e informações de pagamento
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 px-4 sm:px-6">
+              {planLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              ) : plan ? (
+                <>
+                  <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Crown className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-base">{plan.plan_name}</p>
+                          <Badge variant={plan.status === "active" ? "default" : "destructive"} className="text-xs">
+                            {plan.status === "active" ? "Ativo" : plan.status === "past_due" ? "Pagamento pendente" : plan.status}
+                          </Badge>
+                        </div>
+                        {plan.current_period_end && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Renova em {format(new Date(plan.current_period_end), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="p-3 rounded-lg border text-center">
+                      <p className="text-2xl font-bold text-primary">{plan.max_projects_per_workspace}</p>
+                      <p className="text-xs text-muted-foreground">Projetos/WS</p>
+                    </div>
+                    <div className="p-3 rounded-lg border text-center">
+                      <p className="text-2xl font-bold text-primary">{plan.max_invites_per_workspace}</p>
+                      <p className="text-xs text-muted-foreground">Convites/WS</p>
+                    </div>
+                    <div className="p-3 rounded-lg border text-center">
+                      <p className="text-2xl font-bold text-primary">{plan.max_created_workspaces}</p>
+                      <p className="text-xs text-muted-foreground">Workspaces</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {plan.plan_slug !== "free" && !plan.is_master && (
+                      <Button onClick={openPortal} disabled={portalLoading} variant="outline" className="gap-2">
+                        {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
+                        Gerenciar Assinatura
+                      </Button>
+                    )}
+                    {plan.plan_slug === "free" && (
+                      <Button onClick={() => window.location.href = "/pricing"} className="gap-2">
+                        <Crown className="h-4 w-4" />
+                        Fazer Upgrade
+                      </Button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Não foi possível carregar as informações do plano.</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="account">
           <Card>
             <CardHeader className="px-4 sm:px-6">
