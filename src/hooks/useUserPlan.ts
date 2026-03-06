@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -61,6 +62,22 @@ export function useUserPlan() {
     return data as boolean;
   };
 
+  const queryClient = useQueryClient();
+
+  const syncPlan = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+      await supabase.functions.invoke("stripe-sync-subscription", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      queryClient.invalidateQueries({ queryKey: ["user-plan", user.id] });
+    } catch (e) {
+      console.warn("[syncPlan] failed", e);
+    }
+  }, [user, queryClient]);
+
   return {
     plan: plan ?? null,
     loading,
@@ -69,5 +86,6 @@ export function useUserPlan() {
     checkProjectLimit,
     checkInviteLimit,
     checkCanCreateWorkspace,
+    syncPlan,
   };
 }
