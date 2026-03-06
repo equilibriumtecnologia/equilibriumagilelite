@@ -102,6 +102,7 @@ export default function Settings() {
         <ScrollArea className="w-full">
           <TabsList className="inline-flex w-auto">
             <TabsTrigger value="profile" className="text-xs sm:text-sm">Perfil</TabsTrigger>
+            <TabsTrigger value="billing" className="text-xs sm:text-sm">Plano & Faturamento</TabsTrigger>
             <TabsTrigger value="account" className="text-xs sm:text-sm">Conta</TabsTrigger>
             {canAccessSystemSettings && (
               <TabsTrigger value="categories" className="text-xs sm:text-sm">Categorias</TabsTrigger>
