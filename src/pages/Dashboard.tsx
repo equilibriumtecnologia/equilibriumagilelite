@@ -19,7 +19,6 @@ import { DashboardReportCards } from "@/components/dashboard/DashboardReportCard
 import { DeliveryForecastCard } from "@/components/dashboard/DeliveryForecastCard";
 import { BottleneckAlerts } from "@/components/dashboard/BottleneckAlerts";
 import { DowngradeQueueBanner } from "@/components/downgrade/DowngradeQueueBanner";
-import { BottleneckAlerts } from "@/components/dashboard/BottleneckAlerts";
 import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTasks";
 import { useUserPlan } from "@/hooks/useUserPlan";
