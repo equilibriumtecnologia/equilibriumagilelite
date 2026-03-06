@@ -6,6 +6,97 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${details ? ` - ${JSON.stringify(details)}` : ''}`);
 };
 
+async function resolveUserId(
+  supabase: any,
+  stripe: Stripe,
+  metadata: Record<string, string> | null,
+  customerId?: string
+): Promise<{ userId: string | null; planSlug: string | null }> {
+  // Try metadata first
+  if (metadata?.user_id) {
+    return { userId: metadata.user_id, planSlug: metadata.plan_slug || null };
+  }
+
+  // Fallback: look up by customer email
+  if (!customerId) return { userId: null, planSlug: null };
+
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    if (customer.deleted || !('email' in customer) || !customer.email) {
+      return { userId: null, planSlug: null };
+    }
+
+    const { data: users } = await supabase.auth.admin.listUsers();
+    const user = users?.users?.find((u: any) => u.email === customer.email);
+    if (!user) {
+      logStep("No user found for customer email", { email: customer.email });
+      return { userId: null, planSlug: null };
+    }
+
+    logStep("Resolved user by email fallback", { userId: user.id, email: customer.email });
+    return { userId: user.id, planSlug: metadata?.plan_slug || null };
+  } catch (err) {
+    logStep("Error resolving user", { error: (err as Error).message });
+    return { userId: null, planSlug: null };
+  }
+}
+
+async function resolvePlanSlug(
+  stripe: Stripe,
+  subscription: Stripe.Subscription,
+  metadataPlanSlug: string | null
+): Promise<string | null> {
+  if (metadataPlanSlug) return metadataPlanSlug;
+
+  // Derive from product metadata
+  const priceId = subscription.items.data[0]?.price?.id;
+  if (!priceId) return null;
+
+  try {
+    const price = await stripe.prices.retrieve(priceId);
+    const product = await stripe.products.retrieve(price.product as string);
+    return product.metadata?.plan_slug || null;
+  } catch {
+    return null;
+  }
+}
+
+async function upsertSubscription(
+  supabase: any,
+  userId: string,
+  planSlug: string,
+  customerId: string,
+  subscriptionId: string,
+  subscription: Stripe.Subscription,
+  status?: string
+) {
+  const { data: plan } = await supabase
+    .from("subscription_plans")
+    .select("id")
+    .eq("slug", planSlug)
+    .single();
+
+  if (!plan) {
+    logStep("Plan not found in DB", { planSlug });
+    return;
+  }
+
+  const { error } = await supabase
+    .from("user_subscriptions")
+    .upsert({
+      user_id: userId,
+      plan_id: plan.id,
+      status: status || "active",
+      stripe_customer_id: customerId,
+      stripe_subscription_id: subscriptionId,
+      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    }, { onConflict: "user_id" });
+
+  if (error) logStep("Error upserting subscription", { error });
+  else logStep("Subscription upserted", { userId, planSlug, status: status || "active" });
+}
+
 serve(async (req) => {
   try {
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -44,70 +135,53 @@ serve(async (req) => {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.mode !== "subscription") break;
-        
-        const userId = session.metadata?.user_id;
-        const planSlug = session.metadata?.plan_slug;
+
         const customerId = session.customer as string;
         const subscriptionId = session.subscription as string;
+        const { userId, planSlug } = await resolveUserId(
+          supabase, stripe, session.metadata as Record<string, string>, customerId
+        );
 
         if (!userId || !planSlug) {
-          logStep("Missing metadata", { userId, planSlug });
+          logStep("Could not resolve user/plan for checkout", { userId, planSlug });
           break;
         }
 
-        // Get plan from DB
-        const { data: plan } = await supabase
-          .from("subscription_plans")
-          .select("id")
-          .eq("slug", planSlug)
-          .single();
-
-        if (!plan) {
-          logStep("Plan not found", { planSlug });
-          break;
-        }
-
-        // Get subscription details from Stripe
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-
-        // Upsert user_subscriptions
-        const { error } = await supabase
-          .from("user_subscriptions")
-          .upsert({
-            user_id: userId,
-            plan_id: plan.id,
-            status: "active",
-            stripe_customer_id: customerId,
-            stripe_subscription_id: subscriptionId,
-            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-          }, { onConflict: "user_id" });
-
-        if (error) logStep("Error upserting subscription", { error });
-        else logStep("Subscription activated", { userId, planSlug });
+        await upsertSubscription(supabase, userId, planSlug, customerId, subscriptionId, subscription);
+        logStep("Checkout completed - subscription activated", { userId, planSlug });
         break;
       }
 
-      case "invoice.payment_succeeded": {
+      case "invoice.payment_succeeded":
+      case "invoice.paid": {
         const invoice = event.data.object as Stripe.Invoice;
         const subscriptionId = invoice.subscription as string;
         if (!subscriptionId) break;
 
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-        const userId = subscription.metadata?.user_id;
+        const customerId = invoice.customer as string;
+        const { userId } = await resolveUserId(
+          supabase, stripe, subscription.metadata as Record<string, string>, customerId
+        );
         if (!userId) break;
 
-        const { error } = await supabase
-          .from("user_subscriptions")
-          .update({
-            status: "active",
-            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-          })
-          .eq("user_id", userId);
-
-        if (error) logStep("Error updating period", { error });
-        else logStep("Period renewed", { userId });
+        const planSlug = await resolvePlanSlug(stripe, subscription, null);
+        if (planSlug) {
+          await upsertSubscription(supabase, userId, planSlug, customerId, subscriptionId, subscription);
+        } else {
+          // Just update period
+          const { error } = await supabase
+            .from("user_subscriptions")
+            .update({
+              status: "active",
+              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            })
+            .eq("user_id", userId);
+          if (error) logStep("Error updating period", { error });
+          else logStep("Period renewed", { userId });
+        }
         break;
       }
 
@@ -117,7 +191,10 @@ serve(async (req) => {
         if (!subscriptionId) break;
 
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-        const userId = subscription.metadata?.user_id;
+        const customerId = invoice.customer as string;
+        const { userId } = await resolveUserId(
+          supabase, stripe, subscription.metadata as Record<string, string>, customerId
+        );
         if (!userId) break;
 
         await supabase
@@ -131,47 +208,31 @@ serve(async (req) => {
 
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-        const userId = subscription.metadata?.user_id;
+        const customerId = subscription.customer as string;
+        const { userId } = await resolveUserId(
+          supabase, stripe, subscription.metadata as Record<string, string>, customerId
+        );
         if (!userId) break;
 
-        // Get plan slug from product metadata
-        const priceId = subscription.items.data[0]?.price?.id;
-        if (!priceId) break;
-
-        const price = await stripe.prices.retrieve(priceId);
-        const product = await stripe.products.retrieve(price.product as string);
-        const planSlug = product.metadata?.plan_slug;
-
+        const planSlug = await resolvePlanSlug(stripe, subscription, subscription.metadata?.plan_slug || null);
         if (planSlug) {
-          const { data: plan } = await supabase
-            .from("subscription_plans")
-            .select("id")
-            .eq("slug", planSlug)
-            .single();
-
-          if (plan) {
-            await supabase
-              .from("user_subscriptions")
-              .update({
-                plan_id: plan.id,
-                status: subscription.status === "active" ? "active" : subscription.status,
-                current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-                current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-              })
-              .eq("user_id", userId);
-
-            logStep("Subscription updated", { userId, planSlug, status: subscription.status });
-          }
+          await upsertSubscription(
+            supabase, userId, planSlug, customerId, subscription.id, subscription,
+            subscription.status === "active" ? "active" : subscription.status
+          );
+          logStep("Subscription updated", { userId, planSlug, status: subscription.status });
         }
         break;
       }
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-        const userId = subscription.metadata?.user_id;
+        const customerId = subscription.customer as string;
+        const { userId } = await resolveUserId(
+          supabase, stripe, subscription.metadata as Record<string, string>, customerId
+        );
         if (!userId) break;
 
-        // Downgrade to free
         const { data: freePlan } = await supabase
           .from("subscription_plans")
           .select("id")

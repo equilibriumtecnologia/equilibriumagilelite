@@ -13,3 +13,13 @@ project_id = "oteqziddtpjosoacjfwq"
     verify_jwt = false
   [functions.send-task-notification]
     verify_jwt = false
+  [functions.stripe-create-checkout]
+    verify_jwt = false
+  [functions.stripe-customer-portal]
+    verify_jwt = false
+  [functions.stripe-get-prices]
+    verify_jwt = false
+  [functions.stripe-sync-subscription]
+    verify_jwt = false
+  [functions.stripe-webhook]
+    verify_jwt = false
