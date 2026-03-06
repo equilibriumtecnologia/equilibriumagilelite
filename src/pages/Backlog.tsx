@@ -38,6 +38,7 @@ import { useTasks } from "@/hooks/useTasks";
 import { useSprints } from "@/hooks/useSprints";
 import { useProject } from "@/hooks/useProject";
 import { useProjectRole } from "@/hooks/useProjectRole";
+import { useReadOnly } from "@/hooks/useReadOnly";
 import { Database } from "@/integrations/supabase/types";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
@@ -48,6 +49,7 @@ export default function Backlog() {
   const { tasks, isLoading: tasksLoading, updateTask } = useTasks(projectId);
   const { sprints, planningSprints, activeSprint } = useSprints(projectId);
   const { canManageSprints, canCreateTasks } = useProjectRole(projectId);
+  const { isReadOnly } = useReadOnly(projectId);
 
   const [search, setSearch] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -173,7 +175,7 @@ export default function Backlog() {
                 <Badge variant="secondary" className="text-xs whitespace-nowrap">
                   {selectedTasks.length} sel. · {selectedPoints} pts
                 </Badge>
-                {canManageSprints && (
+                {canManageSprints && !isReadOnly && (
                   <Button size="sm" onClick={() => setMoveDialogOpen(true)} disabled={availableSprints.length === 0} className="text-xs whitespace-nowrap">
                     Mover para Sprint
                   </Button>

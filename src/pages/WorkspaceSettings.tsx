@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { WorkspaceGeneralSettings } from "@/components/workspace/WorkspaceGeneralSettings";
 import { WorkspaceMembersTable } from "@/components/workspace/WorkspaceMembersTable";
+import { useReadOnly } from "@/hooks/useReadOnly";
 import { Building2, Loader2 } from "lucide-react";
 
 export default function WorkspaceSettings() {
@@ -12,6 +13,7 @@ export default function WorkspaceSettings() {
   const { currentWorkspace, loading: wsLoading } = useWorkspace();
   const { members, loading: membersLoading } = useWorkspaceMembers();
 
+  const { isReadOnly, readOnlyReason } = useReadOnly();
   const currentMember = members.find((m) => m.user_id === user?.id);
   const isOwnerOrAdmin = currentMember?.role === "owner" || currentMember?.role === "admin";
 
@@ -47,8 +49,14 @@ export default function WorkspaceSettings() {
           <TabsTrigger value="members" className="text-xs sm:text-sm">Membros ({members.length})</TabsTrigger>
         </TabsList>
 
+        {isReadOnly && readOnlyReason && (
+          <div className="mb-4 p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-sm">
+            🔒 {readOnlyReason}
+          </div>
+        )}
+
         <TabsContent value="general">
-          {isOwnerOrAdmin ? (
+          {isOwnerOrAdmin && !isReadOnly ? (
             <WorkspaceGeneralSettings />
           ) : (
             <Card>
