@@ -235,10 +235,31 @@ export default function Settings() {
                       </Button>
                     )}
                     {plan.plan_slug === "free" && (
-                      <Button onClick={() => window.location.href = "/pricing"} className="gap-2">
-                        <Crown className="h-4 w-4" />
-                        Fazer Upgrade
-                      </Button>
+                      <>
+                        <Button onClick={() => window.location.href = "/pricing"} className="gap-2">
+                          <Crown className="h-4 w-4" />
+                          Fazer Upgrade
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="gap-2"
+                          disabled={syncing}
+                          onClick={async () => {
+                            setSyncing(true);
+                            const result = await syncSubscription();
+                            if (result?.synced) {
+                              toast.success(`Plano atualizado para ${result.plan_name}!`);
+                              queryClient.invalidateQueries({ queryKey: ["user-plan"] });
+                            } else {
+                              toast.info("Nenhuma assinatura ativa encontrada no Stripe.");
+                            }
+                            setSyncing(false);
+                          }}
+                        >
+                          {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                          Sincronizar Plano
+                        </Button>
+                      </>
                     )}
                   </div>
                 </>
