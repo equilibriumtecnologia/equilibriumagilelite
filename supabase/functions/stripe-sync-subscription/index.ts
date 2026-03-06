@@ -103,15 +103,15 @@ serve(async (req) => {
     // Upsert subscription
     const { error } = await supabaseClient
       .from("user_subscriptions")
-      .update({
+      .upsert({
+        user_id: user.id,
         plan_id: plan.id,
         status: "active",
         stripe_customer_id: customerId,
         stripe_subscription_id: subscription.id,
         current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
         current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-      })
-      .eq("user_id", user.id);
+      }, { onConflict: "user_id" });
 
     if (error) {
       logStep("Error updating subscription", { error });
