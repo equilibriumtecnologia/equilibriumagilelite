@@ -61,6 +61,16 @@ serve(async (req) => {
     if (subscriptions.data.length === 0) {
       logStep("No active subscription found, downgrading to free");
 
+      // Get current plan before downgrade
+      const { data: currentSub } = await supabaseClient
+        .from("user_subscriptions")
+        .select("subscription_plans(slug)")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .single();
+      
+      const previousSlug = (currentSub as any)?.subscription_plans?.slug || "unknown";
+
       // Find free plan
       const { data: freePlan } = await supabaseClient
         .from("subscription_plans")
@@ -85,6 +95,28 @@ serve(async (req) => {
           logStep("Error downgrading to free", { error: downgradeError });
         } else {
           logStep("Downgraded to free plan", { userId: user.id });
+
+          // Trigger downgrade processing if coming from a paid plan
+          if (previousSlug !== "free") {
+            try {
+              const baseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+              await fetch(`${baseUrl}/functions/v1/process-downgrade`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-internal-key": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+                },
+                body: JSON.stringify({
+                  user_id: user.id,
+                  previous_plan_slug: previousSlug,
+                  new_plan_slug: "free",
+                  trigger: "sync",
+                }),
+              });
+            } catch (e) {
+              logStep("Error triggering downgrade", { error: (e as Error).message });
+            }
+          }
         }
       }
 
@@ -156,6 +188,31 @@ serve(async (req) => {
     }
 
     logStep("Subscription synced successfully", { userId: user.id, plan: plan.slug });
+
+    // Check if user has pending downgrade items and restore them (upgrade scenario)
+    try {
+      const { data: pendingItems } = await supabaseClient
+        .from("downgrade_queue")
+        .select("id")
+        .eq("user_id", user.id)
+        .in("status", ["grace_period", "suspended", "exported"])
+        .limit(1);
+
+      if (pendingItems && pendingItems.length > 0) {
+        const baseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+        await fetch(`${baseUrl}/functions/v1/restore-downgrade`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-internal-key": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+          },
+          body: JSON.stringify({ user_id: user.id }),
+        });
+        logStep("Restore triggered for upgrade", { userId: user.id });
+      }
+    } catch (e) {
+      logStep("Error checking/restoring downgrade", { error: (e as Error).message });
+    }
 
     return new Response(JSON.stringify({ 
       synced: true, 

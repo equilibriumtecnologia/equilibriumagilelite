@@ -233,6 +233,9 @@ serve(async (req) => {
         );
         if (!userId) break;
 
+        // Get previous plan slug before downgrading
+        const previousPlanSlug = await resolvePlanSlug(stripe, subscription, subscription.metadata?.plan_slug || null);
+
         const { data: freePlan } = await supabase
           .from("subscription_plans")
           .select("id")
@@ -251,6 +254,27 @@ serve(async (req) => {
             .eq("user_id", userId);
 
           logStep("Subscription cancelled, downgraded to free", { userId });
+
+          // Trigger downgrade processing
+          try {
+            const baseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+            await fetch(`${baseUrl}/functions/v1/process-downgrade`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-internal-key": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+              },
+              body: JSON.stringify({
+                user_id: userId,
+                previous_plan_slug: previousPlanSlug || "unknown",
+                new_plan_slug: "free",
+                trigger: "webhook",
+              }),
+            });
+            logStep("Downgrade processing triggered", { userId });
+          } catch (err) {
+            logStep("Error triggering downgrade", { error: (err as Error).message });
+          }
         }
         break;
       }

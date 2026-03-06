@@ -18,6 +18,7 @@ import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
 import { DashboardReportCards } from "@/components/dashboard/DashboardReportCards";
 import { DeliveryForecastCard } from "@/components/dashboard/DeliveryForecastCard";
 import { BottleneckAlerts } from "@/components/dashboard/BottleneckAlerts";
+import { DowngradeQueueBanner } from "@/components/downgrade/DowngradeQueueBanner";
 import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTasks";
 import { useUserPlan } from "@/hooks/useUserPlan";
@@ -136,7 +137,8 @@ const Dashboard = () => {
 
   return (
     <div className="px-3 sm:px-4 md:px-8 py-4 sm:py-6 md:py-8 space-y-6 md:space-y-8">
-        {/* Plan Limit Warnings */}
+        {/* Downgrade Queue Banner */}
+        <DowngradeQueueBanner />
         {visibleWarnings.length > 0 && (
           <div className="space-y-2">
             {visibleWarnings.map((msg, i) => (
