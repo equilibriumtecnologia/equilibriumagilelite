@@ -1,124 +1,69 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, ArrowRight, ArrowLeft, Crown, Zap, Rocket, Building2, LayoutDashboard, Star, Bot } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Switch } from "@/components/ui/switch";
+import { CheckCircle2, ArrowRight, ArrowLeft, Crown, Zap, Rocket, Building2, LayoutDashboard, Star, Bot, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { PoweredByEquilibrium } from "@/components/layout/PoweredByEquilibrium";
+import { useStripePrices, StripePlan } from "@/hooks/useStripePrices";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserPlan } from "@/hooks/useUserPlan";
 
-const plans = [
-  {
-    name: "Free",
-    slug: "free",
-    price: "R$ 0",
-    period: "para sempre",
-    description: "Para uso pessoal e experimentação",
-    icon: Zap,
-    popular: false,
-    features: [
-      "1 workspace padrão",
-      "Participar de 1 workspace como convidado",
-      "1 projeto por workspace",
-      "Sem convites",
-      "Suporte comunidade",
-    ],
-    limits: {
-      workspaces: "1 padrão + 1 convidado",
-      projects: "1 por workspace",
-      invites: "0",
-    },
-    cta: "Começar Grátis",
-    ctaVariant: "outline" as const,
-    ctaLink: "/signup",
-  },
-  {
-    name: "Starter",
-    slug: "starter",
-    price: "R$ 19",
-    period: "/mês",
-    description: "Para profissionais individuais",
+const planMeta: Record<string, {
+  icon: any;
+  description: string;
+  features: string[];
+  popular?: boolean;
+  hasAI?: boolean;
+}> = {
+  starter: {
     icon: Rocket,
-    popular: false,
+    description: "Para profissionais individuais",
     features: [
       "1 workspace padrão + 1 criado",
       "Participar de 1 workspace como convidado",
-      "1 projeto por workspace",
-      "1 convite por workspace",
-      "Até 2 usuários por workspace",
+      "2 projetos por workspace",
+      "2 convites por workspace",
+      "Até 3 usuários por workspace",
       "Suporte por email",
     ],
-    limits: {
-      workspaces: "Até 3 simultâneos",
-      projects: "1 por workspace",
-      invites: "1 por workspace",
-    },
-    cta: "Assinar Starter",
-    ctaVariant: "default" as const,
-    ctaLink: "#upgrade-starter",
   },
-  {
-    name: "Standard",
-    slug: "standard",
-    price: "R$ 49",
-    period: "/mês",
-    description: "Para pequenas equipes em crescimento",
+  standard: {
     icon: Star,
+    description: "Para pequenas equipes em crescimento",
     popular: true,
+    hasAI: true,
     features: [
       "1 workspace padrão + 2 criados",
       "Participar de 2 workspaces como convidado",
-      "2 projetos por workspace",
-      "2 convites por workspace",
-      "Até 4 usuários por workspace",
+      "3 projetos por workspace",
+      "3 convites por workspace",
+      "Até 5 usuários por workspace",
       "🤖 Priorização com IA",
       "Relatórios avançados",
       "Suporte por email",
     ],
-    hasAI: true,
-    limits: {
-      workspaces: "Até 5 simultâneos",
-      projects: "2 por workspace",
-      invites: "2 por workspace",
-    },
-    cta: "Assinar Standard",
-    ctaVariant: "default" as const,
-    ctaLink: "#upgrade-standard",
   },
-  {
-    name: "Pro",
-    slug: "pro",
-    price: "R$ 119",
-    period: "/mês",
-    description: "Para equipes grandes e avançadas",
+  pro: {
     icon: Crown,
-    popular: false,
+    description: "Para equipes grandes e avançadas",
+    hasAI: true,
     features: [
       "1 workspace padrão + 4 criados",
       "Participar de 4 workspaces como convidado",
-      "4 projetos por workspace",
-      "4 convites por workspace",
-      "Até 8 usuários por workspace",
+      "5 projetos por workspace",
+      "5 convites por workspace",
+      "Até 10 usuários por workspace",
       "🤖 Priorização com IA",
       "Relatórios avançados",
       "Suporte prioritário",
     ],
-    hasAI: true,
-    limits: {
-      workspaces: "Até 9 simultâneos",
-      projects: "4 por workspace",
-      invites: "4 por workspace",
-    },
-    cta: "Assinar Pro",
-    ctaVariant: "default" as const,
-    ctaLink: "#upgrade-pro",
   },
-  {
-    name: "Enterprise",
-    slug: "enterprise",
-    price: "Sob consulta",
-    period: "",
-    description: "Para grandes organizações com necessidades customizadas",
+  enterprise: {
     icon: Building2,
-    popular: false,
+    description: "Para grandes organizações com necessidades customizadas",
     features: [
       "Workspaces ilimitados",
       "Projetos ilimitados",
@@ -128,29 +73,56 @@ const plans = [
       "Suporte dedicado",
       "SLA personalizado",
     ],
-    limits: {
-      workspaces: "Ilimitados",
-      projects: "Ilimitados",
-      invites: "Ilimitados",
-    },
-    cta: "Fale Conosco",
-    ctaVariant: "outline" as const,
-    ctaLink: "mailto:contato@agilelite.equilibriumtecnologia.com.br",
   },
-];
-function PlanCard({ plan }: { plan: typeof plans[number] }) {
+};
+
+function formatCurrency(amountCents: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amountCents / 100);
+}
+
+function calcDiscount(monthly: number, yearly: number): number {
+  const fullYear = monthly * 12;
+  if (fullYear === 0) return 0;
+  return Math.round(((fullYear - yearly) / fullYear) * 100);
+}
+
+interface PlanCardProps {
+  plan: StripePlan;
+  isAnnual: boolean;
+  onCheckout: (priceId: string) => void;
+  checkoutLoading: boolean;
+  isCurrentPlan: boolean;
+  isLoggedIn: boolean;
+}
+
+function StripePlanCard({ plan, isAnnual, onCheckout, checkoutLoading, isCurrentPlan, isLoggedIn }: PlanCardProps) {
+  const meta = planMeta[plan.slug];
+  if (!meta) return null;
+
+  const price = isAnnual ? plan.yearly : plan.monthly;
+  const displayAmount = price ? formatCurrency(price.amount) : "Sob consulta";
+  const discount = plan.monthly && plan.yearly ? calcDiscount(plan.monthly.amount, plan.yearly.amount) : 0;
+
   return (
-    <Card
-      className={`relative flex flex-col transition-all hover:shadow-lg ${
-        plan.popular
-          ? "border-primary shadow-md ring-1 ring-primary/20"
-          : "border-border"
-      }`}
-    >
-      {plan.popular && (
+    <Card className={`relative flex flex-col transition-all hover:shadow-lg ${
+      meta.popular ? "border-primary shadow-md ring-1 ring-primary/20" : "border-border"
+    }`}>
+      {meta.popular && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
           <Badge className="bg-primary text-primary-foreground px-3 py-0.5 text-xs font-semibold">
             Mais Popular
+          </Badge>
+        </div>
+      )}
+      {isCurrentPlan && (
+        <div className="absolute -top-3 right-4">
+          <Badge variant="secondary" className="px-3 py-0.5 text-xs font-semibold">
+            Seu Plano
           </Badge>
         </div>
       )}
@@ -158,32 +130,38 @@ function PlanCard({ plan }: { plan: typeof plans[number] }) {
       <CardHeader className="pb-4">
         <div className="flex items-center gap-2 mb-2">
           <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-            plan.popular ? "bg-primary" : "bg-muted"
+            meta.popular ? "bg-primary" : "bg-muted"
           }`}>
-            <plan.icon className={`h-5 w-5 ${
-              plan.popular ? "text-primary-foreground" : "text-muted-foreground"
+            <meta.icon className={`h-5 w-5 ${
+              meta.popular ? "text-primary-foreground" : "text-muted-foreground"
             }`} />
           </div>
-          <CardTitle className="text-xl">{plan.name}</CardTitle>
-          {"hasAI" in plan && plan.hasAI && (
+          <CardTitle className="text-xl">{plan.name.replace("ALE ", "")}</CardTitle>
+          {meta.hasAI && (
             <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0.5">
-              <Bot className="h-3 w-3" />
-              IA inclusa
+              <Bot className="h-3 w-3" /> IA inclusa
             </Badge>
           )}
         </div>
         <div className="flex items-baseline gap-1">
-          <span className="text-3xl sm:text-4xl font-bold">{plan.price}</span>
-          {plan.period && (
-            <span className="text-muted-foreground text-sm">{plan.period}</span>
+          <span className="text-3xl sm:text-4xl font-bold">{displayAmount}</span>
+          {price && (
+            <span className="text-muted-foreground text-sm">
+              /{isAnnual ? "ano" : "mês"}
+            </span>
           )}
         </div>
-        <CardDescription className="text-sm mt-1">{plan.description}</CardDescription>
+        {isAnnual && discount > 0 && (
+          <Badge variant="outline" className="w-fit mt-1 text-xs text-green-600 border-green-300">
+            {discount}% de desconto
+          </Badge>
+        )}
+        <CardDescription className="text-sm mt-1">{meta.description}</CardDescription>
       </CardHeader>
 
       <CardContent className="flex-1">
         <ul className="space-y-2.5">
-          {plan.features.map((feature, i) => (
+          {meta.features.map((feature, i) => (
             <li key={i} className="flex items-start gap-2 text-sm">
               <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
               <span>{feature}</span>
@@ -193,30 +171,72 @@ function PlanCard({ plan }: { plan: typeof plans[number] }) {
       </CardContent>
 
       <CardFooter className="pt-4">
-        {plan.ctaLink.startsWith("mailto:") ? (
-          <a href={plan.ctaLink} className="w-full">
-            <Button
-              variant={plan.ctaVariant}
-              className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90" : ""}`}
-            >
-              {plan.cta}
-            </Button>
+        {plan.slug === "enterprise" ? (
+          <a href="mailto:contato@agilelite.equilibriumtecnologia.com.br" className="w-full">
+            <Button variant="outline" className="w-full">Fale Conosco</Button>
           </a>
-        ) : plan.ctaLink.startsWith("#") ? (
+        ) : isCurrentPlan ? (
+          <Button variant="outline" className="w-full" disabled>Plano Atual</Button>
+        ) : (
           <Button
-            variant={plan.ctaVariant}
-            className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90 text-primary-foreground" : ""}`}
+            variant={meta.popular ? "default" : "default"}
+            className={`w-full ${meta.popular ? "bg-primary hover:bg-primary/90 text-primary-foreground" : ""}`}
+            disabled={checkoutLoading || !price}
             onClick={() => {
-              window.location.href = "/signup";
+              if (!isLoggedIn) {
+                window.location.href = "/signup";
+                return;
+              }
+              if (price) onCheckout(price.price_id);
             }}
           >
-            {plan.cta}
+            {checkoutLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            {isLoggedIn ? `Assinar ${plan.name.replace("ALE ", "")}` : "Criar Conta"}
           </Button>
+        )}
+      </CardFooter>
+    </Card>
+  );
+}
+
+// Static Free plan card (no Stripe product)
+function FreePlanCard({ isLoggedIn, isCurrentPlan }: { isLoggedIn: boolean; isCurrentPlan: boolean }) {
+  return (
+    <Card className="relative flex flex-col transition-all hover:shadow-lg border-border">
+      {isCurrentPlan && (
+        <div className="absolute -top-3 right-4">
+          <Badge variant="secondary" className="px-3 py-0.5 text-xs font-semibold">Seu Plano</Badge>
+        </div>
+      )}
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-muted">
+            <Zap className="h-5 w-5 text-muted-foreground" />
+          </div>
+          <CardTitle className="text-xl">Free</CardTitle>
+        </div>
+        <div className="flex items-baseline gap-1">
+          <span className="text-3xl sm:text-4xl font-bold">R$ 0</span>
+          <span className="text-muted-foreground text-sm">para sempre</span>
+        </div>
+        <CardDescription className="text-sm mt-1">Para uso pessoal e experimentação</CardDescription>
+      </CardHeader>
+      <CardContent className="flex-1">
+        <ul className="space-y-2.5">
+          {["1 workspace padrão", "Participar de 1 workspace como convidado", "1 projeto por workspace", "Apenas 1 usuário (individual)", "Sem convites", "Suporte comunidade"].map((f, i) => (
+            <li key={i} className="flex items-start gap-2 text-sm">
+              <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
+              <span>{f}</span>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+      <CardFooter className="pt-4">
+        {isCurrentPlan ? (
+          <Button variant="outline" className="w-full" disabled>Plano Atual</Button>
         ) : (
-          <Link to={plan.ctaLink} className="w-full">
-            <Button variant={plan.ctaVariant} className="w-full">
-              {plan.cta}
-            </Button>
+          <Link to={isLoggedIn ? "/dashboard" : "/signup"} className="w-full">
+            <Button variant="outline" className="w-full">Começar Grátis</Button>
           </Link>
         )}
       </CardFooter>
@@ -225,6 +245,18 @@ function PlanCard({ plan }: { plan: typeof plans[number] }) {
 }
 
 export default function Pricing() {
+  const [isAnnual, setIsAnnual] = useState(false);
+  const { data: stripePlans, isLoading } = useStripePrices();
+  const { checkout, loading: checkoutLoading } = useStripeCheckout();
+  const { user } = useAuth();
+  const { plan: userPlan } = useUserPlan();
+
+  const currentSlug = userPlan?.plan_slug || "free";
+
+  // Filter out enterprise for the 3-col grid, keep it separate
+  const paidPlans = stripePlans?.filter(p => p.slug !== "enterprise") || [];
+  const enterprisePlan = stripePlans?.find(p => p.slug === "enterprise");
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -233,19 +265,21 @@ export default function Pricing() {
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
               <LayoutDashboard className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              <span className="text-base sm:text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                ALE
-              </span>
+              <span className="text-base sm:text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">ALE</span>
             </Link>
             <div className="flex items-center gap-2 sm:gap-4">
-              <Link to="/login">
-                <Button variant="ghost" size="sm">Entrar</Button>
-              </Link>
-              <Link to="/signup">
-                <Button variant="hero" size="sm">
-                  Começar <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                </Button>
-              </Link>
+              {user ? (
+                <Link to="/dashboard">
+                  <Button variant="ghost" size="sm">Dashboard</Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/login"><Button variant="ghost" size="sm">Entrar</Button></Link>
+                  <Link to="/signup">
+                    <Button variant="hero" size="sm">Começar <ArrowRight className="ml-1 h-3.5 w-3.5" /></Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -259,9 +293,19 @@ export default function Pricing() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-hero bg-clip-text text-transparent">
               Planos para cada etapa
             </h1>
-            <p className="text-base sm:text-lg text-muted-foreground">
-              Comece gratuitamente e escale conforme sua equipe cresce. Todos os planos incluem as funcionalidades essenciais.
+            <p className="text-base sm:text-lg text-muted-foreground mb-8">
+              Comece gratuitamente e escale conforme sua equipe cresce.
             </p>
+
+            {/* Monthly/Annual toggle */}
+            <div className="flex items-center justify-center gap-3">
+              <span className={`text-sm font-medium ${!isAnnual ? "text-foreground" : "text-muted-foreground"}`}>Mensal</span>
+              <Switch checked={isAnnual} onCheckedChange={setIsAnnual} />
+              <span className={`text-sm font-medium ${isAnnual ? "text-foreground" : "text-muted-foreground"}`}>
+                Anual
+                <Badge variant="outline" className="ml-2 text-xs text-green-600 border-green-300">-10%</Badge>
+              </span>
+            </div>
           </div>
         </div>
       </section>
@@ -270,49 +314,91 @@ export default function Pricing() {
       <section className="pb-16 sm:pb-24">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
-            {/* Free - solo row */}
+            {/* Free */}
             <div className="max-w-md mx-auto">
-              <PlanCard plan={plans[0]} />
+              <FreePlanCard isLoggedIn={!!user} isCurrentPlan={currentSlug === "free"} />
             </div>
 
-            {/* Starter, Standard, Pro - 3 columns */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-              {plans.slice(1, 4).map((plan) => (
-                <PlanCard key={plan.slug} plan={plan} />
-              ))}
-            </div>
+            {/* Paid plans */}
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                {paidPlans.map((plan) => (
+                  <StripePlanCard
+                    key={plan.slug}
+                    plan={plan}
+                    isAnnual={isAnnual}
+                    onCheckout={checkout}
+                    checkoutLoading={checkoutLoading}
+                    isCurrentPlan={currentSlug === plan.slug}
+                    isLoggedIn={!!user}
+                  />
+                ))}
+              </div>
+            )}
 
-            {/* Enterprise - solo row */}
-            <div className="max-w-md mx-auto">
-              <PlanCard plan={plans[4]} />
-            </div>
-          </div>
-
-          {/* Annual discount note */}
-          <div className="text-center mt-8 sm:mt-12">
-            <p className="text-sm text-muted-foreground">
-              Planos anuais com <strong className="text-foreground">10% de desconto</strong>. Disponível em breve.
-            </p>
+            {/* Enterprise */}
+            {enterprisePlan && (
+              <div className="max-w-md mx-auto">
+                <StripePlanCard
+                  plan={enterprisePlan}
+                  isAnnual={isAnnual}
+                  onCheckout={checkout}
+                  checkoutLoading={checkoutLoading}
+                  isCurrentPlan={currentSlug === "enterprise"}
+                  isLoggedIn={!!user}
+                />
+              </div>
+            )}
+            {!enterprisePlan && !isLoading && (
+              <div className="max-w-md mx-auto">
+                <Card className="flex flex-col border-border">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-muted">
+                        <Building2 className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <CardTitle className="text-xl">Enterprise</CardTitle>
+                    </div>
+                    <span className="text-3xl font-bold">Sob consulta</span>
+                    <CardDescription className="text-sm mt-1">Para grandes organizações</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1">
+                    <ul className="space-y-2.5">
+                      {["Workspaces ilimitados", "Projetos ilimitados", "SSO / SAML", "Suporte dedicado"].map((f, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm">
+                          <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter className="pt-4">
+                    <a href="mailto:contato@agilelite.equilibriumtecnologia.com.br" className="w-full">
+                      <Button variant="outline" className="w-full">Fale Conosco</Button>
+                    </a>
+                  </CardFooter>
+                </Card>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* FAQ / CTA */}
+      {/* CTA */}
       <section className="py-12 sm:py-16 bg-gradient-hero relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/10" />
         <div className="container mx-auto px-3 sm:px-4 relative">
           <div className="max-w-2xl mx-auto text-center text-white">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-              Dúvidas? Estamos aqui para ajudar
-            </h2>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4">Dúvidas? Estamos aqui para ajudar</h2>
             <p className="text-base sm:text-lg mb-6 opacity-90">
               Entre em contato para planos Enterprise ou dúvidas sobre funcionalidades.
             </p>
             <a href="mailto:contato@agilelite.equilibriumtecnologia.com.br">
-              <Button
-                size="lg"
-                className="bg-white text-primary hover:bg-white/90 shadow-lg"
-              >
+              <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg">
                 Fale Conosco <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </a>
@@ -324,12 +410,9 @@ export default function Pricing() {
       <footer className="border-t border-border py-6 sm:py-8 bg-card">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <Link to="/" className="hover:text-foreground transition-colors flex items-center gap-1">
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Voltar ao início
-              </Link>
-            </div>
+            <Link to="/" className="hover:text-foreground transition-colors flex items-center gap-1 text-sm text-muted-foreground">
+              <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao início
+            </Link>
             <div className="text-center text-muted-foreground text-xs sm:text-sm">
               <p>&copy; {new Date().getFullYear()} Agile Lite Equilibrium.</p>
               <PoweredByEquilibrium variant="footer" showTextFallback={false} className="justify-center mt-1" />

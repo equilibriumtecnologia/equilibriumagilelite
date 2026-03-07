@@ -25,6 +25,7 @@ import { ptBR } from "date-fns/locale";
 import { useProject } from "@/hooks/useProject";
 import { useSprints } from "@/hooks/useSprints";
 import { useProjectRole } from "@/hooks/useProjectRole";
+import { useReadOnly } from "@/hooks/useReadOnly";
 import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
 import { AddMemberDialog } from "@/components/projects/AddMemberDialog";
 import { RemoveMemberDialog } from "@/components/projects/RemoveMemberDialog";
@@ -61,6 +62,7 @@ const ProjectDetails = () => {
   const { project, loading, refetch } = useProject(id);
   const { activeSprint, sprints } = useSprints(id);
   const { canManageProject, canCreateTasks, canManageMembers, canDeleteAnyTask } = useProjectRole(id);
+  const { isReadOnly, readOnlyReason } = useReadOnly(id);
   const [listSearch, setListSearch] = useState("");
   const { tasks: allTasks, updateTask } = useTasks(id);
   const { members } = useTeam();
@@ -158,7 +160,7 @@ const ProjectDetails = () => {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2 flex-wrap">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold truncate">{project.name}</h1>
-              {canManageProject && (
+              {canManageProject && !isReadOnly && (
                 <div className="flex items-center gap-1">
                   <SaveAsTemplateDialog projectId={project.id} projectName={project.name} />
                   <EditProjectDialog project={project} onSuccess={refetch} />
@@ -194,7 +196,7 @@ const ProjectDetails = () => {
                   Backlog
                 </Link>
               </Button>
-              {canCreateTasks && (
+              {canCreateTasks && !isReadOnly && (
                 <CreateTaskDialog projectId={project.id}>
                   <Button variant="hero" size="sm">Nova Tarefa</Button>
                 </CreateTaskDialog>
@@ -204,6 +206,13 @@ const ProjectDetails = () => {
           </ScrollArea>
         </div>
       </div>
+
+      {/* Read-only banner */}
+      {isReadOnly && readOnlyReason && (
+        <div className="mb-4 p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-sm">
+          🔒 {readOnlyReason}
+        </div>
+      )}
 
       {/* Active Sprint Header */}
       {activeSprint && (
@@ -361,7 +370,7 @@ const ProjectDetails = () => {
                 <Users className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 Equipe
               </h3>
-              {canManageMembers && (
+              {canManageMembers && !isReadOnly && (
                 <AddMemberDialog
                   projectId={project.id}
                   currentMembers={
@@ -402,7 +411,7 @@ const ProjectDetails = () => {
                       </p>
                     </div>
                   </div>
-                  {member.role !== "owner" && canManageMembers && (
+                  {member.role !== "owner" && canManageMembers && !isReadOnly && (
                     <RemoveMemberDialog
                       projectId={project.id}
                       userId={member.user_id}

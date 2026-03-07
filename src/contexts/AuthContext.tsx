@@ -66,6 +66,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (!error) {
+      // Sync plan in background after login
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        if (s?.access_token) {
+          supabase.functions.invoke("stripe-sync-subscription", {
+            headers: { Authorization: `Bearer ${s.access_token}` },
+          }).catch(() => {});
+        }
+      });
       navigate("/dashboard");
     }
 

@@ -30,6 +30,7 @@ import WorkspaceSettings from "./pages/WorkspaceSettings";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import ViewAllWorkspaces from "./pages/ViewAllWorkspaces";
+import ManageDowngrade from "./pages/ManageDowngrade";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -170,6 +171,16 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ViewAllWorkspaces />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/manage-downgrade"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <ManageDowngrade />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />

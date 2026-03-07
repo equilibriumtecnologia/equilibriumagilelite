@@ -13,3 +13,21 @@ project_id = "oteqziddtpjosoacjfwq"
     verify_jwt = false
   [functions.send-task-notification]
     verify_jwt = false
+  [functions.stripe-create-checkout]
+    verify_jwt = false
+  [functions.stripe-customer-portal]
+    verify_jwt = false
+  [functions.stripe-get-prices]
+    verify_jwt = false
+  [functions.stripe-sync-subscription]
+    verify_jwt = false
+  [functions.stripe-webhook]
+    verify_jwt = false
+  [functions.process-downgrade]
+    verify_jwt = false
+  [functions.enforce-downgrade-queue]
+    verify_jwt = false
+  [functions.export-workspace-data]
+    verify_jwt = false
+  [functions.restore-downgrade]
+    verify_jwt = false

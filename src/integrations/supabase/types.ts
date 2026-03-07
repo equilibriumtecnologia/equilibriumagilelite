@@ -99,6 +99,75 @@ export type Database = {
           },
         ]
       }
+      downgrade_queue: {
+        Row: {
+          created_at: string
+          delete_after: string | null
+          export_generated_at: string | null
+          export_url: string | null
+          grace_period_ends_at: string
+          id: string
+          item_type: Database["public"]["Enums"]["downgrade_item_type"]
+          new_plan_slug: string | null
+          previous_plan_slug: string | null
+          project_id: string | null
+          status: Database["public"]["Enums"]["downgrade_queue_status"]
+          suspended_at: string | null
+          updated_at: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          delete_after?: string | null
+          export_generated_at?: string | null
+          export_url?: string | null
+          grace_period_ends_at: string
+          id?: string
+          item_type: Database["public"]["Enums"]["downgrade_item_type"]
+          new_plan_slug?: string | null
+          previous_plan_slug?: string | null
+          project_id?: string | null
+          status?: Database["public"]["Enums"]["downgrade_queue_status"]
+          suspended_at?: string | null
+          updated_at?: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          delete_after?: string | null
+          export_generated_at?: string | null
+          export_url?: string | null
+          grace_period_ends_at?: string
+          id?: string
+          item_type?: Database["public"]["Enums"]["downgrade_item_type"]
+          new_plan_slug?: string | null
+          previous_plan_slug?: string | null
+          project_id?: string | null
+          status?: Database["public"]["Enums"]["downgrade_queue_status"]
+          suspended_at?: string | null
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "downgrade_queue_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "downgrade_queue_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           accepted_at: string | null
@@ -1007,8 +1076,10 @@ export type Database = {
           description: string | null
           id: string
           is_default: boolean
+          is_suspended: boolean
           name: string
           slug: string
+          suspended_at: string | null
           updated_at: string
         }
         Insert: {
@@ -1016,8 +1087,10 @@ export type Database = {
           description?: string | null
           id?: string
           is_default?: boolean
+          is_suspended?: boolean
           name: string
           slug: string
+          suspended_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -1025,8 +1098,10 @@ export type Database = {
           description?: string | null
           id?: string
           is_default?: boolean
+          is_suspended?: boolean
           name?: string
           slug?: string
+          suspended_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1141,6 +1216,16 @@ export type Database = {
     }
     Enums: {
       app_role: "master" | "admin" | "user" | "viewer"
+      downgrade_item_type:
+        | "owned_workspace"
+        | "guest_workspace"
+        | "exceeding_project"
+      downgrade_queue_status:
+        | "grace_period"
+        | "suspended"
+        | "exported"
+        | "deleted"
+        | "restored"
       invitation_status: "pending" | "accepted" | "expired" | "cancelled"
       project_role: "owner" | "admin" | "member" | "viewer"
       project_status:
@@ -1292,6 +1377,18 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["master", "admin", "user", "viewer"],
+      downgrade_item_type: [
+        "owned_workspace",
+        "guest_workspace",
+        "exceeding_project",
+      ],
+      downgrade_queue_status: [
+        "grace_period",
+        "suspended",
+        "exported",
+        "deleted",
+        "restored",
+      ],
       invitation_status: ["pending", "accepted", "expired", "cancelled"],
       project_role: ["owner", "admin", "member", "viewer"],
       project_status: [
