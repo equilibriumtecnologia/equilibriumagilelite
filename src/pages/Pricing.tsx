@@ -406,6 +406,9 @@ export default function Pricing() {
                 </CardFooter>
               </Card>
             </div>
+          </div>
+        </div>
+      </section>
 
       {/* CTA */}
       <section className="py-12 sm:py-16 bg-gradient-hero relative overflow-hidden">
