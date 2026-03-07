@@ -16,10 +16,10 @@
 
 Acesse **Stripe Dashboard → Developers → API Keys** (certifique-se de que o toggle **"Test mode"** está **desligado**).
 
-| Chave | Formato | Onde usar |
-|-------|---------|-----------|
+| Chave               | Formato       | Onde usar                              |
+| ------------------- | ------------- | -------------------------------------- |
 | **Publishable Key** | `pk_live_...` | Frontend (opcional, se usar Stripe.js) |
-| **Secret Key** | `sk_live_...` | Secret `STRIPE_SECRET_KEY` no backend |
+| **Secret Key**      | `sk_live_...` | Secret `STRIPE_SECRET_KEY` no backend  |
 
 > ⚠️ **Nunca** exponha a Secret Key no frontend ou em repositórios públicos.
 
@@ -31,38 +31,38 @@ Acesse **Stripe Dashboard → Products → + Add product** e crie os 4 produtos 
 
 ### 3.1 — ALE Starter
 
-| Campo | Valor |
-|-------|-------|
-| Nome | `ALE Starter` |
-| Metadata | `plan_slug` = `starter`, `display_order` = `1` |
-| Preço Mensal | R$ 19,00 — Recorrente, BRL |
-| Preço Anual | R$ 205,00 — Recorrente, BRL |
+| Campo        | Valor                                          |
+| ------------ | ---------------------------------------------- |
+| Nome         | `ALE Starter`                                  |
+| Metadata     | `plan_slug` = `starter`, `display_order` = `1` |
+| Preço Mensal | R$ 19,00 — Recorrente, BRL                     |
+| Preço Anual  | R$ 205,00 — Recorrente, BRL                    |
 
 ### 3.2 — ALE Standard
 
-| Campo | Valor |
-|-------|-------|
-| Nome | `ALE Standard` |
-| Metadata | `plan_slug` = `standard`, `display_order` = `2` |
-| Preço Mensal | R$ 49,00 — Recorrente, BRL |
-| Preço Anual | R$ 529,00 — Recorrente, BRL |
+| Campo        | Valor                                           |
+| ------------ | ----------------------------------------------- |
+| Nome         | `ALE Standard`                                  |
+| Metadata     | `plan_slug` = `standard`, `display_order` = `2` |
+| Preço Mensal | R$ 49,00 — Recorrente, BRL                      |
+| Preço Anual  | R$ 529,00 — Recorrente, BRL                     |
 
 ### 3.3 — ALE Pro
 
-| Campo | Valor |
-|-------|-------|
-| Nome | `ALE Pro` |
-| Metadata | `plan_slug` = `pro`, `display_order` = `3` |
-| Preço Mensal | R$ 119,00 — Recorrente, BRL |
-| Preço Anual | R$ 1.285,00 — Recorrente, BRL |
+| Campo        | Valor                                      |
+| ------------ | ------------------------------------------ |
+| Nome         | `ALE Pro`                                  |
+| Metadata     | `plan_slug` = `pro`, `display_order` = `3` |
+| Preço Mensal | R$ 119,00 — Recorrente, BRL                |
+| Preço Anual  | R$ 1.285,00 — Recorrente, BRL              |
 
 ### 3.4 — ALE Enterprise
 
-| Campo | Valor |
-|-------|-------|
-| Nome | `ALE Enterprise` |
+| Campo    | Valor                                             |
+| -------- | ------------------------------------------------- |
+| Nome     | `ALE Enterprise`                                  |
 | Metadata | `plan_slug` = `enterprise`, `display_order` = `4` |
-| Preço | Configuração manual (sob consulta) |
+| Preço    | Configuração manual (sob consulta)                |
 
 > **Importante:** Cada **Price** deve conter metadata `interval` = `month` ou `year`, e opcionalmente `discount_label` = `10% de desconto` nos preços anuais.
 
@@ -72,10 +72,10 @@ Acesse **Stripe Dashboard → Products → + Add product** e crie os 4 produtos 
 
 Acesse **Stripe Dashboard → Developers → Webhooks → + Add endpoint**.
 
-| Campo | Valor |
-|-------|-------|
-| **URL do endpoint** | `https://oteqziddtpjosoacjfwq.supabase.co/functions/v1/stripe-webhook` |
-| **Eventos** | `checkout.session.completed`, `invoice.payment_succeeded`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted` |
+| Campo               | Valor                                                                                                                                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **URL do endpoint** | `https://oteqziddtpjosoacjfwq.supabase.co/functions/v1/stripe-webhook`                                                                                                                                 |
+| **Eventos**         | `checkout.session.completed`, `invoice.payment_succeeded`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted` |
 
 Após criar, copie o **Webhook Signing Secret** (`whsec_...`).
 
@@ -85,12 +85,12 @@ Após criar, copie o **Webhook Signing Secret** (`whsec_...`).
 
 Acesse **Stripe Dashboard → Settings → Billing → Customer portal**.
 
-| Configuração | Valor |
-|--------------|-------|
-| Cancelamento | ✅ Permitido |
-| Upgrade/Downgrade | ✅ Permitido |
-| Atualização de pagamento | ✅ Permitido |
-| URL de retorno | `https://agilelite.equilibriumtecnologia.com.br/settings` |
+| Configuração             | Valor                                                     |
+| ------------------------ | --------------------------------------------------------- |
+| Cancelamento             | ✅ Permitido                                              |
+| Upgrade/Downgrade        | ✅ Permitido                                              |
+| Atualização de pagamento | ✅ Permitido                                              |
+| URL de retorno           | `https://agilelite.equilibriumtecnologia.com.br/settings` |
 
 ---
 
@@ -98,10 +98,10 @@ Acesse **Stripe Dashboard → Settings → Billing → Customer portal**.
 
 No painel do projeto Lovable, atualize os seguintes secrets com as chaves de **produção**:
 
-| Secret | Valor de Teste (substituir) | Valor de Produção |
-|--------|----------------------------|-------------------|
-| `STRIPE_SECRET_KEY` | `sk_test_...` | `sk_live_...` |
-| `STRIPE_WEBHOOK_SECRET` | `whsec_...` (teste) | `whsec_...` (produção) |
+| Secret                  | Valor de Teste (substituir) | Valor de Produção      |
+| ----------------------- | --------------------------- | ---------------------- |
+| `STRIPE_SECRET_KEY`     | `sk_test_...`               | `sk_live_...`          |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...` (teste)         | `whsec_...` (produção) |
 
 > **Nota:** Se utilizar `STRIPE_PUBLISHABLE_KEY` no frontend, atualize também para `pk_live_...`.
 
