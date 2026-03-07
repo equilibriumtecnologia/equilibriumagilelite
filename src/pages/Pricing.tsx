@@ -270,9 +270,9 @@ export default function Pricing() {
 
   const currentSlug = userPlan?.plan_slug || "free";
 
-  // Filter out enterprise for the 3-col grid, keep it separate
-  const paidPlans = stripePlans?.filter(p => p.slug !== "enterprise") || [];
-  const enterprisePlan = stripePlans?.find(p => p.slug === "enterprise");
+  // Separate regular paid plans from enterprise plans
+  const regularPlans = stripePlans?.filter(p => !p.slug.startsWith("enterprise")) || [];
+  const enterprisePlans = stripePlans?.filter(p => p.slug.startsWith("enterprise")) || [];
 
   return (
     <div className="min-h-screen bg-background">
