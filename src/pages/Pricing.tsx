@@ -61,17 +61,34 @@ const planMeta: Record<string, {
       "Suporte prioritário",
     ],
   },
-  enterprise: {
+  enterprise_10: {
     icon: Building2,
-    description: "Para grandes organizações com necessidades customizadas",
+    description: "Para organizações com até 10 usuários",
+    hasAI: true,
     features: [
-      "Workspaces ilimitados",
-      "Projetos ilimitados",
-      "Convites ilimitados",
-      "SSO / SAML",
-      "Permissões customizadas",
+      "5 workspaces criados",
+      "Participar de 5 workspaces como convidado",
+      "10 projetos por workspace",
+      "10 convites por workspace",
+      "Até 10 usuários por workspace",
+      "🤖 Priorização com IA",
+      "Relatórios avançados",
+      "Suporte prioritário",
+    ],
+  },
+  enterprise_20: {
+    icon: Building2,
+    description: "Para organizações com até 20 usuários",
+    hasAI: true,
+    features: [
+      "10 workspaces criados",
+      "Participar de 10 workspaces como convidado",
+      "20 projetos por workspace",
+      "20 convites por workspace",
+      "Até 20 usuários por workspace",
+      "🤖 Priorização com IA",
+      "Relatórios avançados",
       "Suporte dedicado",
-      "SLA personalizado",
     ],
   },
 };
@@ -171,11 +188,7 @@ function StripePlanCard({ plan, isAnnual, onCheckout, checkoutLoading, isCurrent
       </CardContent>
 
       <CardFooter className="pt-4">
-        {plan.slug === "enterprise" ? (
-          <a href="mailto:contato@agilelite.equilibriumtecnologia.com.br" className="w-full">
-            <Button variant="outline" className="w-full">Fale Conosco</Button>
-          </a>
-        ) : isCurrentPlan ? (
+        {isCurrentPlan ? (
           <Button variant="outline" className="w-full" disabled>Plano Atual</Button>
         ) : (
           <Button
@@ -253,9 +266,9 @@ export default function Pricing() {
 
   const currentSlug = userPlan?.plan_slug || "free";
 
-  // Filter out enterprise for the 3-col grid, keep it separate
-  const paidPlans = stripePlans?.filter(p => p.slug !== "enterprise") || [];
-  const enterprisePlan = stripePlans?.find(p => p.slug === "enterprise");
+  // Separate regular paid plans from enterprise plans
+  const regularPlans = stripePlans?.filter(p => !p.slug.startsWith("enterprise")) || [];
+  const enterprisePlans = stripePlans?.filter(p => p.slug.startsWith("enterprise")) || [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -325,65 +338,70 @@ export default function Pricing() {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-                {paidPlans.map((plan) => (
-                  <StripePlanCard
-                    key={plan.slug}
-                    plan={plan}
-                    isAnnual={isAnnual}
-                    onCheckout={checkout}
-                    checkoutLoading={checkoutLoading}
-                    isCurrentPlan={currentSlug === plan.slug}
-                    isLoggedIn={!!user}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                  {regularPlans.map((plan) => (
+                    <StripePlanCard
+                      key={plan.slug}
+                      plan={plan}
+                      isAnnual={isAnnual}
+                      onCheckout={checkout}
+                      checkoutLoading={checkoutLoading}
+                      isCurrentPlan={currentSlug === plan.slug}
+                      isLoggedIn={!!user}
+                    />
+                  ))}
+                </div>
+
+                {/* Enterprise plans from Stripe */}
+                {enterprisePlans.length > 0 && (
+                  <div className={`grid grid-cols-1 ${enterprisePlans.length >= 2 ? "md:grid-cols-2" : ""} gap-4 sm:gap-6 max-w-3xl mx-auto`}>
+                    {enterprisePlans.map((plan) => (
+                      <StripePlanCard
+                        key={plan.slug}
+                        plan={plan}
+                        isAnnual={isAnnual}
+                        onCheckout={checkout}
+                        checkoutLoading={checkoutLoading}
+                        isCurrentPlan={currentSlug === plan.slug}
+                        isLoggedIn={!!user}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
-            {/* Enterprise */}
-            {enterprisePlan && (
-              <div className="max-w-md mx-auto">
-                <StripePlanCard
-                  plan={enterprisePlan}
-                  isAnnual={isAnnual}
-                  onCheckout={checkout}
-                  checkoutLoading={checkoutLoading}
-                  isCurrentPlan={currentSlug === "enterprise"}
-                  isLoggedIn={!!user}
-                />
-              </div>
-            )}
-            {!enterprisePlan && !isLoading && (
-              <div className="max-w-md mx-auto">
-                <Card className="flex flex-col border-border">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-muted">
-                        <Building2 className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <CardTitle className="text-xl">Enterprise</CardTitle>
+            {/* Enterprise Unlimited - always static */}
+            <div className="max-w-md mx-auto">
+              <Card className="flex flex-col border-border transition-all hover:shadow-lg">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-muted">
+                      <Building2 className="h-5 w-5 text-muted-foreground" />
                     </div>
-                    <span className="text-3xl font-bold">Sob consulta</span>
-                    <CardDescription className="text-sm mt-1">Para grandes organizações</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-1">
-                    <ul className="space-y-2.5">
-                      {["Workspaces ilimitados", "Projetos ilimitados", "SSO / SAML", "Suporte dedicado"].map((f, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                  <CardFooter className="pt-4">
-                    <a href="mailto:contato@agilelite.equilibriumtecnologia.com.br" className="w-full">
-                      <Button variant="outline" className="w-full">Fale Conosco</Button>
-                    </a>
-                  </CardFooter>
-                </Card>
-              </div>
-            )}
+                    <CardTitle className="text-xl">Enterprise Unlimited</CardTitle>
+                  </div>
+                  <span className="text-3xl font-bold">Sob consulta</span>
+                  <CardDescription className="text-sm mt-1">Para grandes organizações com necessidades customizadas</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  <ul className="space-y-2.5">
+                    {["Workspaces ilimitados", "Projetos ilimitados", "Convites ilimitados", "Usuários ilimitados", "SSO / SAML", "Permissões customizadas", "Suporte dedicado", "SLA personalizado"].map((f, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm">
+                        <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-4">
+                  <a href="mailto:contato@agilelite.equilibriumtecnologia.com.br" className="w-full">
+                    <Button variant="outline" className="w-full">Fale Conosco</Button>
+                  </a>
+                </CardFooter>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
