@@ -188,11 +188,7 @@ function StripePlanCard({ plan, isAnnual, onCheckout, checkoutLoading, isCurrent
       </CardContent>
 
       <CardFooter className="pt-4">
-        {plan.slug === "enterprise" ? (
-          <a href="mailto:contato@agilelite.equilibriumtecnologia.com.br" className="w-full">
-            <Button variant="outline" className="w-full">Fale Conosco</Button>
-          </a>
-        ) : isCurrentPlan ? (
+        {isCurrentPlan ? (
           <Button variant="outline" className="w-full" disabled>Plano Atual</Button>
         ) : (
           <Button
