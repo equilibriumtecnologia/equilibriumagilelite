@@ -61,36 +61,6 @@ const planMeta: Record<string, {
       "Suporte prioritário",
     ],
   },
-  enterprise_10: {
-    icon: Building2,
-    description: "Para organizações com até 10 usuários",
-    hasAI: true,
-    features: [
-      "5 workspaces criados",
-      "Participar de 5 workspaces como convidado",
-      "10 projetos por workspace",
-      "10 convites por workspace",
-      "Até 10 usuários por workspace",
-      "🤖 Priorização com IA",
-      "Relatórios avançados",
-      "Suporte prioritário",
-    ],
-  },
-  enterprise_20: {
-    icon: Building2,
-    description: "Para organizações com até 20 usuários",
-    hasAI: true,
-    features: [
-      "10 workspaces criados",
-      "Participar de 10 workspaces como convidado",
-      "20 projetos por workspace",
-      "20 convites por workspace",
-      "Até 20 usuários por workspace",
-      "🤖 Priorização com IA",
-      "Relatórios avançados",
-      "Suporte dedicado",
-    ],
-  },
 };
 
 function formatCurrency(amountCents: number): string {
@@ -266,9 +236,8 @@ export default function Pricing() {
 
   const currentSlug = userPlan?.plan_slug || "free";
 
-  // Separate regular paid plans from enterprise plans
+  // Filter out enterprise plans (handled as static card)
   const regularPlans = stripePlans?.filter(p => !p.slug.startsWith("enterprise")) || [];
-  const enterprisePlans = stripePlans?.filter(p => p.slug.startsWith("enterprise")) || [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -353,22 +322,6 @@ export default function Pricing() {
                   ))}
                 </div>
 
-                {/* Enterprise plans from Stripe */}
-                {enterprisePlans.length > 0 && (
-                  <div className={`grid grid-cols-1 ${enterprisePlans.length >= 2 ? "md:grid-cols-2" : ""} gap-4 sm:gap-6 max-w-3xl mx-auto`}>
-                    {enterprisePlans.map((plan) => (
-                      <StripePlanCard
-                        key={plan.slug}
-                        plan={plan}
-                        isAnnual={isAnnual}
-                        onCheckout={checkout}
-                        checkoutLoading={checkoutLoading}
-                        isCurrentPlan={currentSlug === plan.slug}
-                        isLoggedIn={!!user}
-                      />
-                    ))}
-                  </div>
-                )}
               </>
             )}
 
@@ -396,9 +349,9 @@ export default function Pricing() {
                   </ul>
                 </CardContent>
                 <CardFooter className="pt-4">
-                  <a href="mailto:contato@agilelite.equilibriumtecnologia.com.br" className="w-full">
+                  <Link to="/enterprise-contact" className="w-full">
                     <Button variant="outline" className="w-full">Fale Conosco</Button>
-                  </a>
+                  </Link>
                 </CardFooter>
               </Card>
             </div>
@@ -415,11 +368,11 @@ export default function Pricing() {
             <p className="text-base sm:text-lg mb-6 opacity-90">
               Entre em contato para planos Enterprise ou dúvidas sobre funcionalidades.
             </p>
-            <a href="mailto:contato@agilelite.equilibriumtecnologia.com.br">
+            <Link to="/enterprise-contact">
               <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg">
                 Fale Conosco <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-            </a>
+            </Link>
           </div>
         </div>
       </section>
