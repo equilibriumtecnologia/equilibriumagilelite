@@ -31,6 +31,8 @@ import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import ViewAllWorkspaces from "./pages/ViewAllWorkspaces";
 import ManageDowngrade from "./pages/ManageDowngrade";
+import EnterpriseContact from "./pages/EnterpriseContact";
+import ThankYou from "./pages/ThankYou";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -53,6 +55,8 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/accept-invitation" element={<AcceptInvitation />} />
+            <Route path="/enterprise-contact" element={<EnterpriseContact />} />
+            <Route path="/obrigado" element={<ThankYou />} />
             
             {/* Protected routes with layout */}
             <Route
