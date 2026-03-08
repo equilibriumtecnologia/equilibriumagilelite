@@ -23,7 +23,9 @@
 | 12  | Dashboard — Sua Central de Comando    | 3-4 min          |
 | 13  | Configurações e Categorias            | 3-4 min          |
 | 14  | Notificações                          | 2-3 min          |
-| 15  | Dicas e Boas Práticas                 | 3-5 min          |
+| 15  | Planos, Billing e Downgrade           | 4-5 min          |
+| 16  | Notificações Push (PWA)               | 3-4 min          |
+| 17  | Dicas e Boas Práticas                 | 3-5 min          |
 
 ---
 
