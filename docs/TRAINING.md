@@ -23,7 +23,9 @@
 | 12  | Dashboard — Sua Central de Comando    | 3-4 min          |
 | 13  | Configurações e Categorias            | 3-4 min          |
 | 14  | Notificações                          | 2-3 min          |
-| 15  | Dicas e Boas Práticas                 | 3-5 min          |
+| 15  | Planos, Billing e Downgrade           | 4-5 min          |
+| 16  | Notificações Push (PWA)               | 3-4 min          |
+| 17  | Dicas e Boas Práticas                 | 3-5 min          |
 
 ---
 
@@ -459,6 +461,119 @@
 
 > "Reserve 15 minutos por semana pra olhar o Burndown e o Velocity. Você vai identificar padrões: 'sempre atrasamos na segunda semana' ou 'a velocity caiu — estamos com tarefas grandes demais'."
 
+---
+
+## Capítulo 15 — Planos, Billing e Downgrade
+
+**Objetivo do vídeo:** Explicar os planos disponíveis, como assinar/gerenciar e o que acontece no downgrade.
+
+### Roteiro
+
+**[Tela: Pricing (/pricing)]**
+
+> "O ALE tem planos pra diferentes tamanhos de equipe. Vamos entender cada um:"
+
+| Plano        | O que inclui                                                                 |
+| ------------ | ---------------------------------------------------------------------------- |
+| **Free**     | 1 workspace, 1 projeto, só você. Ideal pra testar a ferramenta              |
+| **Starter**  | 2 projetos, até 3 pessoas por workspace. Pra freelancers e equipes pequenas  |
+| **Standard** | 3 projetos, 5 pessoas, **IA inclusa**. Pra equipes em crescimento            |
+| **Pro**      | 5 projetos, 10 pessoas, IA + relatórios avançados. Pra operações maiores     |
+| **Enterprise** | Customizado, contato direto. Pra grandes organizações                      |
+
+**[Ação: Clicar em "Assinar" em um plano]**
+
+> "Ao clicar em 'Assinar', você é redirecionado pra uma página segura de pagamento (Stripe). Pode pagar com cartão de crédito. Após confirmar, seu plano é ativado instantaneamente."
+
+**[Tela: Configurações > Plano & Faturamento]**
+
+> "Em Configurações, na seção 'Plano & Faturamento', você vê seu plano atual, status da assinatura, data de renovação e os limites do seu plano. Se precisar alterar o cartão ou cancelar, clique em 'Gerenciar Assinatura' — isso abre o portal do Stripe."
+
+**Conceito — Downgrade e Carência de 7 Dias:**
+
+> "Se você cancelar ou fizer downgrade, seus dados **não são apagados imediatamente**. Você tem 7 dias de carência — conforme o Código de Defesa do Consumidor. Nesse período:"
+
+- Os recursos que excedem o novo plano ficam em **somente leitura**
+- Você pode **exportar seus dados** (backup em JSON)
+- Você pode **escolher quais projetos/workspaces manter** dentro dos limites do novo plano
+- Se mudar de ideia, basta fazer upgrade e tudo volta ao normal
+
+> "Após os 7 dias, os recursos excedentes são suspensos. Você ainda tem 60 dias pra reativar. Depois disso, são excluídos permanentemente."
+
+**[Tela: Gerenciar Downgrade (/manage-downgrade)]**
+
+> "Se você fez downgrade, essa tela aparece pra você escolher o que manter. Por exemplo, se caiu do Pro (5 projetos) pro Starter (2 projetos), você escolhe quais 2 projetos ficam ativos."
+
+---
+
+## Capítulo 16 — Notificações Push (PWA)
+
+**Objetivo do vídeo:** Explicar como receber notificações mesmo com o navegador fechado.
+
+### Roteiro
+
+**[Tela: Qualquer página logada]**
+
+> "O ALE pode enviar notificações push — aquelas que aparecem no canto da tela, mesmo que o navegador esteja minimizado. Pra isso funcionar, são dois passos:"
+
+**Passo 1 — Instalar o app (PWA):**
+
+> "O ALE funciona como um app instalável. No computador, clique no ícone de instalação na barra de endereço do navegador. No celular, abra o menu do navegador e toque em 'Adicionar à Tela de Início'."
+
+**[Tela: Página de Instalação (/install)]**
+
+> "A página '/install' tem instruções passo a passo pra cada plataforma: Chrome, Safari, Android e iOS. No iOS, precisa ser versão 16.4 ou superior e instalar pela Tela de Início."
+
+**Passo 2 — Permitir notificações:**
+
+> "Quando o app pedir permissão pra enviar notificações, clique em 'Permitir'. A partir daí, você recebe alertas quando:"
+
+- Alguém te atribui uma tarefa
+- Uma tarefa sua muda de status
+- Uma tarefa está próxima do prazo ou vencida
+
+> "As notificações push funcionam junto com as notificações internas (o sininho) e os e-mails. Você não precisa estar com o app aberto — o alerta aparece no sistema operacional."
+
+**Dica importante:**
+
+> "Se não estiver recebendo notificações, verifique: 1) Se o app está instalado como PWA, 2) Se você permitiu notificações no navegador, 3) No iOS, se está usando a versão 16.4+."
+
+---
+
+## Capítulo 17 — Dicas e Boas Práticas
+
+**Objetivo do vídeo:** Dicas práticas para usar a ferramenta com eficiência.
+
+### Roteiro
+
+**Dica 1 — Tarefas pequenas e específicas**
+
+> "Ao invés de criar uma tarefa 'Fazer o projeto', quebre em partes: 'Criar wireframe', 'Desenvolver tela X', 'Testar formulário'. Tarefas menores são mais fáceis de acompanhar e dão sensação de progresso."
+
+**Dica 2 — Use o Backlog como rascunho**
+
+> "Teve uma ideia? Joga no Backlog. Não precisa ser perfeita. Depois, na hora de planejar a Sprint, você refina e prioriza."
+
+**Dica 3 — Atualize o Kanban diariamente**
+
+> "O Kanban só funciona se estiver atualizado. Reserve 2 minutos no início do dia pra mover seus cards. Isso ajuda você e a equipe toda."
+
+**Dica 4 — Respeite o limite WIP**
+
+> "Se a coluna 'Em Progresso' está cheia, termine algo antes de começar algo novo. Multitarefa excessiva diminui a qualidade e aumenta o tempo de entrega."
+
+**Dica 5 — Registre comentários nas mudanças de status**
+
+> "Quando mover um card, escreva um breve motivo. Exemplo: 'Finalizado, enviado pra revisão do cliente'. Esse histórico é ouro quando alguém perguntar 'o que aconteceu com aquela tarefa?'"
+
+**Dica 6 — Use Story Points com consistência**
+
+> "Combine com a equipe o que cada valor de Story Points significa. O importante não é acertar de primeira, mas ser consistente. Com o tempo, as estimativas ficam cada vez mais precisas."
+
+**Dica 7 — Consulte os relatórios semanalmente**
+
+> "Reserve 15 minutos por semana pra olhar o Burndown e o Velocity. Você vai identificar padrões: 'sempre atrasamos na segunda semana' ou 'a velocity caiu — estamos com tarefas grandes demais'."
+
 **Encerramento:**
 
 > "E é isso! Você já conhece todas as funcionalidades do Agile Lite Equilibrium. O mais importante agora é usar. Comece simples, crie seu primeiro projeto, adicione as tarefas e vá evoluindo aos poucos. A ferramenta cresce junto com a sua equipe."
@@ -485,7 +600,9 @@
 02-criando-primeiro-projeto.mp4
 03-entendendo-kanban.mp4
 ...
-15-dicas-boas-praticas.mp4
+15-planos-billing-downgrade.mp4
+16-notificacoes-push-pwa.mp4
+17-dicas-boas-praticas.mp4
 ```
 
 ### Dicas de apresentação
