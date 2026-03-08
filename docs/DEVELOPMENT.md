@@ -1,8 +1,12 @@
 # 📚 Histórico de Desenvolvimento - Agile Lite Equilibrium
 
-Este documento registra todas as implementações, mudanças e decisões técnicas do projeto Agile Lite Equilibrium. É atualizado continuamente conforme o projeto evolui.
+> ⚠️ **Documento histórico (FASE 1)**: este arquivo descreve a fundação do ALE e contém trechos que ficaram desatualizados com o crescimento do produto.
+>
+> ✅ **Desde então, já foram implementadas:** Backlog + IA, Sprints + Planning, Swimlanes, WIP Limits, Story Points, Reports (Burndown/Velocity/CFD/Cycle Time/Forecast), Templates, PWA + Push, Billing Stripe (checkout/webhook/portal), downgrade com carência de 7 dias, permissões granulares e workspaces múltiplos.
+>
+> 🔎 Para o estado atual, consulte: `docs/ROADMAP2.md`, `docs/STRIPE2.md` e `docs/COMPETITIVE_ANALYSIS.md`.
 
----
+Este documento registra todas as implementações, mudanças e decisões técnicas do projeto Agile Lite Equilibrium. É atualizado continuamente conforme o projeto evolui.
 
 ## 📅 Índice por Fase
 

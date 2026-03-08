@@ -72,9 +72,9 @@ Acesse **Stripe Dashboard → Products → + Add product** e crie os 4 produtos 
 
 Acesse **Stripe Dashboard → Developers → Webhooks → + Add endpoint**.
 
-| Campo               | Valor                                                                                                                                                                                                  |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **URL do endpoint** | `https://oteqziddtpjosoacjfwq.supabase.co/functions/v1/stripe-webhook`                                                                                                                                 |
+| Campo               | Valor |
+| ------------------- | ----- |
+| **URL do endpoint** | `{BACKEND_URL}/functions/v1/stripe-webhook` |
 | **Eventos**         | `checkout.session.completed`, `invoice.payment_succeeded`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted` |
 
 Após criar, copie o **Webhook Signing Secret** (`whsec_...`).
