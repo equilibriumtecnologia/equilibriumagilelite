@@ -23,7 +23,7 @@
 | 2.1 Tabela de Sprints | ✅ Feito | Tabela `sprints`, `useSprints.ts`, CRUD completo |
 | 2.2 Página de Backlog | ✅ Feito | `Backlog.tsx`, `BacklogItem.tsx`, `MoveToSprintDialog.tsx` |
 | 2.3 Sprint Planning View | ✅ Feito | `SprintPlanningDialog.tsx` com split-view e drag-and-drop |
-| 2.4 Swimlanes por Sprint | ❌ Não feito | Kanban não agrupa por sprint |
+| 2.4 Swimlanes por Sprint | ✅ Feito | `KanbanSwimlane.tsx`, `KanbanBoard.tsx` (toggle flat/swimlanes) |
 
 ### ✅ Fase 3 - Analytics e Reports (85% Concluída)
 
