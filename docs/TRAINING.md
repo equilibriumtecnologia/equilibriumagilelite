@@ -600,7 +600,9 @@
 02-criando-primeiro-projeto.mp4
 03-entendendo-kanban.mp4
 ...
-15-dicas-boas-praticas.mp4
+15-planos-billing-downgrade.mp4
+16-notificacoes-push-pwa.mp4
+17-dicas-boas-praticas.mp4
 ```
 
 ### Dicas de apresentação
