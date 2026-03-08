@@ -61,7 +61,7 @@
 | Feature | Status | Evidência |
 |---------|--------|-----------|
 | 6.1 Sistema de Planos | ✅ Feito | `subscription_plans`, `user_subscriptions`, `useUserPlan.ts` |
-| 6.2 Integração Stripe | ❌ Não feito | Sem edge functions de checkout/webhook |
+| 6.2 Integração Stripe | ✅ Feito | `stripe-get-prices`, `stripe-create-checkout`, `stripe-webhook`, `stripe-sync-subscription`, `stripe-customer-portal` |
 | 6.3 Limite de Uso e Upselling | ✅ Feito | `useUserPlan.ts`, indicadores no Sidebar, verificação em `CreateProjectDialog`, `InviteUserDialog`, botão upgrade para owner |
 
 ---
