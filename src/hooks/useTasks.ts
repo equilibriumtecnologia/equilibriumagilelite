@@ -167,6 +167,14 @@ export const useTasks = (projectId?: string) => {
 
       if (fetchError) throw fetchError;
 
+      // Block completion if there are incomplete sub-tasks
+      if (updates.status === "completed" && updates.status !== currentTask.status) {
+        const { hasIncomplete, pending, total } = await checkSubTasksCompletion(id);
+        if (hasIncomplete) {
+          throw new Error(`Não é possível concluir: ${pending} de ${total} sub-tarefas pendentes no checklist.`);
+        }
+      }
+
       // Extract historyComment from updates to not send it to the database
       const { historyComment, ...dbUpdates } = updates as any;
 

@@ -203,6 +203,17 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
       return;
     }
 
+    // Block completion if there are incomplete sub-tasks
+    if (newStatus === "completed") {
+      const { hasIncomplete, pending, total } = await checkSubTasksCompletion(taskId);
+      if (hasIncomplete) {
+        toast.error(`Não é possível concluir esta atividade`, {
+          description: `Existem ${pending} de ${total} sub-tarefas pendentes no checklist. Conclua todas antes de finalizar.`,
+        });
+        return;
+      }
+    }
+
     setPendingChange({
       taskId,
       taskTitle: task.title,

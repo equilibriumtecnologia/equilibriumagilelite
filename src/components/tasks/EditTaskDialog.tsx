@@ -149,6 +149,17 @@ export const EditTaskDialog = ({
       return;
     }
 
+    // Block completion if there are incomplete sub-tasks
+    if (data.status === "completed" && data.status !== task.status) {
+      const { hasIncomplete, pending, total } = await checkSubTasksCompletion(task.id);
+      if (hasIncomplete) {
+        toast.error(`Não é possível concluir esta atividade`, {
+          description: `Existem ${pending} de ${total} sub-tarefas pendentes no checklist. Conclua todas antes de finalizar.`,
+        });
+        return;
+      }
+    }
+
     const updateData = {
       id: task.id,
       title: data.title,
