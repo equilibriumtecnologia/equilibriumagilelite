@@ -39,6 +39,7 @@ import { AISuggestionsPanel } from "@/components/ai/AISuggestionsPanel";
 import { useAIPrioritization } from "@/hooks/useAIPrioritization";
 import { useTasks } from "@/hooks/useTasks";
 import { useTeam } from "@/hooks/useTeam";
+import { ProjectReportCards } from "@/components/projects/ProjectReportCards";
 import { toast } from "sonner";
 
 const statusLabels: Record<string, string> = {
