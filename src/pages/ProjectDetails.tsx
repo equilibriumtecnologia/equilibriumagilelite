@@ -62,28 +62,45 @@ const ProjectDetails = () => {
   const { id } = useParams<{ id: string }>();
   const { project, loading, refetch } = useProject(id);
   const { activeSprint, sprints } = useSprints(id);
-  const { canManageProject, canCreateTasks, canManageMembers, canDeleteAnyTask } = useProjectRole(id);
+  const {
+    canManageProject,
+    canCreateTasks,
+    canManageMembers,
+    canDeleteAnyTask,
+  } = useProjectRole(id);
   const { isReadOnly, readOnlyReason } = useReadOnly(id);
   const [listSearch, setListSearch] = useState("");
   const { tasks: allTasks, updateTask } = useTasks(id);
   const { members } = useTeam();
-  const { prioritize, isLoading: aiLoading, result: aiResult, clear: clearAI, isAIAvailable } = useAIPrioritization();
+  const {
+    prioritize,
+    isLoading: aiLoading,
+    result: aiResult,
+    clear: clearAI,
+    isAIAvailable,
+  } = useAIPrioritization();
 
   const assigneeNames = useMemo(() => {
     const map: Record<string, string> = {};
-    members?.forEach((m: any) => { if (m.id && m.full_name) map[m.id] = m.full_name; });
+    members?.forEach((m: any) => {
+      if (m.id && m.full_name) map[m.id] = m.full_name;
+    });
     return map;
   }, [members]);
 
   const handleSprintAIPrioritize = () => {
     if (!project || !activeSprint) return;
-    const sprintTasks = (allTasks ?? []).filter(t => t.sprint_id === activeSprint.id && t.status !== "completed");
+    const sprintTasks = (allTasks ?? []).filter(
+      (t) => t.sprint_id === activeSprint.id && t.status !== "completed",
+    );
     prioritize(sprintTasks, project.name, activeSprint.name, assigneeNames);
   };
 
   const handleAcceptAI = async () => {
     if (!aiResult) return;
-    const sorted = [...aiResult.suggestions].sort((a, b) => a.new_position - b.new_position);
+    const sorted = [...aiResult.suggestions].sort(
+      (a, b) => a.new_position - b.new_position,
+    );
     for (let i = 0; i < sorted.length; i++) {
       await updateTask.mutateAsync({ id: sorted[i].task_id, backlog_order: i });
     }
@@ -95,7 +112,7 @@ const ProjectDetails = () => {
   const filteredSortedTasks = useMemo(() => {
     if (!project?.tasks) return [];
     let filtered = [...project.tasks];
-    
+
     // Filter by search term
     if (listSearch.trim()) {
       const search = listSearch.toLowerCase();
@@ -103,18 +120,20 @@ const ProjectDetails = () => {
         (t) =>
           t.title.toLowerCase().includes(search) ||
           t.description?.toLowerCase().includes(search) ||
-          t.assigned_to_profile?.full_name.toLowerCase().includes(search)
+          t.assigned_to_profile?.full_name.toLowerCase().includes(search),
       );
     }
-    
+
     // Sort: archived tasks always last, then by updated_at descending
     filtered.sort((a, b) => {
       const aArchived = (a as any).is_archived ? 1 : 0;
       const bArchived = (b as any).is_archived ? 1 : 0;
       if (aArchived !== bArchived) return aArchived - bArchived;
-      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      return (
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      );
     });
-    
+
     return filtered;
   }, [project?.tasks, listSearch]);
 
@@ -160,10 +179,15 @@ const ProjectDetails = () => {
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold truncate">{project.name}</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold truncate">
+                {project.name}
+              </h1>
               {canManageProject && !isReadOnly && (
                 <div className="flex items-center gap-1">
-                  <SaveAsTemplateDialog projectId={project.id} projectName={project.name} />
+                  <SaveAsTemplateDialog
+                    projectId={project.id}
+                    projectName={project.name}
+                  />
                   <EditProjectDialog project={project} onSuccess={refetch} />
                   <DeleteProjectDialog
                     projectId={project.id}
@@ -199,7 +223,9 @@ const ProjectDetails = () => {
               </Button>
               {canCreateTasks && !isReadOnly && (
                 <CreateTaskDialog projectId={project.id}>
-                  <Button variant="hero" size="sm">Nova Tarefa</Button>
+                  <Button variant="hero" size="sm">
+                    Nova Tarefa
+                  </Button>
                 </CreateTaskDialog>
               )}
             </div>
@@ -219,10 +245,29 @@ const ProjectDetails = () => {
       {activeSprint && (
         <SprintBoardHeader
           sprint={activeSprint}
-          taskCount={project.tasks?.filter((t) => t.sprint_id === activeSprint.id).length || 0}
-          completedTaskCount={project.tasks?.filter((t) => t.sprint_id === activeSprint.id && t.status === "completed").length || 0}
-          totalPoints={project.tasks?.filter((t) => t.sprint_id === activeSprint.id).reduce((sum, t) => sum + (t.story_points || 0), 0) || 0}
-          completedPoints={project.tasks?.filter((t) => t.sprint_id === activeSprint.id && t.status === "completed").reduce((sum, t) => sum + (t.story_points || 0), 0) || 0}
+          taskCount={
+            project.tasks?.filter((t) => t.sprint_id === activeSprint.id)
+              .length || 0
+          }
+          completedTaskCount={
+            project.tasks?.filter(
+              (t) =>
+                t.sprint_id === activeSprint.id && t.status === "completed",
+            ).length || 0
+          }
+          totalPoints={
+            project.tasks
+              ?.filter((t) => t.sprint_id === activeSprint.id)
+              .reduce((sum, t) => sum + (t.story_points || 0), 0) || 0
+          }
+          completedPoints={
+            project.tasks
+              ?.filter(
+                (t) =>
+                  t.sprint_id === activeSprint.id && t.status === "completed",
+              )
+              .reduce((sum, t) => sum + (t.story_points || 0), 0) || 0
+          }
           onAIPrioritize={handleSprintAIPrioritize}
           aiLoading={aiLoading}
           isAIAvailable={isAIAvailable}
@@ -249,7 +294,9 @@ const ProjectDetails = () => {
               <p className="text-lg sm:text-2xl font-bold">
                 {completedTasks}/{totalTasks}
               </p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Tarefas</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Tarefas
+              </p>
             </div>
           </div>
         </Card>
@@ -263,18 +310,25 @@ const ProjectDetails = () => {
               <p className="text-lg sm:text-2xl font-bold">
                 {project.project_members?.length || 0}
               </p>
-              <p className="text-xs sm:text-sm text-muted-foreground">Membros</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Membros
+              </p>
             </div>
           </div>
         </Card>
 
         <Card className="p-3 sm:p-4">
           <div className="flex items-center gap-2 sm:gap-3">
-            <Badge variant="outline" className={`${statusColors[project.status]} text-xs`}>
+            <Badge
+              variant="outline"
+              className={`${statusColors[project.status]} text-xs`}
+            >
               {statusLabels[project.status]}
             </Badge>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">Status</p>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
+            Status
+          </p>
         </Card>
 
         <Card className="p-3 sm:p-4">
@@ -298,17 +352,16 @@ const ProjectDetails = () => {
       <Card className="p-4 sm:p-6 mb-4 sm:mb-8">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm sm:text-base font-semibold">Progresso do Projeto</h3>
-            <span className="text-xs sm:text-sm font-medium">{Math.round(progress)}%</span>
+            <h3 className="text-sm sm:text-base font-semibold">
+              Progresso do Projeto
+            </h3>
+            <span className="text-xs sm:text-sm font-medium">
+              {Math.round(progress)}%
+            </span>
           </div>
           <Progress value={progress} />
         </div>
       </Card>
-
-      {/* Metrics & Reports */}
-      <div className="mb-4 sm:mb-8">
-        <ProjectReportCards projectId={project.id} />
-      </div>
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
@@ -329,9 +382,9 @@ const ProjectDetails = () => {
             <TabsContent value="kanban" className="mt-4 sm:mt-6">
               <ScrollArea className="w-full">
                 <div className="min-w-[600px] md:min-w-0">
-                  <KanbanBoard 
-                    tasks={project.tasks || []} 
-                    onUpdate={refetch} 
+                  <KanbanBoard
+                    tasks={project.tasks || []}
+                    onUpdate={refetch}
                     projectId={project.id}
                     members={project.project_members || []}
                     sprints={sprints}
@@ -360,7 +413,9 @@ const ProjectDetails = () => {
                   ))
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
-                    {listSearch ? "Nenhuma tarefa encontrada" : "Nenhuma tarefa ainda"}
+                    {listSearch
+                      ? "Nenhuma tarefa encontrada"
+                      : "Nenhuma tarefa ainda"}
                   </div>
                 )}
               </div>
@@ -405,31 +460,40 @@ const ProjectDetails = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{member.profiles.full_name}</p>
+                      <p className="text-sm font-medium truncate">
+                        {member.profiles.full_name}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {member.role === "owner"
                           ? "Proprietário"
                           : member.role === "admin"
-                          ? "Admin"
-                          : member.role === "viewer"
-                          ? "Viewer"
-                          : "Membro"}
+                            ? "Admin"
+                            : member.role === "viewer"
+                              ? "Viewer"
+                              : "Membro"}
                       </p>
                     </div>
                   </div>
-                  {member.role !== "owner" && canManageMembers && !isReadOnly && (
-                    <RemoveMemberDialog
-                      projectId={project.id}
-                      userId={member.user_id}
-                      userName={member.profiles.full_name}
-                      onSuccess={refetch}
-                    />
-                  )}
+                  {member.role !== "owner" &&
+                    canManageMembers &&
+                    !isReadOnly && (
+                      <RemoveMemberDialog
+                        projectId={project.id}
+                        userId={member.user_id}
+                        userName={member.profiles.full_name}
+                        onSuccess={refetch}
+                      />
+                    )}
                 </div>
               ))}
             </div>
           </Card>
         </div>
+      </div>
+
+      {/* Metrics & Reports */}
+      <div className="mb-4 sm:mb-8">
+        <ProjectReportCards projectId={project.id} />
       </div>
     </div>
   );
