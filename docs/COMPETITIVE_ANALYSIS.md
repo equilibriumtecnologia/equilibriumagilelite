@@ -29,87 +29,87 @@ Configurações:      █████████░  90%  (era 33%)
 
 ### 2.1 Funcionalidades Core
 
-| Feature | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
-|---|---|---|---|---|---|---|---|
-| Kanban Board | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Drag-and-Drop | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Colunas customizáveis | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| WIP Limits | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Swimlanes por Sprint | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Filtros no Board | ✅ | ✅ | ✅ | ✅ | ✅ | 🟡 | ✅ |
-| Mobile responsive | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| PWA (installable) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Feature               | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
+| --------------------- | --- | ---- | ----- | ------- | ------ | ------ | ------ |
+| Kanban Board          | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| Drag-and-Drop         | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| Colunas customizáveis | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| WIP Limits            | ✅  | ✅   | ❌    | ✅      | ❌     | ❌     | ❌     |
+| Swimlanes por Sprint  | ✅  | ✅   | ❌    | ✅      | ❌     | ❌     | ❌     |
+| Filtros no Board      | ✅  | ✅   | ✅    | ✅      | ✅     | 🟡     | ✅     |
+| Mobile responsive     | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| PWA (installable)     | ✅  | ❌   | ❌    | ❌      | ❌     | ❌     | ❌     |
 
 ### 2.2 Scrum & Sprints
 
-| Feature | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
-|---|---|---|---|---|---|---|---|
-| Sprint CRUD | ✅ | ✅ | 🟡 | ✅ | 🟡 | ❌ | ❌ |
-| Sprint Planning | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Sprint Board + Swimlanes | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Story Points | ✅ | ✅ | ❌ | ✅ | ❌ | 🟡 | ❌ |
-| Velocity Tracking | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Burndown Chart | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Feature                  | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
+| ------------------------ | --- | ---- | ----- | ------- | ------ | ------ | ------ |
+| Sprint CRUD              | ✅  | ✅   | 🟡    | ✅      | 🟡     | ❌     | ❌     |
+| Sprint Planning          | ✅  | ✅   | ❌    | ✅      | ❌     | ❌     | ❌     |
+| Sprint Board + Swimlanes | ✅  | ✅   | ❌    | ✅      | ❌     | ❌     | ❌     |
+| Story Points             | ✅  | ✅   | ❌    | ✅      | ❌     | 🟡     | ❌     |
+| Velocity Tracking        | ✅  | ✅   | ❌    | ✅      | ❌     | ❌     | ❌     |
+| Burndown Chart           | ✅  | ✅   | ❌    | ✅      | ❌     | ❌     | ❌     |
 
 ### 2.3 Backlog & Priorização
 
-| Feature | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
-|---|---|---|---|---|---|---|---|
-| Backlog priorizado | ✅ | ✅ | ✅ | ✅ | 🟡 | ❌ | 🟡 |
-| Drag para reordenar | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Mover para Sprint | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| IA para priorização | ✅ | 🟡 | ✅ | ✅ | 🟡 | ❌ | ✅ |
-| Subtasks aninhadas | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Feature             | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
+| ------------------- | --- | ---- | ----- | ------- | ------ | ------ | ------ |
+| Backlog priorizado  | ✅  | ✅   | ✅    | ✅      | 🟡     | ❌     | 🟡     |
+| Drag para reordenar | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ❌     |
+| Mover para Sprint   | ✅  | ✅   | ❌    | ✅      | ❌     | ❌     | ❌     |
+| IA para priorização | ✅  | 🟡   | ✅    | ✅      | 🟡     | ❌     | ✅     |
+| Subtasks aninhadas  | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
 
 ### 2.4 Reports & Analytics
 
-| Feature | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
-|---|---|---|---|---|---|---|---|
-| Burndown Chart | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Velocity Chart | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Cumulative Flow (CFD) | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Cycle Time | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Team Performance | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Delivery Forecast | ✅ | 🟡 | ❌ | 🟡 | ❌ | ❌ | ❌ |
-| Bottleneck Detection | ✅ | 🟡 | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Export CSV | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Export PDF | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Feature               | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
+| --------------------- | --- | ---- | ----- | ------- | ------ | ------ | ------ |
+| Burndown Chart        | ✅  | ✅   | ❌    | ✅      | ❌     | ❌     | ❌     |
+| Velocity Chart        | ✅  | ✅   | ❌    | ✅      | ❌     | ❌     | ❌     |
+| Cumulative Flow (CFD) | ✅  | ✅   | ❌    | ✅      | ❌     | ❌     | ❌     |
+| Cycle Time            | ✅  | ✅   | ❌    | ✅      | ❌     | ❌     | ❌     |
+| Team Performance      | ✅  | ✅   | ✅    | ✅      | ✅     | ❌     | ❌     |
+| Delivery Forecast     | ✅  | 🟡   | ❌    | 🟡      | ❌     | ❌     | ❌     |
+| Bottleneck Detection  | ✅  | 🟡   | ❌    | ❌      | ❌     | ❌     | ❌     |
+| Export CSV            | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| Export PDF            | ❌  | ✅   | ✅    | ✅      | ✅     | ❌     | ✅     |
 
 ### 2.5 Colaboração
 
-| Feature | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
-|---|---|---|---|---|---|---|---|
-| Comentários em tarefas | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| @menções | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Activity Feed | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Notificações email | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Push Notifications | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Time Tracking | ❌ | ✅ | ✅ | ✅ | ✅ | 🟡 | ❌ |
-| Chat / mensagens diretas | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Feature                  | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
+| ------------------------ | --- | ---- | ----- | ------- | ------ | ------ | ------ |
+| Comentários em tarefas   | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| @menções                 | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| Activity Feed            | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| Notificações email       | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| Push Notifications       | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| Time Tracking            | ❌  | ✅   | ✅    | ✅      | ✅     | 🟡     | ❌     |
+| Chat / mensagens diretas | ❌  | ❌   | ✅    | ✅      | ❌     | ❌     | ❌     |
 
 ### 2.6 Integrações & Plataforma
 
-| Feature | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
-|---|---|---|---|---|---|---|---|
-| GitHub/GitLab | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Slack | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| SSO (SAML/OAuth) | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| API pública | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Webhooks | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Automações (rules) | ❌ | ✅ | ✅ | ✅ | ✅ | 🟡 | 🟡 |
-| Import de boards | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Multi-idioma (i18n) | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Feature             | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
+| ------------------- | --- | ---- | ----- | ------- | ------ | ------ | ------ |
+| GitHub/GitLab       | ❌  | ✅   | ✅    | ✅      | ✅     | ✅     | ❌     |
+| Slack               | ❌  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| SSO (SAML/OAuth)    | ❌  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| API pública         | ❌  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| Webhooks            | ❌  | ✅   | ✅    | ✅      | ✅     | ✅     | ❌     |
+| Automações (rules)  | ❌  | ✅   | ✅    | ✅      | ✅     | 🟡     | 🟡     |
+| Import de boards    | ❌  | ✅   | ✅    | ✅      | ✅     | ❌     | ❌     |
+| Multi-idioma (i18n) | ❌  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
 
 ### 2.7 Monetização & Planos
 
-| Feature | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
-|---|---|---|---|---|---|---|---|
-| Plano gratuito | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Planos pagos escalonados | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Enterprise customizado | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Stripe integrado | ✅ | N/A | N/A | N/A | N/A | N/A | N/A |
-| Downgrade com carência | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Cobrança em BRL | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Feature                  | ALE | Jira | Asana | ClickUp | Monday | Trello | Notion |
+| ------------------------ | --- | ---- | ----- | ------- | ------ | ------ | ------ |
+| Plano gratuito           | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| Planos pagos escalonados | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| Enterprise customizado   | ✅  | ✅   | ✅    | ✅      | ✅     | ✅     | ✅     |
+| Stripe integrado         | ✅  | N/A  | N/A   | N/A     | N/A    | N/A    | N/A    |
+| Downgrade com carência   | ✅  | ❌   | ❌    | ❌      | ❌     | ❌     | ❌     |
+| Cobrança em BRL          | ✅  | ❌   | ❌    | ❌      | ❌     | ❌     | ❌     |
 
 ---
 
@@ -117,50 +117,50 @@ Configurações:      █████████░  90%  (era 33%)
 
 ### ✅ Totalmente Implementadas
 
-| # | Feature | Componentes Principais |
-|---|---|---|
-| 1 | Kanban com drag-and-drop | `KanbanBoard`, `KanbanColumn`, `KanbanTaskCard`, `@dnd-kit` |
-| 2 | Colunas customizáveis (label, cor, WIP) | `ColumnCustomizeDialog`, `board_settings` table |
-| 3 | WIP Limits por coluna | `WIPLimitBadge`, `WIPLimitSettings`, `BottleneckIndicator` |
-| 4 | Filtros no Kanban | `KanbanFilters` (responsável, prioridade, busca) |
-| 5 | Swimlanes por Sprint | `KanbanSwimlane`, `SprintBoardHeader` |
-| 6 | Sprints CRUD completo | `CreateSprintDialog`, `EditSprintDialog`, `DeleteSprintDialog` |
-| 7 | Sprint Planning | `SprintPlanningDialog` com capacidade e story points |
-| 8 | Backlog priorizado | `Backlog` page, `BacklogItem`, drag para reordenar |
-| 9 | Mover para Sprint | `MoveToSprintDialog` |
-| 10 | IA para priorização de backlog | `AIPrioritizeButton`, `AISuggestionsPanel`, edge function `ai-prioritize` |
-| 11 | Story Points | `StoryPointsSelector`, `StoryPointsBadge` |
-| 12 | Burndown Chart | `BurndownChart` com ideal vs real |
-| 13 | Velocity Chart | `VelocityChart` com média móvel |
-| 14 | Cumulative Flow Diagram | `CumulativeFlowChart` |
-| 15 | Cycle Time Chart | `CycleTimeChart` |
-| 16 | Team Performance | `TeamPerformance` com métricas por membro |
-| 17 | Delivery Forecast | `DeliveryForecastReport`, `DeliveryForecastCard` |
-| 18 | Bottleneck Detection | `BottleneckAlerts`, `BottleneckIndicator`, `useBottleneckDetection` |
-| 19 | Comentários com @menções | `MentionTextarea`, `useMentions`, `task_history` (comment_added) |
-| 20 | Notificações email + push | `NotificationsPopover`, `usePushSubscription`, edge functions |
-| 21 | Activity Feed | `ActivityFeed`, `ActivityItem`, `useActivityFeed` |
-| 22 | Export CSV | `ExportButton`, `exportCsv.ts` |
-| 23 | Templates de projeto | `TemplateSelector`, `SaveAsTemplateDialog`, `project_templates` table |
-| 24 | Sistema de planos (5 tiers) | `subscription_plans` table, `useUserPlan`, `get_user_plan` RPC |
-| 25 | Stripe Checkout + Webhook | `stripe-create-checkout`, `stripe-webhook`, `stripe-sync-subscription` |
-| 26 | Portal de gerenciamento Stripe | `stripe-customer-portal` |
-| 27 | Downgrade com carência de 7 dias | `process-downgrade`, `enforce-downgrade-queue`, `DowngradeQueueBanner` |
-| 28 | Export de workspace (backup) | `export-workspace-data` edge function |
-| 29 | Swap de itens no downgrade | `swap-downgrade-items`, `ManageDowngrade` page |
-| 30 | Restauração ao fazer upgrade | `restore-downgrade` edge function |
-| 31 | PWA com install page | `InstallBanner`, `Install` page, `useInstallPrompt`, Service Worker |
-| 32 | Subtasks | `SubTasksList`, `sub_tasks` table |
-| 33 | Task History completo | `TaskHistoryPanel`, `task_history` table |
-| 34 | Task Time Metrics | `TaskTimeMetrics`, `useTaskMetrics` |
-| 35 | Permissões granulares | `user_permissions` table, `PermissionsManagement`, `useReadOnly` |
-| 36 | Roles (Master, Admin, User, Viewer) | `user_roles`, `workspace_role`, `project_role` |
-| 37 | Convites com token | `InviteUserDialog`, `AcceptInvitation`, `invitations` table |
-| 38 | Workspaces múltiplos | `CreateWorkspaceDialog`, `WorkspaceContext`, limites por plano |
-| 39 | Categorias de projeto | `CategoriesManagement`, `categories` table |
-| 40 | Enterprise "Fale Conosco" | `EnterpriseContact` page, `send-enterprise-contact` edge function |
-| 41 | Página de Pricing pública | `Pricing` page com preços dinâmicos do Stripe |
-| 42 | Dashboard com reports compactos | `DashboardReportCards` com velocity, CFD, cycle time, performance |
+| #   | Feature                                 | Componentes Principais                                                    |
+| --- | --------------------------------------- | ------------------------------------------------------------------------- |
+| 1   | Kanban com drag-and-drop                | `KanbanBoard`, `KanbanColumn`, `KanbanTaskCard`, `@dnd-kit`               |
+| 2   | Colunas customizáveis (label, cor, WIP) | `ColumnCustomizeDialog`, `board_settings` table                           |
+| 3   | WIP Limits por coluna                   | `WIPLimitBadge`, `WIPLimitSettings`, `BottleneckIndicator`                |
+| 4   | Filtros no Kanban                       | `KanbanFilters` (responsável, prioridade, busca)                          |
+| 5   | Swimlanes por Sprint                    | `KanbanSwimlane`, `SprintBoardHeader`                                     |
+| 6   | Sprints CRUD completo                   | `CreateSprintDialog`, `EditSprintDialog`, `DeleteSprintDialog`            |
+| 7   | Sprint Planning                         | `SprintPlanningDialog` com capacidade e story points                      |
+| 8   | Backlog priorizado                      | `Backlog` page, `BacklogItem`, drag para reordenar                        |
+| 9   | Mover para Sprint                       | `MoveToSprintDialog`                                                      |
+| 10  | IA para priorização de backlog          | `AIPrioritizeButton`, `AISuggestionsPanel`, edge function `ai-prioritize` |
+| 11  | Story Points                            | `StoryPointsSelector`, `StoryPointsBadge`                                 |
+| 12  | Burndown Chart                          | `BurndownChart` com ideal vs real                                         |
+| 13  | Velocity Chart                          | `VelocityChart` com média móvel                                           |
+| 14  | Cumulative Flow Diagram                 | `CumulativeFlowChart`                                                     |
+| 15  | Cycle Time Chart                        | `CycleTimeChart`                                                          |
+| 16  | Team Performance                        | `TeamPerformance` com métricas por membro                                 |
+| 17  | Delivery Forecast                       | `DeliveryForecastReport`, `DeliveryForecastCard`                          |
+| 18  | Bottleneck Detection                    | `BottleneckAlerts`, `BottleneckIndicator`, `useBottleneckDetection`       |
+| 19  | Comentários com @menções                | `MentionTextarea`, `useMentions`, `task_history` (comment_added)          |
+| 20  | Notificações email + push               | `NotificationsPopover`, `usePushSubscription`, edge functions             |
+| 21  | Activity Feed                           | `ActivityFeed`, `ActivityItem`, `useActivityFeed`                         |
+| 22  | Export CSV                              | `ExportButton`, `exportCsv.ts`                                            |
+| 23  | Templates de projeto                    | `TemplateSelector`, `SaveAsTemplateDialog`, `project_templates` table     |
+| 24  | Sistema de planos (5 tiers)             | `subscription_plans` table, `useUserPlan`, `get_user_plan` RPC            |
+| 25  | Stripe Checkout + Webhook               | `stripe-create-checkout`, `stripe-webhook`, `stripe-sync-subscription`    |
+| 26  | Portal de gerenciamento Stripe          | `stripe-customer-portal`                                                  |
+| 27  | Downgrade com carência de 7 dias        | `process-downgrade`, `enforce-downgrade-queue`, `DowngradeQueueBanner`    |
+| 28  | Export de workspace (backup)            | `export-workspace-data` edge function                                     |
+| 29  | Swap de itens no downgrade              | `swap-downgrade-items`, `ManageDowngrade` page                            |
+| 30  | Restauração ao fazer upgrade            | `restore-downgrade` edge function                                         |
+| 31  | PWA com install page                    | `InstallBanner`, `Install` page, `useInstallPrompt`, Service Worker       |
+| 32  | Subtasks                                | `SubTasksList`, `sub_tasks` table                                         |
+| 33  | Task History completo                   | `TaskHistoryPanel`, `task_history` table                                  |
+| 34  | Task Time Metrics                       | `TaskTimeMetrics`, `useTaskMetrics`                                       |
+| 35  | Permissões granulares                   | `user_permissions` table, `PermissionsManagement`, `useReadOnly`          |
+| 36  | Roles (Master, Admin, User, Viewer)     | `user_roles`, `workspace_role`, `project_role`                            |
+| 37  | Convites com token                      | `InviteUserDialog`, `AcceptInvitation`, `invitations` table               |
+| 38  | Workspaces múltiplos                    | `CreateWorkspaceDialog`, `WorkspaceContext`, limites por plano            |
+| 39  | Categorias de projeto                   | `CategoriesManagement`, `categories` table                                |
+| 40  | Enterprise "Fale Conosco"               | `EnterpriseContact` page, `send-enterprise-contact` edge function         |
+| 41  | Página de Pricing pública               | `Pricing` page com preços dinâmicos do Stripe                             |
+| 42  | Dashboard com reports compactos         | `DashboardReportCards` com velocity, CFD, cycle time, performance         |
 
 ---
 
@@ -169,6 +169,7 @@ Configurações:      █████████░  90%  (era 33%)
 ### 4.1 Integrações Externas
 
 #### GitHub Integration
+
 - **Prioridade:** Alta
 - **Impacto:** Vincular commits/PRs a tarefas; auto-mover status ao mergear PR
 - **Como implementar:**
@@ -179,6 +180,7 @@ Configurações:      █████████░  90%  (era 33%)
 - **Impacto Stripe:** Gated por plano (Professional+). Adicionar `"github_integration": true` no JSON `features` dos planos.
 
 #### Slack Integration
+
 - **Prioridade:** Média
 - **Impacto:** Notificações de mudanças em canal Slack; comandos `/ale status`
 - **Como implementar:**
@@ -188,6 +190,7 @@ Configurações:      █████████░  90%  (era 33%)
 - **Impacto Stripe:** Gated por plano (Starter+). Feature flag no `features` JSON.
 
 ### 4.2 SSO Corporativo
+
 - **Prioridade:** Média-Alta (Enterprise)
 - **Impacto:** Login via provedor corporativo (Google Workspace, Azure AD, Okta)
 - **Como implementar:**
@@ -197,6 +200,7 @@ Configurações:      █████████░  90%  (era 33%)
 - **Impacto Stripe:** Exclusivo Enterprise. Configurado manualmente conforme `docs/ENTERPRISE.md`.
 
 ### 4.3 Time Tracking Nativo
+
 - **Prioridade:** Alta
 - **Impacto:** Timer integrado na tarefa; relatórios de horas; produtividade
 - **Como implementar:**
@@ -220,6 +224,7 @@ Configurações:      █████████░  90%  (era 33%)
 - **Novas permissões:** `can_track_time`, `can_view_time_reports` no `user_permissions`.
 
 ### 4.4 Automações (Rules Engine)
+
 - **Prioridade:** Média
 - **Impacto:** "Quando X acontecer, faça Y" (ex: mover para Done → notificar owner)
 - **Como implementar:**
@@ -244,6 +249,7 @@ Configurações:      █████████░  90%  (era 33%)
 - **Novas permissões:** `can_manage_automations` no `user_permissions`.
 
 ### 4.5 Custom Dashboards
+
 - **Prioridade:** Baixa
 - **Impacto:** Dashboards montáveis com widgets drag-and-drop
 - **Como implementar:**
@@ -253,6 +259,7 @@ Configurações:      █████████░  90%  (era 33%)
 - **Impacto Stripe:** Gated por plano (Professional+). Dashboards custom como feature premium.
 
 ### 4.6 Importador de Boards (Trello/Asana)
+
 - **Prioridade:** Média-Alta
 - **Impacto:** Reduz barreira de entrada; facilita migração de concorrentes
 - **Como implementar:**
@@ -266,6 +273,7 @@ Configurações:      █████████░  90%  (era 33%)
 - **Impacto Stripe:** Disponível para todos os planos (incentiva adoção). Sem impacto no Stripe.
 
 ### 4.7 Templates Setoriais Expandidos
+
 - **Prioridade:** Baixa
 - **Impacto:** Onboarding mais rápido; percepção de valor imediato
 - **Como implementar:**
@@ -275,6 +283,7 @@ Configurações:      █████████░  90%  (era 33%)
 - **Impacto Stripe:** Sem impacto. Templates básicos para todos; templates premium para planos pagos.
 
 ### 4.8 Export PDF
+
 - **Prioridade:** Média
 - **Impacto:** Relatórios profissionais para stakeholders
 - **Como implementar:**
@@ -285,6 +294,7 @@ Configurações:      █████████░  90%  (era 33%)
 - **Impacto Stripe:** Gated por plano (Starter+). Adicionar `"pdf_export": true` no `features`.
 
 ### 4.9 Multi-idioma (i18n)
+
 - **Prioridade:** Média-Alta
 - **Impacto:** Abertura para mercado internacional; profissionalismo
 - **Como implementar:**
@@ -297,6 +307,7 @@ Configurações:      █████████░  90%  (era 33%)
 - **Esforço:** Alto (centenas de strings para traduzir), mas pode ser feito incrementalmente.
 
 ### 4.10 Modo Offline (PWA Enhanced)
+
 - **Prioridade:** Baixa
 - **Impacto:** Uso sem internet; sync ao reconectar
 - **Como implementar:**
@@ -307,6 +318,7 @@ Configurações:      █████████░  90%  (era 33%)
 - **Impacto Stripe:** Feature premium (Professional+).
 
 ### 4.11 API Pública
+
 - **Prioridade:** Média
 - **Impacto:** Integrações custom; automações externas; ecossistema
 - **Como implementar:**
@@ -317,6 +329,7 @@ Configurações:      █████████░  90%  (era 33%)
 - **Impacto Stripe:** Gated por plano. Free: sem API. Starter: 100 req/dia. Professional: 5.000/dia. Enterprise: ilimitado.
 
 ### 4.12 Webhooks Outgoing
+
 - **Prioridade:** Baixa-Média
 - **Impacto:** Notificar sistemas externos sobre eventos no ALE
 - **Como implementar:**
@@ -331,29 +344,30 @@ Configurações:      █████████░  90%  (era 33%)
 
 ### 5.1 Features que NÃO afetam planos (disponível para todos)
 
-| Feature | Razão |
-|---|---|
-| Importador de boards | Incentiva adoção e migração |
-| Templates setoriais básicos | Melhora onboarding |
-| Multi-idioma (i18n) | Experiência base do produto |
-| Melhorias de UI/UX | Valor para todos os usuários |
+| Feature                     | Razão                        |
+| --------------------------- | ---------------------------- |
+| Importador de boards        | Incentiva adoção e migração  |
+| Templates setoriais básicos | Melhora onboarding           |
+| Multi-idioma (i18n)         | Experiência base do produto  |
+| Melhorias de UI/UX          | Valor para todos os usuários |
 
 ### 5.2 Features que devem ser GATED por plano
 
-| Feature | Free | Starter | Professional | Enterprise |
-|---|---|---|---|---|
-| Time Tracking | ❌ | ❌ | ✅ | ✅ |
-| GitHub Integration | ❌ | ❌ | ✅ | ✅ |
-| Slack Integration | ❌ | ✅ | ✅ | ✅ |
-| Automações | 0 | 5 | 25 | Ilimitado |
-| Export PDF | ❌ | ✅ | ✅ | ✅ |
-| Custom Dashboards | ❌ | ❌ | ✅ | ✅ |
-| API Pública | ❌ | 100 req/dia | 5.000 req/dia | Ilimitado |
-| Webhooks Outgoing | ❌ | ❌ | ✅ | ✅ |
-| Modo Offline | ❌ | ❌ | ✅ | ✅ |
-| SSO (SAML) | ❌ | ❌ | ❌ | ✅ |
+| Feature            | Free | Starter     | Professional  | Enterprise |
+| ------------------ | ---- | ----------- | ------------- | ---------- |
+| Time Tracking      | ❌   | ❌          | ✅            | ✅         |
+| GitHub Integration | ❌   | ❌          | ✅            | ✅         |
+| Slack Integration  | ❌   | ✅          | ✅            | ✅         |
+| Automações         | 0    | 5           | 25            | Ilimitado  |
+| Export PDF         | ❌   | ✅          | ✅            | ✅         |
+| Custom Dashboards  | ❌   | ❌          | ✅            | ✅         |
+| API Pública        | ❌   | 100 req/dia | 5.000 req/dia | Ilimitado  |
+| Webhooks Outgoing  | ❌   | ❌          | ✅            | ✅         |
+| Modo Offline       | ❌   | ❌          | ✅            | ✅         |
+| SSO (SAML)         | ❌   | ❌          | ❌            | ✅         |
 
 **Implementação no Stripe:** Adicionar flags ao JSON `features` da tabela `subscription_plans`. Exemplo:
+
 ```json
 {
   "time_tracking": true,
@@ -371,11 +385,11 @@ Configurações:      █████████░  90%  (era 33%)
 
 Para cenários futuros onde o cliente quer uma feature específica sem mudar de plano:
 
-| Add-on | Preço sugerido | Implementação |
-|---|---|---|
-| Time Tracking Pack | +R$5/user/mês | Novo produto no Stripe com metadata `addon: time_tracking` |
-| GitHub Integration | +R$10/workspace/mês | Novo produto no Stripe |
-| API Access | +R$15/workspace/mês | Novo produto no Stripe |
+| Add-on             | Preço sugerido      | Implementação                                              |
+| ------------------ | ------------------- | ---------------------------------------------------------- |
+| Time Tracking Pack | +R$5/user/mês       | Novo produto no Stripe com metadata `addon: time_tracking` |
+| GitHub Integration | +R$10/workspace/mês | Novo produto no Stripe                                     |
+| API Access         | +R$15/workspace/mês | Novo produto no Stripe                                     |
 
 **Nota:** Add-ons requerem lógica adicional no webhook para gerenciar múltiplas subscriptions por usuário.
 
@@ -385,13 +399,13 @@ Para cenários futuros onde o cliente quer uma feature específica sem mudar de 
 
 ### Comparação de preços (USD/usuário/mês)
 
-| Tier | ALE (BRL→USD aprox.) | Jira | Asana | ClickUp | Monday | Trello |
-|---|---|---|---|---|---|---|
-| Free | $0 | $0 | $0 | $0 | $0 | $0 |
-| Starter/Basic | ~$4-6 | $8.60 | $10.99 | $7 | $14 | $5 |
-| Standard/Pro | ~$7-10 | — | $24.99 | $12 | $27 | $10 |
-| Professional | ~$12-15 | — | — | — | — | $17.50 |
-| Enterprise | Custom | Custom | Custom | Custom | Custom | Custom |
+| Tier          | ALE (BRL→USD aprox.) | Jira   | Asana  | ClickUp | Monday | Trello |
+| ------------- | -------------------- | ------ | ------ | ------- | ------ | ------ |
+| Free          | $0                   | $0     | $0     | $0      | $0     | $0     |
+| Starter/Basic | ~$4-6                | $8.60  | $10.99 | $7      | $14    | $5     |
+| Standard/Pro  | ~$7-10               | —      | $24.99 | $12     | $27    | $10    |
+| Professional  | ~$12-15              | —      | —      | —       | —      | $17.50 |
+| Enterprise    | Custom               | Custom | Custom | Custom  | Custom | Custom |
 
 ### Vantagens competitivas de preço
 
@@ -407,31 +421,31 @@ Para cenários futuros onde o cliente quer uma feature específica sem mudar de 
 
 ### Fase 5 — Integrações & Migração (Impacto alto, esforço médio)
 
-| # | Feature | Esforço | Prioridade |
-|---|---|---|---|
-| 1 | Importador Trello/Asana | 2-3 dias | 🔴 Alta |
-| 2 | Multi-idioma (i18n) - pt-BR + en | 5-7 dias | 🔴 Alta |
-| 3 | Export PDF | 2-3 dias | 🟡 Média |
-| 4 | Templates setoriais expandidos | 1-2 dias | 🟡 Média |
+| #   | Feature                          | Esforço  | Prioridade |
+| --- | -------------------------------- | -------- | ---------- |
+| 1   | Importador Trello/Asana          | 2-3 dias | 🔴 Alta    |
+| 2   | Multi-idioma (i18n) - pt-BR + en | 5-7 dias | 🔴 Alta    |
+| 3   | Export PDF                       | 2-3 dias | 🟡 Média   |
+| 4   | Templates setoriais expandidos   | 1-2 dias | 🟡 Média   |
 
 ### Fase 6 — Produtividade (Impacto alto, esforço alto)
 
-| # | Feature | Esforço | Prioridade |
-|---|---|---|---|
-| 5 | Time Tracking nativo | 5-7 dias | 🔴 Alta |
-| 6 | Automações básicas | 7-10 dias | 🟡 Média |
-| 7 | GitHub Integration | 5-7 dias | 🟡 Média |
-| 8 | Slack Integration | 3-5 dias | 🟡 Média |
+| #   | Feature              | Esforço   | Prioridade |
+| --- | -------------------- | --------- | ---------- |
+| 5   | Time Tracking nativo | 5-7 dias  | 🔴 Alta    |
+| 6   | Automações básicas   | 7-10 dias | 🟡 Média   |
+| 7   | GitHub Integration   | 5-7 dias  | 🟡 Média   |
+| 8   | Slack Integration    | 3-5 dias  | 🟡 Média   |
 
 ### Fase 7 — Enterprise & Escala (Impacto médio, esforço alto)
 
-| # | Feature | Esforço | Prioridade |
-|---|---|---|---|
-| 9 | API Pública | 7-10 dias | 🟡 Média |
-| 10 | SSO Corporativo | 3-5 dias | 🟢 Baixa |
-| 11 | Custom Dashboards | 7-10 dias | 🟢 Baixa |
-| 12 | Webhooks Outgoing | 3-5 dias | 🟢 Baixa |
-| 13 | Modo Offline Enhanced | 7-10 dias | 🟢 Baixa |
+| #   | Feature               | Esforço   | Prioridade |
+| --- | --------------------- | --------- | ---------- |
+| 9   | API Pública           | 7-10 dias | 🟡 Média   |
+| 10  | SSO Corporativo       | 3-5 dias  | 🟢 Baixa   |
+| 11  | Custom Dashboards     | 7-10 dias | 🟢 Baixa   |
+| 12  | Webhooks Outgoing     | 3-5 dias  | 🟢 Baixa   |
+| 13  | Modo Offline Enhanced | 7-10 dias | 🟢 Baixa   |
 
 ### Estimativa total: 8-12 semanas (Fases 5-7)
 
@@ -448,6 +462,7 @@ O ALE alcançou **paridade funcional com Trello** e **supera Notion/Monday em fu
 - ✅ **Interface em PT-BR** (foco no mercado brasileiro)
 
 Os **gaps principais** vs líderes de mercado são:
+
 - ❌ Integrações (GitHub, Slack)
 - ❌ Time Tracking
 - ❌ Automações
