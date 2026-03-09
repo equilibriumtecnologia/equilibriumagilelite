@@ -96,6 +96,7 @@ function useDismissedWarnings() {
 }
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const { projects, loading } = useProjects();
   const { tasks } = useTasks();
   const navigate = useNavigate();
