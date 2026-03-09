@@ -31,13 +31,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Validate authorization - only accept service role key (from cron job)
+    // Validate authorization - accept anon key (from pg_cron) or service role key
     const authHeader = req.headers.get("Authorization");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
     if (!authHeader?.startsWith("Bearer ")) {
-      console.error("Unauthorized: missing auth header");
+      console.error("[check-due-tasks] Unauthorized: missing auth header");
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -45,13 +46,17 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const providedKey = authHeader.replace("Bearer ", "");
-    if (providedKey !== serviceRoleKey) {
-      console.error("Unauthorized: invalid service role key");
+    if (providedKey !== serviceRoleKey && providedKey !== anonKey) {
+      console.error("[check-due-tasks] Unauthorized: invalid key provided");
       return new Response(
-        JSON.stringify({ error: "Forbidden: Only service role can call this function" }),
+        JSON.stringify({ error: "Forbidden" }),
         { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    console.log("[check-due-tasks] Authorized, starting task check...");
+
+    // Always use service role client for admin operations
     const supabase = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
