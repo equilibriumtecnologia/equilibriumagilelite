@@ -40,6 +40,8 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useTasks } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
+import { checkSubTasksCompletion } from "@/lib/checkSubTasksCompletion";
+import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import { useProject } from "@/hooks/useProject";
 import { Label } from "@/components/ui/label";
