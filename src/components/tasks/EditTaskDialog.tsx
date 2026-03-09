@@ -40,6 +40,8 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useTasks } from "@/hooks/useTasks";
 import { useProjects } from "@/hooks/useProjects";
+import { checkSubTasksCompletion } from "@/lib/checkSubTasksCompletion";
+import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import { useProject } from "@/hooks/useProject";
 import { Label } from "@/components/ui/label";
@@ -145,6 +147,17 @@ export const EditTaskDialog = ({
     const invalidBlocks = infoBlocks.filter((b) => !b.title.trim());
     if (invalidBlocks.length > 0) {
       return;
+    }
+
+    // Block completion if there are incomplete sub-tasks
+    if (data.status === "completed" && data.status !== task.status) {
+      const { hasIncomplete, pending, total } = await checkSubTasksCompletion(task.id);
+      if (hasIncomplete) {
+        toast.error(`Não é possível concluir esta atividade`, {
+          description: `Existem ${pending} de ${total} sub-tarefas pendentes no checklist. Conclua todas antes de finalizar.`,
+        });
+        return;
+      }
     }
 
     const updateData = {

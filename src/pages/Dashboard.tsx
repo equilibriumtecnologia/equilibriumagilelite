@@ -96,6 +96,7 @@ function useDismissedWarnings() {
 }
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const { projects, loading } = useProjects();
   const { tasks } = useTasks();
   const navigate = useNavigate();
@@ -285,20 +286,96 @@ const Dashboard = () => {
             </div>
           </Card>
 
-          {/* Upcoming Tasks */}
+        {/* Upcoming Tasks */}
           <Card className="p-4 sm:p-6 border-border">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-base sm:text-xl font-semibold flex items-center gap-2">
                 <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-warning" />
                 Próximas Tarefas
               </h2>
-              <Link to="/tasks">
+              <Link to="/activities">
                 <Button variant="ghost" size="sm" className="text-xs sm:text-sm">Ver Todas</Button>
               </Link>
             </div>
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              Visualize todas as tarefas na página de Atividades
-            </div>
+            {(() => {
+              const myPendingTasks = (tasks || [])
+                .filter(t => t.assigned_to === user?.id && t.status !== "completed")
+                .sort((a, b) => {
+                  if (!a.due_date && !b.due_date) return 0;
+                  if (!a.due_date) return 1;
+                  if (!b.due_date) return -1;
+                  return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+                })
+                .slice(0, 5);
+
+              const priorityColors: Record<string, string> = {
+                urgent: "text-destructive",
+                high: "text-warning",
+                medium: "text-primary",
+                low: "text-muted-foreground",
+              };
+              const priorityLabels: Record<string, string> = {
+                urgent: "Urgente",
+                high: "Alta",
+                medium: "Média",
+                low: "Baixa",
+              };
+              const statusLabels: Record<string, string> = {
+                todo: "A Fazer",
+                in_progress: "Em Andamento",
+                review: "Revisão",
+              };
+
+              if (myPendingTasks.length === 0) {
+                return (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    Nenhuma tarefa pendente atribuída a você
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-3 sm:space-y-4">
+                  {myPendingTasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="flex items-center justify-between p-3 sm:p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
+                      onClick={() => navigate(`/projects/${task.project_id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === "Enter" && navigate(`/projects/${task.project_id}`)}
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                          task.priority === "urgent" ? "bg-destructive" :
+                          task.priority === "high" ? "bg-warning" :
+                          task.priority === "medium" ? "bg-primary" : "bg-muted-foreground"
+                        }`} />
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{task.title}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className={priorityColors[task.priority]}>{priorityLabels[task.priority]}</span>
+                            <span>·</span>
+                            <span>{statusLabels[task.status] || task.status}</span>
+                            {task.due_date && (
+                              <>
+                                <span>·</span>
+                                <span className={
+                                  new Date(task.due_date) < new Date() ? "text-destructive font-medium" : ""
+                                }>
+                                  {new Date(task.due_date).toLocaleDateString("pt-BR")}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block flex-shrink-0" />
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </Card>
         </div>
 

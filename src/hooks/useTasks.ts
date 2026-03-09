@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import type { Tables, TablesInsert, TablesUpdate, Enums } from "@/integrations/supabase/types";
+import { checkSubTasksCompletion } from "@/lib/checkSubTasksCompletion";
 
 type Task = Tables<"tasks"> & {
   assigned_user?: Tables<"profiles"> | null;
@@ -165,6 +166,14 @@ export const useTasks = (projectId?: string) => {
         .single();
 
       if (fetchError) throw fetchError;
+
+      // Block completion if there are incomplete sub-tasks
+      if (updates.status === "completed" && updates.status !== currentTask.status) {
+        const { hasIncomplete, pending, total } = await checkSubTasksCompletion(id);
+        if (hasIncomplete) {
+          throw new Error(`Não é possível concluir: ${pending} de ${total} sub-tarefas pendentes no checklist.`);
+        }
+      }
 
       // Extract historyComment from updates to not send it to the database
       const { historyComment, ...dbUpdates } = updates as any;

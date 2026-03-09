@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Layers, LayoutGrid } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { checkSubTasksCompletion } from "@/lib/checkSubTasksCompletion";
 import type { Database } from "@/integrations/supabase/types";
 import { KanbanColumn } from "./KanbanColumn";
 import { KanbanTaskCard } from "./KanbanTaskCard";
@@ -200,6 +201,17 @@ export function KanbanBoard({ tasks, onUpdate, projectId, members = [], sprints 
     if (wipLimit && newColumnCount >= wipLimit) {
       toast.error(`Limite WIP atingido para "${columns.find(c => c.id === newStatus)?.title}"`);
       return;
+    }
+
+    // Block completion if there are incomplete sub-tasks
+    if (newStatus === "completed") {
+      const { hasIncomplete, pending, total } = await checkSubTasksCompletion(taskId);
+      if (hasIncomplete) {
+        toast.error(`Não é possível concluir esta atividade`, {
+          description: `Existem ${pending} de ${total} sub-tarefas pendentes no checklist. Conclua todas antes de finalizar.`,
+        });
+        return;
+      }
     }
 
     setPendingChange({

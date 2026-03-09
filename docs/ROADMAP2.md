@@ -23,7 +23,7 @@
 | 2.1 Tabela de Sprints | ✅ Feito | Tabela `sprints`, `useSprints.ts`, CRUD completo |
 | 2.2 Página de Backlog | ✅ Feito | `Backlog.tsx`, `BacklogItem.tsx`, `MoveToSprintDialog.tsx` |
 | 2.3 Sprint Planning View | ✅ Feito | `SprintPlanningDialog.tsx` com split-view e drag-and-drop |
-| 2.4 Swimlanes por Sprint | ❌ Não feito | Kanban não agrupa por sprint |
+| 2.4 Swimlanes por Sprint | ✅ Feito | `KanbanSwimlane.tsx`, `KanbanBoard.tsx` (toggle flat/swimlanes) |
 
 ### ✅ Fase 3 - Analytics e Reports (85% Concluída)
 
@@ -53,7 +53,7 @@
 | 5.1 IA para Priorização | ✅ Feito |
 | 5.2 Previsão de Entrega | ✅ Feito |
 | 5.3 Bottleneck Detection | ✅ Feito |
-| 5.4 Templates de Projeto | ❌ Não feito |
+| 5.4 Templates de Projeto | ✅ Feito |
 | 5.5 Integrações (Webhooks) | ❌ Não feito |
 
 ### ⚠️ Fase 6 - Monetização (80% Concluída)
@@ -61,7 +61,7 @@
 | Feature | Status | Evidência |
 |---------|--------|-----------|
 | 6.1 Sistema de Planos | ✅ Feito | `subscription_plans`, `user_subscriptions`, `useUserPlan.ts` |
-| 6.2 Integração Stripe | ❌ Não feito | Sem edge functions de checkout/webhook |
+| 6.2 Integração Stripe | ✅ Feito | `stripe-get-prices`, `stripe-create-checkout`, `stripe-webhook`, `stripe-sync-subscription`, `stripe-customer-portal` |
 | 6.3 Limite de Uso e Upselling | ✅ Feito | `useUserPlan.ts`, indicadores no Sidebar, verificação em `CreateProjectDialog`, `InviteUserDialog`, botão upgrade para owner |
 
 ---

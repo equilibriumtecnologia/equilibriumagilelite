@@ -32,8 +32,8 @@ serve(async (req) => {
         limit: 10,
       });
 
-      const monthlyPrice = prices.data.find(p => p.recurring?.interval === "month");
-      const yearlyPrice = prices.data.find(p => p.recurring?.interval === "year");
+      const monthlyPrice = prices.data.find((p: any) => p.recurring?.interval === "month");
+      const yearlyPrice = prices.data.find((p: any) => p.recurring?.interval === "year");
 
       plansWithPrices.push({
         product_id: product.id,
