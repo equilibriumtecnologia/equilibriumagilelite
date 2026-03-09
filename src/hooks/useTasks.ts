@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import type { Tables, TablesInsert, TablesUpdate, Enums } from "@/integrations/supabase/types";
+import { checkSubTasksCompletion } from "@/lib/checkSubTasksCompletion";
 
 type Task = Tables<"tasks"> & {
   assigned_user?: Tables<"profiles"> | null;
