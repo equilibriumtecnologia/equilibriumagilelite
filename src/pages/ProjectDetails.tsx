@@ -305,6 +305,11 @@ const ProjectDetails = () => {
         </div>
       </Card>
 
+      {/* Metrics & Reports */}
+      <div className="mb-4 sm:mb-8">
+        <ProjectReportCards projectId={project.id} />
+      </div>
+
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
         {/* Tasks Section */}
