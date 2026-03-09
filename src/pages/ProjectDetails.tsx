@@ -39,6 +39,7 @@ import { AISuggestionsPanel } from "@/components/ai/AISuggestionsPanel";
 import { useAIPrioritization } from "@/hooks/useAIPrioritization";
 import { useTasks } from "@/hooks/useTasks";
 import { useTeam } from "@/hooks/useTeam";
+import { ProjectReportCards } from "@/components/projects/ProjectReportCards";
 import { toast } from "sonner";
 
 const statusLabels: Record<string, string> = {
@@ -303,6 +304,11 @@ const ProjectDetails = () => {
           <Progress value={progress} />
         </div>
       </Card>
+
+      {/* Metrics & Reports */}
+      <div className="mb-4 sm:mb-8">
+        <ProjectReportCards projectId={project.id} />
+      </div>
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
