@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Layers, LayoutGrid } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { checkSubTasksCompletion } from "@/lib/checkSubTasksCompletion";
 import type { Database } from "@/integrations/supabase/types";
 import { KanbanColumn } from "./KanbanColumn";
 import { KanbanTaskCard } from "./KanbanTaskCard";
